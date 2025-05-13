@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "364766041367",
+    "project_id": "corona-lms-cc0db",
+    "storage_bucket": "corona-lms-cc0db.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:364766041367:android:7c80a93f0ce003b46b9352",
+        "android_client_info": {
+          "package_name": "com.example.corona_lms_webapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSNgjTLqKz0AtPL20MG6gJNbP-EfijT1Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
