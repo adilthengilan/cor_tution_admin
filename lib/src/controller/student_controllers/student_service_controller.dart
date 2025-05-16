@@ -26,8 +26,7 @@ class StudentService {
     List currentStudents = doc['studentDetails'];
 
     // Remove old student
-    currentStudents
-        .removeWhere((student) => student['student_name'] == studentId);
+    currentStudents.removeWhere((student) => student['id'] == studentId);
     // Add updated student
     currentStudents.add(newStudentData);
 

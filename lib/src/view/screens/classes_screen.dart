@@ -1,6 +1,10 @@
+import 'package:corona_lms_webapp/src/controller/classes_controllers/classes_controllers.dart';
+import 'package:corona_lms_webapp/src/controller/classes_controllers/fetch_classes.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 
 class ClassesScreen extends StatefulWidget {
   const ClassesScreen({Key? key}) : super(key: key);
@@ -36,83 +40,82 @@ class _ClassesScreenState extends State<ClassesScreen>
     'Geography'
   ];
 
-  final List<Map<String, dynamic>> _classMaterials = [
-    {
-      'id': 'CM-1001',
-      'title': 'Introduction to Algebra',
-      'description':
-          'Basic concepts of algebra including variables, expressions, and equations.',
-      'type': 'Video',
-      'class': '10th',
-      'subject': 'Mathematics',
-      'uploadDate': '12 May 2023',
-      'url': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      'thumbnail':
-          'https://www.bing.com/images/search?view=detailV2&ccid=zzF9NM61&id=60FB81936A188780A1458EF7431BB943162B2328&thid=OIP.zzF9NM61X6zFtt8KAUD11gHaEo&mediaurl=https%3a%2f%2fcdn.leverageedu.com%2fblog%2fwp-content%2fuploads%2f2020%2f03%2f24185535%2fOnline-Learning.png&exph=2293&expw=3667&q=Online+Education&simid=607994609461392870&FORM=IRPRST&ck=017E10602188304B53B48F0DF51DB413&selectedIndex=1&itb=0',
-    },
-    {
-      'id': 'CM-1001',
-      'title': 'Introduction to Algebra',
-      'description':
-          'Basic concepts of algebra including variables, expressions, and equations.',
-      'type': 'Video',
-      'class': '10th',
-      'subject': 'Mathematics',
-      'uploadDate': '12 May 2023',
-      'url': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      'thumbnail': 'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
-    },
-    {
-      'id': 'CM-1003',
-      'title': 'Periodic Table of Elements',
-      'description':
-          'Interactive guide to the periodic table with detailed information about each element.',
-      'type': 'Interactive',
-      'class': '11th',
-      'subject': 'Chemistry',
-      'uploadDate': '20 May 2023',
-      'url': 'https://example.com/periodic-table-interactive',
-      'thumbnail': 'https://example.com/chemistry-thumbnail.jpg',
-    },
-    {
-      'id': 'CM-1004',
-      'title': 'Cell Structure and Function',
-      'description':
-          'Detailed explanation of cell structure, organelles, and their functions.',
-      'type': 'Video',
-      'class': '10th',
-      'subject': 'Biology',
-      'uploadDate': '25 May 2023',
-      'url': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      'thumbnail': 'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
-    },
-    {
-      'id': 'CM-1005',
-      'title': 'Shakespeare\'s Macbeth',
-      'description':
-          'Analysis of themes, characters, and literary devices in Shakespeare\'s Macbeth.',
-      'type': 'Document',
-      'class': '9th',
-      'subject': 'English',
-      'uploadDate': '30 May 2023',
-      'url': 'https://example.com/macbeth-analysis.pdf',
-      'thumbnail': 'https://example.com/english-thumbnail.jpg',
-    },
-    {
-      'id': 'CM-1006',
-      'title': 'World War II Timeline',
-      'description':
-          'Comprehensive timeline of major events during World War II.',
-      'type': 'Interactive',
-      'class': '8th',
-      'subject': 'History',
-      'uploadDate': '05 Jun 2023',
-      'url': 'https://example.com/ww2-timeline',
-      'thumbnail': 'https://example.com/history-thumbnail.jpg',
-    },
+  List<dynamic> _classMaterials = [
+    // {
+    //   'id': 'CM-1001',
+    //   'title': 'Introduction to Algebra',
+    //   'description':
+    //       'Basic concepts of algebra including variables, expressions, and equations.',
+    //   'type': 'Video',
+    //   'class': '10th',
+    //   'subject': 'Mathematics',
+    //   'uploadDate': '12 May 2023',
+    //   'url': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    //   'thumbnail':
+    //       'https://www.bing.com/images/search?view=detailV2&ccid=zzF9NM61&id=60FB81936A188780A1458EF7431BB943162B2328&thid=OIP.zzF9NM61X6zFtt8KAUD11gHaEo&mediaurl=https%3a%2f%2fcdn.leverageedu.com%2fblog%2fwp-content%2fuploads%2f2020%2f03%2f24185535%2fOnline-Learning.png&exph=2293&expw=3667&q=Online+Education&simid=607994609461392870&FORM=IRPRST&ck=017E10602188304B53B48F0DF51DB413&selectedIndex=1&itb=0',
+    // },
+    // {
+    //   'id': 'CM-1001',
+    //   'title': 'Introduction to Algebra',
+    //   'description':
+    //       'Basic concepts of algebra including variables, expressions, and equations.',
+    //   'type': 'Video',
+    //   'class': '10th',
+    //   'subject': 'Mathematics',
+    //   'uploadDate': '12 May 2023',
+    //   'url': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    //   'thumbnail': 'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+    // },
+    // {
+    //   'id': 'CM-1003',
+    //   'title': 'Periodic Table of Elements',
+    //   'description':
+    //       'Interactive guide to the periodic table with detailed information about each element.',
+    //   'type': 'Interactive',
+    //   'class': '11th',
+    //   'subject': 'Chemistry',
+    //   'uploadDate': '20 May 2023',
+    //   'url': 'https://example.com/periodic-table-interactive',
+    //   'thumbnail': 'https://example.com/chemistry-thumbnail.jpg',
+    // },
+    // {
+    //   'id': 'CM-1004',
+    //   'title': 'Cell Structure and Function',
+    //   'description':
+    //       'Detailed explanation of cell structure, organelles, and their functions.',
+    //   'type': 'Video',
+    //   'class': '10th',
+    //   'subject': 'Biology',
+    //   'uploadDate': '25 May 2023',
+    //   'url': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    //   'thumbnail': 'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+    // },
+    // {
+    //   'id': 'CM-1005',
+    //   'title': 'Shakespeare\'s Macbeth',
+    //   'description':
+    //       'Analysis of themes, characters, and literary devices in Shakespeare\'s Macbeth.',
+    //   'type': 'Document',
+    //   'class': '9th',
+    //   'subject': 'English',
+    //   'uploadDate': '30 May 2023',
+    //   'url': 'https://example.com/macbeth-analysis.pdf',
+    //   'thumbnail': 'https://example.com/english-thumbnail.jpg',
+    // },
+    // {
+    //   'id': 'CM-1006',
+    //   'title': 'World War II Timeline',
+    //   'description':
+    //       'Comprehensive timeline of major events during World War II.',
+    //   'type': 'Interactive',
+    //   'class': '8th',
+    //   'subject': 'History',
+    //   'uploadDate': '05 Jun 2023',
+    //   'url': 'https://example.com/ww2-timeline',
+    //   'thumbnail': 'https://example.com/history-thumbnail.jpg',
+    // },
   ];
-
-  List<Map<String, dynamic>> get _filteredMaterials {
+  List<dynamic> get _filteredMaterials {
     return _classMaterials.where((material) {
       final title = material['title'].toString().toLowerCase();
       final description = material['description'].toString().toLowerCase();
@@ -149,6 +152,9 @@ class _ClassesScreenState extends State<ClassesScreen>
 
   @override
   Widget build(BuildContext context) {
+    final classses = Provider.of<ClassDetailsProvider>(context);
+    classses.fetchclass('classes_@corona', context);
+    _classMaterials = classses.classDetails;
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -203,6 +209,8 @@ class _ClassesScreenState extends State<ClassesScreen>
   }
 
   Widget _buildMaterialsTab(String type) {
+    final classses = Provider.of<ClassDetailsProvider>(context);
+
     final materials = type == 'All'
         ? _filteredMaterials
         : _filteredMaterials
@@ -338,6 +346,8 @@ class _ClassesScreenState extends State<ClassesScreen>
   }
 
   Widget _buildMaterialCard(Map<String, dynamic> material) {
+    final classses = Provider.of<ClassDetailsProvider>(context);
+    classses.fetchclass('classes_@corona', context);
     IconData typeIcon;
     Color typeColor;
 
@@ -553,6 +563,7 @@ class _ClassesScreenState extends State<ClassesScreen>
   }
 
   void _showAddMaterialDialog() {
+    final classmodel = ClassesService();
     final TextEditingController titleController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
     final TextEditingController urlController = TextEditingController();
@@ -603,8 +614,8 @@ class _ClassesScreenState extends State<ClassesScreen>
                     DropdownMenuItem(value: 'Video', child: Text('Video')),
                     DropdownMenuItem(
                         value: 'Document', child: Text('Document')),
-                    DropdownMenuItem(
-                        value: 'Interactive', child: Text('Interactive')),
+                    // DropdownMenuItem(
+                    //     value: 'Interactive', child: Text('Interactive')),
                   ],
                   onChanged: (value) {
                     selectedType = value!;
@@ -698,6 +709,19 @@ class _ClassesScreenState extends State<ClassesScreen>
           ),
           ElevatedButton(
             onPressed: () {
+              DateTime now = DateTime.now();
+              String formattedDate = DateFormat('dd-MM-yyyy').format(now);
+              classmodel.addClasses('classes_@corona', {
+                'title': titleController.text,
+                'description': descriptionController.text,
+                'type': selectedType,
+                'class': selectedClass,
+                'subject': selectedSubject,
+                'uploadDate': formattedDate,
+                'url': urlController.text,
+              });
+              // Provider.of<ClassDetailsProvider>(context, listen: false)
+              //     .fetchclass('classes_@corona', context);
               // Add material logic here
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -706,6 +730,7 @@ class _ClassesScreenState extends State<ClassesScreen>
                   backgroundColor: Colors.green,
                 ),
               );
+              setState(() {});
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF3B82F6),
@@ -929,4 +954,10 @@ class _ClassesScreenState extends State<ClassesScreen>
       ),
     );
   }
+}
+
+String getFormattedDate() {
+  DateTime now = DateTime.now();
+  String formattedDate = DateFormat('dd-MM-yyyy').format(now);
+  return formattedDate;
 }

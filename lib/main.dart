@@ -1,5 +1,6 @@
 import 'package:corona_lms_webapp/firebase_options.dart';
-import 'package:corona_lms_webapp/src/controller/fetch_Student_Details.dart';
+import 'package:corona_lms_webapp/src/controller/classes_controllers/fetch_classes.dart';
+import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
 import 'package:corona_lms_webapp/src/view/screens/attendance_screen.dart';
 import 'package:corona_lms_webapp/src/view/screens/classes_screen.dart';
 import 'package:corona_lms_webapp/src/view/screens/dashboard_screen.dart';
@@ -25,6 +26,9 @@ void main() async {
     providers: [
       ChangeNotifierProvider<StudentDetailsProvider>(
         create: (context) => StudentDetailsProvider(),
+      ),
+      ChangeNotifierProvider<ClassDetailsProvider>(
+        create: (context) => ClassDetailsProvider(),
       )
     ],
     child: MyApp(),

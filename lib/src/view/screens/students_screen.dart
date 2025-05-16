@@ -1,5 +1,5 @@
-import 'package:corona_lms_webapp/src/controller/fetch_Student_Details.dart';
-import 'package:corona_lms_webapp/src/controller/student_service_controller.dart';
+import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
+import 'package:corona_lms_webapp/src/controller/student_controllers/student_service_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,6 +16,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Active', 'Inactive', 'Due Fees'];
   String _selectedClass = 'All Classes';
+  String _selectedDivision = 'Division';
   final List<String> _classes = [
     'All Classes',
     '12th',
@@ -25,6 +26,16 @@ class _StudentsScreenState extends State<StudentsScreen> {
     '8th',
     '7th',
     '6th'
+  ];
+  final List<String> _Division = [
+    'All Division',
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+    'G'
   ];
 
   List<dynamic> _students = [
@@ -142,7 +153,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
   Widget build(BuildContext context) {
     getingData(context);
 
-    final studentDetailss = StudentData();
+    final studentDetailss =
+        Provider.of<StudentDetailsProvider>(context, listen: false);
     studentDetailss.fetchStudents('Student_list_@12', context);
     getingData(context);
     return Scaffold(
@@ -424,6 +436,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                               ),
                             )
                           : ListView.builder(
+                              shrinkWrap: true,
                               itemCount: _filteredStudents.length,
                               itemBuilder: (context, index) {
                                 final student = _filteredStudents[index];
@@ -466,15 +479,46 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                               ],
                                             ),
                                           ),
-                                          // Expanded(
-                                          //   child: Text(student['id']),
-                                          // ),
+                                          Expanded(
+                                            child: Text(student['id']),
+                                          ),
                                           Expanded(
                                             child: Text(student['class']),
                                           ),
                                           // Expanded(
+                                          //   child: Text(student['Division']),
+                                          // ),
+                                          // Expanded(
                                           //   child: Text(student['course']),
                                           // ),
+                                          Expanded(
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 6),
+                                              decoration: BoxDecoration(
+                                                color: student['status'] ==
+                                                        'Active'
+                                                    ? Colors.green
+                                                        .withOpacity(0.1)
+                                                    : Colors.red
+                                                        .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              child: Text(
+                                                student['status'],
+                                                style: TextStyle(
+                                                  color: student['status'] ==
+                                                          'Active'
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                           // Expanded(
                                           //   child: Container(
                                           //     padding:
@@ -482,39 +526,11 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                           //             horizontal: 12,
                                           //             vertical: 6),
                                           //     decoration: BoxDecoration(
-                                          //       color: student['status'] ==
-                                          //               'Active'
-                                          //           ? Colors.green
-                                          //               .withOpacity(0.1)
-                                          //           : Colors.red
-                                          //               .withOpacity(0.1),
-                                          //       borderRadius:
-                                          //           BorderRadius.circular(20),
-                                          //     ),
-                                          //     child: Text(
-                                          //       student['status'],
-                                          //       style: TextStyle(
-                                          //         color: student['status'] ==
-                                          //                 'Active'
-                                          //             ? Colors.green
-                                          //             : Colors.red,
-                                          //         fontWeight: FontWeight.bold,
-                                          //       ),
-                                          //     ),
-                                          //   ),
-                                          // ),
-                                          // Expanded(
-                                          //   child: Container(
-                                          //     padding:
-                                          //         const EdgeInsets.symmetric(
-                                          //             horizontal: 12,
-                                          //             vertical: 6),
-                                          //     decoration: BoxDecoration(
-                                          //       color: student['feeStatus'] ==
+                                          //       color: student['fee_status'] ==
                                           //               'Paid'
                                           //           ? Colors.green
                                           //               .withOpacity(0.1)
-                                          //           : student['feeStatus'] ==
+                                          //           : student['fee_status'] ==
                                           //                   'Due'
                                           //               ? Colors.red
                                           //                   .withOpacity(0.1)
@@ -524,12 +540,13 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                           //           BorderRadius.circular(20),
                                           //     ),
                                           //     child: Text(
-                                          //       student['feeStatus'],
+                                          //       student['fee_status'],
                                           //       style: TextStyle(
-                                          //         color: student['feeStatus'] ==
+                                          //         color: student[
+                                          //                     'fee_status'] ==
                                           //                 'Paid'
                                           //             ? Colors.green
-                                          //             : student['feeStatus'] ==
+                                          //             : student['fee_status'] ==
                                           //                     'Due'
                                           //                 ? Colors.red
                                           //                 : Colors.orange,
@@ -587,6 +604,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
     final TextEditingController emailController = TextEditingController();
     final TextEditingController phoneController = TextEditingController();
     String selectedClass = '10th';
+    String selectedDivision = 'A';
+
     String selectedCourse = 'Mathematics';
     String selectedStatus = 'Active';
     String selectedFeeStatus = 'Paid';
@@ -652,6 +671,26 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Division',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  value: selectedDivision,
+                  items: _Division.where((c) => c != 'Division')
+                      .map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    selectedDivision = value!;
+                  },
+                ),
+                const SizedBox(height: 16),
                 TextField(
                   decoration: InputDecoration(
                     labelText: 'Course',
@@ -711,8 +750,12 @@ class _StudentsScreenState extends State<StudentsScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              print('156263');
+              final index =
+                  Provider.of<StudentDetailsProvider>(context, listen: false);
+              index.fetchNumber();
               studentService.addStudent('Student_list_@12', {
+                'division': '${selectedClass}${selectedDivision}',
+                'id': 'cor@132${index.index}',
                 'student_name': nameController.text,
                 'class': selectedClass,
                 'contact': phoneController.text,
@@ -727,8 +770,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   backgroundColor: Colors.green,
                 ),
               );
-              final StudentDatas = StudentData();
-              StudentDatas.fetchStudents('Student_list_@12', context);
+              index.updateindex();
+              // Provider.of<StudentDetailsProvider>(context, listen: false)
+              //     .fetchStudents('Student_list_@12', context);
+              setState(() {});
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF3B82F6),

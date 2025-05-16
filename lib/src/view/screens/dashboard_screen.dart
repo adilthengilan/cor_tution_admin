@@ -1,6 +1,9 @@
+import 'package:corona_lms_webapp/src/controller/classes_controllers/fetch_classes.dart';
+import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -48,6 +51,11 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ClassDetailsProvider>(context, listen: false)
+        .fetchclass('classes_@corona', context);
+    Provider.of<StudentDetailsProvider>(context, listen: false)
+        .fetchStudents('Student_list_@12', context);
+
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
