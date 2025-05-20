@@ -45,6 +45,7 @@ class StudentDetailsProvider extends ChangeNotifier {
 
       if (doc.exists) {
         index = doc.get('number');
+        print(doc.get('number'));
         return doc.get('number');
       } else {
         print('Document does not exist');

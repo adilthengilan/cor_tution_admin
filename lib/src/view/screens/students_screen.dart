@@ -214,6 +214,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 ElevatedButton.icon(
                   onPressed: () {
                     _showAddStudentDialog();
+                    final index = Provider.of<StudentDetailsProvider>(context,
+                        listen: false);
+                    index.fetchNumber();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFC107),
