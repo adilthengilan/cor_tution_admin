@@ -20,8 +20,8 @@ class StudentService {
   }
 
   /// UPDATE a student from the studentDetails array
-  Future<void> updateStudent(String docId, String studentId,
-      Map<String, dynamic> newStudentData) async {
+  Future<void> updateStudent(
+      String docId, String studentId, newStudentData) async {
     final doc = await studentsList.doc(docId).get();
     List currentStudents = doc['studentDetails'];
 

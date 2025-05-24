@@ -2,6 +2,7 @@ import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Stude
 import 'package:corona_lms_webapp/src/controller/student_controllers/student_service_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:math';
 
 class StudentsScreen extends StatefulWidget {
   const StudentsScreen({Key? key}) : super(key: key);
@@ -17,6 +18,34 @@ class _StudentsScreenState extends State<StudentsScreen> {
   final List<String> _filters = ['All', 'Active', 'Inactive', 'Due Fees'];
   String _selectedClass = 'All Classes';
   String _selectedDivision = 'Division';
+
+  // making random passwords
+  String generatePassword({
+    int length = 8,
+    bool includeUppercase = true,
+    bool includeLowercase = true,
+    bool includeNumbers = true,
+    bool includeSymbols = true,
+  }) {
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const numbers = '0123456789';
+    const symbols = '!@#\$%^&*()_-+=<>?/|';
+
+    String chars = '';
+    if (includeUppercase) chars += uppercase;
+    if (includeLowercase) chars += lowercase;
+    if (includeNumbers) chars += numbers;
+    if (includeSymbols) chars += symbols;
+
+    if (chars.isEmpty) return '';
+
+    final rand = Random.secure();
+    return List.generate(length, (index) => chars[rand.nextInt(chars.length)])
+        .join();
+  }
+
+//----------------
   final List<String> _classes = [
     'All Classes',
     '12th',
@@ -522,42 +551,42 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                               ),
                                             ),
                                           ),
-                                          // Expanded(
-                                          //   child: Container(
-                                          //     padding:
-                                          //         const EdgeInsets.symmetric(
-                                          //             horizontal: 12,
-                                          //             vertical: 6),
-                                          //     decoration: BoxDecoration(
-                                          //       color: student['fee_status'] ==
-                                          //               'Paid'
-                                          //           ? Colors.green
-                                          //               .withOpacity(0.1)
-                                          //           : student['fee_status'] ==
-                                          //                   'Due'
-                                          //               ? Colors.red
-                                          //                   .withOpacity(0.1)
-                                          //               : Colors.orange
-                                          //                   .withOpacity(0.1),
-                                          //       borderRadius:
-                                          //           BorderRadius.circular(20),
-                                          //     ),
-                                          //     child: Text(
-                                          //       student['fee_status'],
-                                          //       style: TextStyle(
-                                          //         color: student[
-                                          //                     'fee_status'] ==
-                                          //                 'Paid'
-                                          //             ? Colors.green
-                                          //             : student['fee_status'] ==
-                                          //                     'Due'
-                                          //                 ? Colors.red
-                                          //                 : Colors.orange,
-                                          //         fontWeight: FontWeight.bold,
-                                          //       ),
-                                          //     ),
-                                          //   ),
-                                          // ),
+                                          Expanded(
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 6),
+                                              decoration: BoxDecoration(
+                                                color: student['fee_status'] ==
+                                                        'Paid'
+                                                    ? Colors.green
+                                                        .withOpacity(0.1)
+                                                    : student['fee_status'] ==
+                                                            'Due'
+                                                        ? Colors.red
+                                                            .withOpacity(0.1)
+                                                        : Colors.orange
+                                                            .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              child: Text(
+                                                student['fee_status'],
+                                                style: TextStyle(
+                                                  color: student[
+                                                              'fee_status'] ==
+                                                          'Paid'
+                                                      ? Colors.green
+                                                      : student['fee_status'] ==
+                                                              'Due'
+                                                          ? Colors.red
+                                                          : Colors.orange,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                           SizedBox(
                                             width: 80,
                                             child: Row(
@@ -753,18 +782,20 @@ class _StudentsScreenState extends State<StudentsScreen> {
           ),
           ElevatedButton(
             onPressed: () {
+              final password = generatePassword();
               final index =
                   Provider.of<StudentDetailsProvider>(context, listen: false);
               index.fetchNumber();
               studentService.addStudent('Student_list_@12', {
-                'division': '${selectedClass}${selectedDivision}',
+                'division': selectedDivision,
                 'id': 'cor@132${index.index}',
                 'student_name': nameController.text,
                 'class': selectedClass,
                 'contact': phoneController.text,
                 'email': emailController.text,
                 'status': selectedStatus,
-                'fee_status': selectedFeeStatus
+                'fee_status': selectedFeeStatus,
+                'password': password
               });
               index.docids = 'cor@132${index.index}';
               index.createStudentDocList('cor@132${index.index}');
@@ -794,17 +825,18 @@ class _StudentsScreenState extends State<StudentsScreen> {
     );
   }
 
-  void _showEditStudentDialog(Map<String, dynamic> student) {
+  void _showEditStudentDialog(student) {
     final TextEditingController nameController =
-        TextEditingController(text: student['name']);
+        TextEditingController(text: student['student_name']);
     final TextEditingController emailController =
         TextEditingController(text: student['email']);
     final TextEditingController phoneController =
-        TextEditingController(text: student['phone']);
+        TextEditingController(text: student['contact']);
     String selectedClass = student['class'];
-    String selectedCourse = student['course'];
+    // String selectedCourse = student['course'];
     String selectedStatus = student['status'];
-    String selectedFeeStatus = student['feeStatus'];
+    String selectedFeeStatus = student['fee_status'];
+    String selectedDivision = student['division'];
 
     showDialog(
       context: context,
@@ -867,19 +899,40 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                // TextField(
+                //   decoration: InputDecoration(
+                //     labelText: 'Course',
+                //     border: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(12),
+                //     ),
+                //   ),
+                //   controller: TextEditingController(text: selectedCourse),
+                //   onChanged: (value) {
+                //     selectedCourse = value;
+                //   },
+                // ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
                   decoration: InputDecoration(
-                    labelText: 'Course',
+                    labelText: 'Division',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  controller: TextEditingController(text: selectedCourse),
+                  value: selectedDivision,
+                  items: _Division.where((c) => c != 'Division')
+                      .map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
                   onChanged: (value) {
-                    selectedCourse = value;
+                    selectedDivision = value!;
                   },
                 ),
                 const SizedBox(height: 16),
+
                 DropdownButtonFormField<String>(
                   decoration: InputDecoration(
                     labelText: 'Status',
@@ -926,7 +979,20 @@ class _StudentsScreenState extends State<StudentsScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              // Update student logic here
+              final newdata = {
+                'class': selectedClass,
+                'student_name': nameController.text,
+                'status': selectedStatus,
+                'fee_status': selectedFeeStatus,
+                'contact': phoneController.text,
+                'email': emailController.text,
+                'division': selectedDivision,
+                'id': student['id'],
+                'password': student['password']
+              };
+              final obj = StudentService();
+              obj.updateStudent('Student_list_@12', student['id'], newdata);
+
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -949,7 +1015,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
     );
   }
 
-  void _showDeleteConfirmationDialog(Map<String, dynamic> student) {
+  void _showDeleteConfirmationDialog(student) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -962,7 +1028,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              // Delete student logic here
+              final deleteValue = StudentService();
+              deleteValue.deleteStudent('Student_list_@12', student['id']);
+              setState(() {});
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(

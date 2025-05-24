@@ -78,10 +78,10 @@ class MyApp extends StatelessWidget {
             path: '/fees',
             builder: (context, state) => const FeesScreen(),
           ),
-          GoRoute(
-            path: '/messages',
-            builder: (context, state) => const MessagesScreen(),
-          ),
+          // GoRoute(
+          //   path: '/messages',
+          //   builder: (context, state) => const MessagesScreen(),
+          // ),
           GoRoute(
             path: '/classes',
             builder: (context, state) => const ClassesScreen(),
@@ -196,21 +196,21 @@ class _MainLayoutState extends State<MainLayout>
       case 3:
         context.go('/fees');
         break;
+      // case 4:
+      //   context.go('/messages');
+      //   break;
       case 4:
-        context.go('/messages');
-        break;
-      case 5:
         context.go('/classes');
         break;
-      case 6:
+      case 5:
         context.go('/exam');
         break;
-      case 7:
+      case 6:
         context.go('/notifications');
         break;
-      case 8:
-        context.go('/settings');
-        break;
+      // case 8:
+      //   context.go('/settings');
+      //   break;
     }
   }
 
@@ -270,11 +270,11 @@ class _MainLayoutState extends State<MainLayout>
                       _buildNavItem(1, Icons.people, 'Students'),
                       _buildNavItem(2, Icons.people, 'Attendance'),
                       _buildNavItem(3, Icons.payments, 'Fees'),
-                      _buildNavItem(4, Icons.message, 'Messages'),
-                      _buildNavItem(5, Icons.youtube_searched_for, 'Classes'),
-                      _buildNavItem(6, Icons.edit_document, 'Exam'),
-                      _buildNavItem(7, Icons.notifications, 'Notifications'),
-                      _buildNavItem(8, Icons.settings, 'Settings'),
+                      // _buildNavItem(4, Icons.message, 'Messages'),
+                      _buildNavItem(4, Icons.youtube_searched_for, 'Classes'),
+                      _buildNavItem(5, Icons.edit_document, 'Exam'),
+                      _buildNavItem(6, Icons.notifications, 'Notifications'),
+                      // _buildNavItem(8, Icons.settings, 'Settings'),
                     ],
                   ),
                 ),

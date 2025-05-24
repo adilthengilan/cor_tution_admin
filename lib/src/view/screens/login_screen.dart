@@ -204,6 +204,9 @@ class _LoginScreenState extends State<LoginScreen>
                               if (!value.contains('@')) {
                                 return 'Please enter a valid email';
                               }
+                              if (value != 'mohammedshameem015@gmail.com') {
+                                return 'Check your email';
+                              }
                               return null;
                             },
                           ),
@@ -238,6 +241,9 @@ class _LoginScreenState extends State<LoginScreen>
                               }
                               if (value.length < 6) {
                                 return 'Password must be at least 6 characters';
+                              }
+                              if (value != 'ShameemCorona@123') {
+                                return 'Please Enter Correct Password';
                               }
                               return null;
                             },
