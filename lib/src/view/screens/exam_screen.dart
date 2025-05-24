@@ -766,34 +766,34 @@ class _ExamsScreenState extends State<ExamsScreen>
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      _buildQuestionForm(1),
+                      _buildQuestionForm(0),
                       const Divider(height: 32),
-                      _buildQuestionForm(2),
-                      const Divider(height: 32),
-                      _buildQuestionForm(3),
+                      // _buildQuestionForm(2),
+                      // const Divider(height: 32),
+                      // _buildQuestionForm(3),
                     ],
                   ),
                 ),
               ),
 
               // Add more button
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    // Add more question form
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[200],
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add More Questions'),
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(vertical: 16),
+              //   child: ElevatedButton.icon(
+              //     onPressed: () {
+              //       // Add more question form
+              //     },
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: Colors.grey[200],
+              //       foregroundColor: Colors.black,
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(12),
+              //       ),
+              //     ),
+              //     icon: const Icon(Icons.add),
+              //     label: const Text('Add More Questions'),
+              //   ),
+              // ),
             ],
           ),
         ),
@@ -834,7 +834,7 @@ class _ExamsScreenState extends State<ExamsScreen>
         Row(
           children: [
             Text(
-              'Question $questionNumber',
+              'Question',
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 class StudentData {}
 
 class StudentDetailsProvider extends ChangeNotifier {
+  var docids = '';
   List studentDetails = [];
   final CollectionReference studentsList =
       FirebaseFirestore.instance.collection('studentList');
@@ -55,5 +56,18 @@ class StudentDetailsProvider extends ChangeNotifier {
       print('Error fetching number: $e');
       return null;
     }
+  }
+
+// Student DOc List for detailed activities for students
+  final CollectionReference studentscollection =
+      FirebaseFirestore.instance.collection('StudentDocList');
+
+  /// CREATE a new document with empty studentDetails array
+  Future<void> createStudentDocList(String docId) async {
+    await studentscollection.doc(docId).set({
+      'attendance': [],
+      'Mark': [],
+      'count': 0,
+    });
   }
 }

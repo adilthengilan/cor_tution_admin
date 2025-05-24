@@ -1,5 +1,8 @@
+import 'package:corona_lms_webapp/src/controller/attendance_controller/attendance_controller.dart';
+import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class AttendanceScreen extends StatefulWidget {
@@ -49,94 +52,94 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   };
 
   // Sample students data
-  final List<Map<String, dynamic>> _students = [
-    {
-      'id': 'ST-1001',
-      'name': 'John Smith',
-      'class': '10th',
-      'rollNo': '101',
-      'avatar': 'https://i.pravatar.cc/150?img=1',
-      'attendance': 'present', // present, absent, leave
-    },
-    {
-      'id': 'ST-1002',
-      'name': 'Emily Johnson',
-      'class': '12th',
-      'rollNo': '201',
-      'avatar': 'https://i.pravatar.cc/150?img=5',
-      'attendance': 'present',
-    },
-    {
-      'id': 'ST-1003',
-      'name': 'Michael Brown',
-      'class': '11th',
-      'rollNo': '301',
-      'avatar': 'https://i.pravatar.cc/150?img=3',
-      'attendance': 'absent',
-    },
-    {
-      'id': 'ST-1004',
-      'name': 'Sarah Davis',
-      'class': '10th',
-      'rollNo': '102',
-      'avatar': 'https://i.pravatar.cc/150?img=4',
-      'attendance': 'present',
-    },
-    {
-      'id': 'ST-1005',
-      'name': 'David Wilson',
-      'class': '9th',
-      'rollNo': '401',
-      'avatar': 'https://i.pravatar.cc/150?img=6',
-      'attendance': 'leave',
-    },
-    {
-      'id': 'ST-1006',
-      'name': 'Jessica Taylor',
-      'class': '8th',
-      'rollNo': '501',
-      'avatar': 'https://i.pravatar.cc/150?img=7',
-      'attendance': 'present',
-    },
-    {
-      'id': 'ST-1007',
-      'name': 'Robert Martinez',
-      'class': '10th',
-      'rollNo': '103',
-      'avatar': 'https://i.pravatar.cc/150?img=8',
-      'attendance': 'present',
-    },
-    {
-      'id': 'ST-1008',
-      'name': 'Lisa Anderson',
-      'class': '12th',
-      'rollNo': '202',
-      'avatar': 'https://i.pravatar.cc/150?img=9',
-      'attendance': 'absent',
-    },
-    {
-      'id': 'ST-1009',
-      'name': 'Daniel Thomas',
-      'class': '11th',
-      'rollNo': '302',
-      'avatar': 'https://i.pravatar.cc/150?img=10',
-      'attendance': 'present',
-    },
-    {
-      'id': 'ST-1010',
-      'name': 'Jennifer White',
-      'class': '9th',
-      'rollNo': '402',
-      'avatar': 'https://i.pravatar.cc/150?img=11',
-      'attendance': 'present',
-    },
+  List<dynamic> _students = [
+    // {
+    //   'id': 'ST-1001',
+    //   'name': 'John Smith',
+    //   'class': '10th',
+    //   'rollNo': '101',
+    //   'avatar': 'https://i.pravatar.cc/150?img=1',
+    //   'attendance': 'present', // present, absent, leave
+    // },
+    // {
+    //   'id': 'ST-1002',
+    //   'name': 'Emily Johnson',
+    //   'class': '12th',
+    //   'rollNo': '201',
+    //   'avatar': 'https://i.pravatar.cc/150?img=5',
+    //   'attendance': 'present',
+    // },
+    // {
+    //   'id': 'ST-1003',
+    //   'name': 'Michael Brown',
+    //   'class': '11th',
+    //   'rollNo': '301',
+    //   'avatar': 'https://i.pravatar.cc/150?img=3',
+    //   'attendance': 'absent',
+    // },
+    // {
+    //   'id': 'ST-1004',
+    //   'name': 'Sarah Davis',
+    //   'class': '10th',
+    //   'rollNo': '102',
+    //   'avatar': 'https://i.pravatar.cc/150?img=4',
+    //   'attendance': 'present',
+    // },
+    // {
+    //   'id': 'ST-1005',
+    //   'name': 'David Wilson',
+    //   'class': '9th',
+    //   'rollNo': '401',
+    //   'avatar': 'https://i.pravatar.cc/150?img=6',
+    //   'attendance': 'leave',
+    // },
+    // {
+    //   'id': 'ST-1006',
+    //   'name': 'Jessica Taylor',
+    //   'class': '8th',
+    //   'rollNo': '501',
+    //   'avatar': 'https://i.pravatar.cc/150?img=7',
+    //   'attendance': 'present',
+    // },
+    // {
+    //   'id': 'ST-1007',
+    //   'name': 'Robert Martinez',
+    //   'class': '10th',
+    //   'rollNo': '103',
+    //   'avatar': 'https://i.pravatar.cc/150?img=8',
+    //   'attendance': 'present',
+    // },
+    // {
+    //   'id': 'ST-1008',
+    //   'name': 'Lisa Anderson',
+    //   'class': '12th',
+    //   'rollNo': '202',
+    //   'avatar': 'https://i.pravatar.cc/150?img=9',
+    //   'attendance': 'absent',
+    // },
+    // {
+    //   'id': 'ST-1009',
+    //   'name': 'Daniel Thomas',
+    //   'class': '11th',
+    //   'rollNo': '302',
+    //   'avatar': 'https://i.pravatar.cc/150?img=10',
+    //   'attendance': 'present',
+    // },
+    // {
+    //   'id': 'ST-1010',
+    //   'name': 'Jennifer White',
+    //   'class': '9th',
+    //   'rollNo': '402',
+    //   'avatar': 'https://i.pravatar.cc/150?img=11',
+    //   'attendance': 'present',
+    // },
   ];
 
-  List<Map<String, dynamic>> get _filteredStudents {
+  List<dynamic> get _filteredStudents {
     return _students.where((student) {
-      final name = student['name'].toString().toLowerCase();
+      final name = student['student_name'].toString().toLowerCase();
       final id = student['id'].toString().toLowerCase();
-      final rollNo = student['rollNo'].toString().toLowerCase();
+      final rollNo = student['class'].toString().toLowerCase();
       final query = _searchController.text.toLowerCase();
 
       // Filter by search query
@@ -168,7 +171,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     super.dispose();
   }
 
-  void _updateAttendance(int index, String status) {
+  void _updateAttendance(int index, String status, docid) {
+    final prolist = Provider.of<AttendanceController>(context, listen: false);
     setState(() {
       _filteredStudents[index]['attendance'] = status;
 
@@ -182,7 +186,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           'total': _filteredStudents.length,
         };
       }
-
+      prolist.addAttendance(docid, dateKey, status);
       // Recalculate attendance counts
       int present = 0;
       int absent = 0;
@@ -230,6 +234,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final list = Provider.of<StudentDetailsProvider>(context, listen: false);
+    _students = list.studentDetails;
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -260,151 +266,151 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Date selector and calendar toggle
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _showCalendar = !_showCalendar;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.calendar_today),
-                          const SizedBox(width: 12),
-                          Text(
-                            DateFormat('EEEE, MMMM d, yyyy')
-                                .format(_selectedDate),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const Spacer(),
-                          Icon(
-                            _showCalendar
-                                ? Icons.keyboard_arrow_up
-                                : Icons.keyboard_arrow_down,
-                            color: Colors.grey,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    _showAttendanceHistoryDialog();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B82F6),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: const Icon(Icons.history),
-                  label: const Text('History'),
-                ),
-              ],
-            ),
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       child: GestureDetector(
+            //         onTap: () {
+            //           setState(() {
+            //             _showCalendar = !_showCalendar;
+            //           });
+            //         },
+            //         child: Container(
+            //           padding: const EdgeInsets.symmetric(
+            //               horizontal: 16, vertical: 12),
+            //           decoration: BoxDecoration(
+            //             color: Colors.white,
+            //             borderRadius: BorderRadius.circular(12),
+            //             border: Border.all(color: Colors.grey.shade300),
+            //           ),
+            //           child: Row(
+            //             children: [
+            //               const Icon(Icons.calendar_today),
+            //               const SizedBox(width: 12),
+            //               Text(
+            //                 DateFormat('EEEE, MMMM d, yyyy')
+            //                     .format(_selectedDate),
+            //                 style: const TextStyle(
+            //                   fontSize: 16,
+            //                   fontWeight: FontWeight.bold,
+            //                 ),
+            //               ),
+            //               const Spacer(),
+            //               Icon(
+            //                 _showCalendar
+            //                     ? Icons.keyboard_arrow_up
+            //                     : Icons.keyboard_arrow_down,
+            //                 color: Colors.grey,
+            //               ),
+            //             ],
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //     const SizedBox(width: 16),
+            //     ElevatedButton.icon(
+            //       onPressed: () {
+            //         _showAttendanceHistoryDialog();
+            //       },
+            //       style: ElevatedButton.styleFrom(
+            //         backgroundColor: const Color(0xFF3B82F6),
+            //         foregroundColor: Colors.white,
+            //         padding: const EdgeInsets.symmetric(
+            //             horizontal: 20, vertical: 12),
+            //         shape: RoundedRectangleBorder(
+            //           borderRadius: BorderRadius.circular(12),
+            //         ),
+            //       ),
+            //       icon: const Icon(Icons.history),
+            //       label: const Text('History'),
+            //     ),
+            //   ],
+            // ),
 
-            // Calendar (collapsible)
-            if (_showCalendar)
-              Container(
-                margin: const EdgeInsets.only(top: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: TableCalendar(
-                  firstDay: DateTime.utc(2023, 1, 1),
-                  lastDay: DateTime.utc(2030, 12, 31),
-                  focusedDay: _selectedDate,
-                  calendarFormat: _calendarFormat,
-                  selectedDayPredicate: (day) {
-                    return isSameDay(_selectedDate, day);
-                  },
-                  onDaySelected: (selectedDay, focusedDay) {
-                    setState(() {
-                      _selectedDate = selectedDay;
-                      _showCalendar = false;
-                    });
-                  },
-                  onFormatChanged: (format) {
-                    setState(() {
-                      _calendarFormat = format;
-                    });
-                  },
-                  calendarStyle: const CalendarStyle(
-                    todayDecoration: BoxDecoration(
-                      color: Color(0xFF3B82F6),
-                      shape: BoxShape.circle,
-                    ),
-                    selectedDecoration: BoxDecoration(
-                      color: Color(0xFFFFC107),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  headerStyle: const HeaderStyle(
-                    formatButtonVisible: true,
-                    titleCentered: true,
-                  ),
-                ),
-              ),
+            // // Calendar (collapsible)
+            // if (_showCalendar)
+            //   Container(
+            //     margin: const EdgeInsets.only(top: 16),
+            //     padding: const EdgeInsets.all(16),
+            //     decoration: BoxDecoration(
+            //       color: Colors.white,
+            //       borderRadius: BorderRadius.circular(12),
+            //       boxShadow: [
+            //         BoxShadow(
+            //           color: Colors.black.withOpacity(0.05),
+            //           blurRadius: 10,
+            //           offset: const Offset(0, 4),
+            //         ),
+            //       ],
+            //     ),
+            //     child: TableCalendar(
+            //       firstDay: DateTime.utc(2023, 1, 1),
+            //       lastDay: DateTime.utc(2030, 12, 31),
+            //       focusedDay: _selectedDate,
+            //       calendarFormat: _calendarFormat,
+            //       selectedDayPredicate: (day) {
+            //         return isSameDay(_selectedDate, day);
+            //       },
+            //       onDaySelected: (selectedDay, focusedDay) {
+            //         setState(() {
+            //           _selectedDate = selectedDay;
+            //           _showCalendar = false;
+            //         });
+            //       },
+            //       onFormatChanged: (format) {
+            //         setState(() {
+            //           _calendarFormat = format;
+            //         });
+            //       },
+            //       calendarStyle: const CalendarStyle(
+            //         todayDecoration: BoxDecoration(
+            //           color: Color(0xFF3B82F6),
+            //           shape: BoxShape.circle,
+            //         ),
+            //         selectedDecoration: BoxDecoration(
+            //           color: Color(0xFFFFC107),
+            //           shape: BoxShape.circle,
+            //         ),
+            //       ),
+            //       headerStyle: const HeaderStyle(
+            //         formatButtonVisible: true,
+            //         titleCentered: true,
+            //       ),
+            //     ),
+            //   ),
 
-            const SizedBox(height: 24),
+            // const SizedBox(height: 24),
 
-            // Attendance summary cards
-            Row(
-              children: [
-                _buildAttendanceCard(
-                  'Present',
-                  _currentAttendanceSummary['present'],
-                  _currentAttendanceSummary['total'],
-                  Colors.green,
-                  Icons.check_circle,
-                ),
-                const SizedBox(width: 16),
-                _buildAttendanceCard(
-                  'Absent',
-                  _currentAttendanceSummary['absent'],
-                  _currentAttendanceSummary['total'],
-                  Colors.red,
-                  Icons.cancel,
-                ),
-                const SizedBox(width: 16),
-                _buildAttendanceCard(
-                  'Leave',
-                  _currentAttendanceSummary['leave'],
-                  _currentAttendanceSummary['total'],
-                  Colors.orange,
-                  Icons.schedule,
-                ),
-              ],
-            ),
+            // // Attendance summary cards
+            // Row(
+            //   children: [
+            //     _buildAttendanceCard(
+            //       'Present',
+            //       _currentAttendanceSummary['present'],
+            //       _currentAttendanceSummary['total'],
+            //       Colors.green,
+            //       Icons.check_circle,
+            //     ),
+            //     const SizedBox(width: 16),
+            //     _buildAttendanceCard(
+            //       'Absent',
+            //       _currentAttendanceSummary['absent'],
+            //       _currentAttendanceSummary['total'],
+            //       Colors.red,
+            //       Icons.cancel,
+            //     ),
+            //     const SizedBox(width: 16),
+            //     _buildAttendanceCard(
+            //       'Leave',
+            //       _currentAttendanceSummary['leave'],
+            //       _currentAttendanceSummary['total'],
+            //       Colors.orange,
+            //       Icons.schedule,
+            //     ),
+            //   ],
+            // ),
 
-            const SizedBox(height: 24),
+            // const SizedBox(height: 24),
 
             // Search and filter
             Row(
@@ -591,13 +597,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                             child: Row(
                                               children: [
                                                 CircleAvatar(
-                                                  backgroundImage: NetworkImage(
-                                                      student['avatar']),
-                                                ),
+                                                    // backgroundImage: NetworkImage(
+                                                    //     student['avatar']),
+                                                    ),
                                                 const SizedBox(width: 12),
                                                 Expanded(
                                                   child: Text(
-                                                    student['name'],
+                                                    student['student_name'],
                                                     style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
@@ -610,7 +616,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                             ),
                                           ),
                                           Expanded(
-                                            child: Text(student['rollNo']),
+                                            child: Text(student['id']),
                                           ),
                                           Expanded(
                                             child: Text(student['class']),
@@ -620,28 +626,28 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                             child: Row(
                                               children: [
                                                 _buildAttendanceButton(
-                                                  index,
-                                                  'present',
-                                                  'Present',
-                                                  Colors.green,
-                                                  Icons.check_circle,
-                                                ),
+                                                    index,
+                                                    'present',
+                                                    'Present',
+                                                    Colors.green,
+                                                    Icons.check_circle,
+                                                    student['id']),
                                                 const SizedBox(width: 8),
                                                 _buildAttendanceButton(
-                                                  index,
-                                                  'absent',
-                                                  'Absent',
-                                                  Colors.red,
-                                                  Icons.cancel,
-                                                ),
+                                                    index,
+                                                    'absent',
+                                                    'Absent',
+                                                    Colors.red,
+                                                    Icons.cancel,
+                                                    student['id']),
                                                 const SizedBox(width: 8),
                                                 _buildAttendanceButton(
-                                                  index,
-                                                  'leave',
-                                                  'Leave',
-                                                  Colors.orange,
-                                                  Icons.schedule,
-                                                ),
+                                                    index,
+                                                    'leave',
+                                                    'Leave',
+                                                    Colors.orange,
+                                                    Icons.schedule,
+                                                    student['id']),
                                               ],
                                             ),
                                           ),
@@ -761,13 +767,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
-  Widget _buildAttendanceButton(
-      int index, String value, String label, Color color, IconData icon) {
+  Widget _buildAttendanceButton(int index, String value, String label,
+      Color color, IconData icon, String docid) {
     final isSelected = _filteredStudents[index]['attendance'] == value;
 
     return Expanded(
       child: ElevatedButton.icon(
-        onPressed: () => _updateAttendance(index, value),
+        onPressed: () => _updateAttendance(index, value, docid),
         style: ElevatedButton.styleFrom(
           backgroundColor: isSelected ? color : Colors.grey[200],
           foregroundColor: isSelected ? Colors.white : Colors.grey[700],

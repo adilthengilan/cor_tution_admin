@@ -766,6 +766,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 'status': selectedStatus,
                 'fee_status': selectedFeeStatus
               });
+              index.docids = 'cor@132${index.index}';
+              index.createStudentDocList('cor@132${index.index}');
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
