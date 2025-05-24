@@ -832,6 +832,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
         TextEditingController(text: student['email']);
     final TextEditingController phoneController =
         TextEditingController(text: student['contact']);
+    final TextEditingController passwordController =
+        TextEditingController(text: student['password']);
     String selectedClass = student['class'];
     // String selectedCourse = student['course'];
     String selectedStatus = student['status'];
@@ -872,6 +874,17 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   controller: phoneController,
                   decoration: InputDecoration(
                     labelText: 'Phone Number',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -988,7 +1001,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 'email': emailController.text,
                 'division': selectedDivision,
                 'id': student['id'],
-                'password': student['password']
+                'password': passwordController.text
               };
               final obj = StudentService();
               obj.updateStudent('Student_list_@12', student['id'], newdata);
