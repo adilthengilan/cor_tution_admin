@@ -187,7 +187,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           value: '\$0',
           icon: Icons.payment,
           color: const Color(0xFFEF4444),
-          increase: '-0%',
+          increase: '+0%',
           isPositive: false,
         ),
       ],

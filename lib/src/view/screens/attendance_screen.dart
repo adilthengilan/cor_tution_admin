@@ -15,15 +15,23 @@ class AttendanceScreen extends StatefulWidget {
 class _AttendanceScreenState extends State<AttendanceScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedClass = 'All Classes';
-  final List<String> _classes = [
+  final List<String> _divisions = [
     'All Classes',
-    '12th',
-    '11th',
-    '10th',
-    '9th',
-    '8th',
-    '7th',
-    '6th'
+    'M1',
+    'M2',
+    'M3',
+    'M4',
+    'M5',
+    'M6',
+    'M7',
+    'E1',
+    'E2',
+    'E3',
+    'E4',
+    'E5',
+    'S1',
+    'S2',
+    'S3'
   ];
   DateTime _selectedDate = DateTime.now();
   CalendarFormat _calendarFormat = CalendarFormat.week;
@@ -147,8 +155,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           name.contains(query) || id.contains(query) || rollNo.contains(query);
 
       // Filter by class
-      final matchesClass =
-          _selectedClass == 'All Classes' || student['class'] == _selectedClass;
+      final matchesClass = _selectedClass == 'All Classes' ||
+          student['division'] == _selectedClass;
 
       return matchesSearch && matchesClass;
     }).toList();
@@ -448,7 +456,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     child: DropdownButton<String>(
                       value: _selectedClass,
                       hint: const Text('Class'),
-                      items: _classes.map((String value) {
+                      items: _divisions.map((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(value),
@@ -547,7 +555,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           ),
                           Expanded(
                             child: Text(
-                              'Class',
+                              'Division',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.grey,
@@ -619,7 +627,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                             child: Text(student['id']),
                                           ),
                                           Expanded(
-                                            child: Text(student['class']),
+                                            child: Text(student['division']),
                                           ),
                                           Expanded(
                                             flex: 2,
