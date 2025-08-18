@@ -8,6 +8,7 @@ class StudentData {}
 class StudentDetailsProvider extends ChangeNotifier {
   var docids = '';
   List studentDetails = [];
+  List TeacherDetails = [];
   final CollectionReference studentsList =
       FirebaseFirestore.instance.collection('studentList');
 
@@ -21,6 +22,21 @@ class StudentDetailsProvider extends ChangeNotifier {
       List students = doc['studentDetails'];
       print(students);
       studentDetails = students;
+      return List<Map<String, dynamic>>.from(students);
+    } else {
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchTeachers(
+      String docId, BuildContext context) async {
+    final doc = await studentsList.doc(docId).get();
+    print('=====');
+
+    if (doc.exists) {
+      List students = doc['TeachersList'];
+      print(students);
+      TeacherDetails = students;
       return List<Map<String, dynamic>>.from(students);
     } else {
       return [];

@@ -1,6 +1,7 @@
 import 'package:corona_lms_webapp/firebase_options.dart';
 import 'package:corona_lms_webapp/src/controller/attendance_controller/attendance_controller.dart';
 import 'package:corona_lms_webapp/src/controller/classes_controllers/fetch_classes.dart';
+import 'package:corona_lms_webapp/src/controller/fee_recorder/fee_recorder.dart';
 import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
 import 'package:corona_lms_webapp/src/view/screens/attendance_screen.dart';
 import 'package:corona_lms_webapp/src/view/screens/classes_screen.dart';
@@ -11,6 +12,7 @@ import 'package:corona_lms_webapp/src/view/screens/login_screen.dart';
 import 'package:corona_lms_webapp/src/view/screens/messages_screen.dart';
 import 'package:corona_lms_webapp/src/view/screens/notifications_screen.dart';
 import 'package:corona_lms_webapp/src/view/screens/students_screen.dart';
+import 'package:corona_lms_webapp/src/view/screens/teachers_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,9 +21,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   setUrlStrategy(PathUrlStrategy());
   runApp(MultiProvider(
     providers: [
@@ -33,6 +34,9 @@ void main() async {
       ),
       ChangeNotifierProvider<AttendanceController>(
         create: (context) => AttendanceController(),
+      ),
+      ChangeNotifierProvider<FeeRecorder>(
+        create: (context) => FeeRecorder(),
       )
     ],
     child: MyApp(),
@@ -69,6 +73,10 @@ class MyApp extends StatelessWidget {
           GoRoute(
             path: '/students',
             builder: (context, state) => const StudentsScreen(),
+          ),
+          GoRoute(
+            path: '/teachers',
+            builder: (context, state) => const TeachersScreen(),
           ),
           GoRoute(
             path: '/attendance',
@@ -124,12 +132,12 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        cardTheme: CardTheme(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
+        // cardTheme: CardTheme(
+        //   elevation: 2,
+        //   shape: RoundedRectangleBorder(
+        //     borderRadius: BorderRadius.circular(16),
+        //   ),
+        // ),
       ),
       routerConfig: _router,
     );
@@ -191,21 +199,24 @@ class _MainLayoutState extends State<MainLayout>
         context.go('/students');
         break;
       case 2:
-        context.go('/attendance');
+        context.go('/teachers');
         break;
       case 3:
+        context.go('/attendance');
+        break;
+      case 4:
         context.go('/fees');
         break;
       // case 4:
       //   context.go('/messages');
       //   break;
-      case 4:
+      case 5:
         context.go('/classes');
         break;
-      case 5:
+      case 6:
         context.go('/exam');
         break;
-      case 6:
+      case 7:
         context.go('/notifications');
         break;
       // case 8:
@@ -268,12 +279,14 @@ class _MainLayoutState extends State<MainLayout>
                     children: [
                       _buildNavItem(0, Icons.dashboard, 'Dashboard'),
                       _buildNavItem(1, Icons.people, 'Students'),
-                      _buildNavItem(2, Icons.people, 'Attendance'),
-                      _buildNavItem(3, Icons.payments, 'Fees'),
+                      _buildNavItem(2, Icons.people, 'Teachers'),
+
+                      _buildNavItem(3, Icons.people, 'Attendance'),
+                      _buildNavItem(4, Icons.payments, 'Fees'),
                       // _buildNavItem(4, Icons.message, 'Messages'),
-                      _buildNavItem(4, Icons.youtube_searched_for, 'Classes'),
-                      _buildNavItem(5, Icons.edit_document, 'Exam'),
-                      _buildNavItem(6, Icons.notifications, 'Notifications'),
+                      _buildNavItem(5, Icons.youtube_searched_for, 'Classes'),
+                      _buildNavItem(6, Icons.edit_document, 'Exam'),
+                      _buildNavItem(7, Icons.notifications, 'Notifications'),
                       // _buildNavItem(8, Icons.settings, 'Settings'),
                     ],
                   ),
@@ -283,7 +296,8 @@ class _MainLayoutState extends State<MainLayout>
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: IconButton(
-                      onPressed: _toggleSidebar,
+                      onPressed: () {},
+                      // onPressed: _toggleSidebar,
                       icon: AnimatedIcon(
                         icon: AnimatedIcons.menu_close,
                         progress: _animationController,

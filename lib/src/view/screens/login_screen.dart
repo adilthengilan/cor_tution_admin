@@ -1,6 +1,9 @@
+import 'package:corona_lms_webapp/src/controller/fee_recorder/fee_recorder.dart';
+import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -43,6 +46,11 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _login() {
+    Provider.of<FeeRecorder>(context, listen: false)
+        .fetchStudents('student_fees', context);
+    Provider.of<StudentDetailsProvider>(context, listen: false)
+        .fetchStudents('student_fees', context);
+
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -62,6 +70,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width < 1100;
+    fetchTotalAmount('student_fees');
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -204,10 +213,19 @@ class _LoginScreenState extends State<LoginScreen>
                               if (!value.contains('@')) {
                                 return 'Please enter a valid email';
                               }
-                              if (value != 'mohammedshameem015@gmail.com') {
+
+                              // List of valid emails
+                              List<String> validEmails = [
+                                'mohammedshameem015@gmail.com',
+                                'nuwadiyalms956@gmail.com',
+                                'coronacoachingcentre2@gmail.com',
+                              ];
+
+                              if (!validEmails.contains(value)) {
                                 return 'Check your email';
                               }
-                              return null;
+
+                              return null; // valid
                             },
                           ),
                           const SizedBox(height: 24),
@@ -242,10 +260,19 @@ class _LoginScreenState extends State<LoginScreen>
                               if (value.length < 6) {
                                 return 'Password must be at least 6 characters';
                               }
-                              if (value != 'ShameemCorona@123') {
-                                return 'Please Enter Correct Password';
+
+                              // List of valid passwords
+                              List<String> validPasswords = [
+                                'ShameemCorona@123',
+                                'NuwaDiya@123',
+                                'CoachingCentre@123',
+                              ];
+
+                              if (!validPasswords.contains(value)) {
+                                return 'Please enter correct password';
                               }
-                              return null;
+
+                              return null; // valid
                             },
                           ),
                           const SizedBox(height: 12),

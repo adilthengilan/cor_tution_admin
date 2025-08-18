@@ -1,6 +1,7 @@
 import 'package:corona_lms_webapp/src/controller/classes_controllers/fetch_classes.dart';
 import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
@@ -104,13 +105,17 @@ class _DashboardScreenState extends State<DashboardScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // New Courses
-                      _buildSectionHeader('New Courses', onViewAll: () {}),
+                      _buildSectionHeader('New Courses', onViewAll: () {
+                        context.go('/classes');
+                      }),
                       const SizedBox(height: 16),
                       _buildCourseCards(),
                       const SizedBox(height: 24),
 
                       // My Students
-                      _buildSectionHeader('My Students', onViewAll: () {}),
+                      _buildSectionHeader('My Students', onViewAll: () {
+                        context.go('/students');
+                      }),
                       const SizedBox(height: 16),
                       _buildStudentsTable(),
                       const SizedBox(height: 24),
@@ -155,34 +160,34 @@ class _DashboardScreenState extends State<DashboardScreen>
       children: [
         _buildStatCard(
           title: 'Total Students',
-          value: '1,245',
+          value: '0',
           icon: Icons.people,
           color: const Color(0xFF3B82F6),
-          increase: '+12%',
+          increase: '+0%',
         ),
         const SizedBox(width: 16),
         _buildStatCard(
           title: 'Total Courses',
-          value: '42',
+          value: '0',
           icon: Icons.book,
           color: const Color(0xFFFFC107),
-          increase: '+5%',
+          increase: '+0%',
         ),
         const SizedBox(width: 16),
         _buildStatCard(
           title: 'Revenue',
-          value: '\$24,500',
+          value: '\$0',
           icon: Icons.attach_money,
           color: const Color(0xFF10B981),
-          increase: '+18%',
+          increase: '+0',
         ),
         const SizedBox(width: 16),
         _buildStatCard(
           title: 'Due Fees',
-          value: '\$8,245',
+          value: '\$0',
           icon: Icons.payment,
           color: const Color(0xFFEF4444),
-          increase: '-3%',
+          increase: '-0%',
           isPositive: false,
         ),
       ],
@@ -868,21 +873,21 @@ class _DashboardScreenState extends State<DashboardScreen>
           const SizedBox(height: 12),
           _buildProfileStat('Attendance', '92%'),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B82F6),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text('View Profile'),
-            ),
-          ),
+          // SizedBox(
+          //   width: double.infinity,
+          //   child: ElevatedButton(
+          //     onPressed: () {},
+          //     style: ElevatedButton.styleFrom(
+          //       backgroundColor: const Color(0xFF3B82F6),
+          //       foregroundColor: Colors.white,
+          //       padding: const EdgeInsets.symmetric(vertical: 12),
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(12),
+          //       ),
+          //     ),
+          //     child: const Text('View Profile'),
+          //   ),
+          // ),
         ],
       ),
     );

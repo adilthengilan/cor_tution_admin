@@ -19,6 +19,13 @@ class StudentService {
     });
   }
 
+  Future<void> addTeacher(
+      String docId, Map<String, dynamic> studentData) async {
+    await studentsList.doc(docId).update({
+      'TeachersList': FieldValue.arrayUnion([studentData])
+    });
+  }
+
   /// UPDATE a student from the studentDetails array
   Future<void> updateStudent(
       String docId, String studentId, newStudentData) async {
@@ -35,15 +42,54 @@ class StudentService {
     });
   }
 
-  /// DELETE a student from the studentDetails array
-  Future<void> deleteStudent(String docId, String studentId) async {
+  /// UPDATE a student from the studentDetails array
+  Future<void> updateTeacher(
+      String docId, String studentId, newStudentData) async {
     final doc = await studentsList.doc(docId).get();
-    List currentStudents = doc['studentDetails'];
+    List currentStudents = doc['TeachersList'];
 
-    currentStudents.removeWhere((student) => student['id'] == studentId);
+    // Remove old student
+    currentStudents.removeWhere((student) => student['contact'] == studentId);
+    // Add updated student
+    currentStudents.add(newStudentData);
 
     await studentsList.doc(docId).update({
-      'studentDetails': currentStudents,
+      'TeachersList': currentStudents,
     });
+  }
+
+  /// DELETE a student from the studentDetails array
+  Future<void> deleteStudent(String docId, String studentId) async {
+    final docSnapshot = await studentsList.doc(docId).get();
+
+    if (docSnapshot.exists) {
+      List currentStudents = List.from(docSnapshot['studentDetails']);
+
+      currentStudents.removeWhere((student) => student['id'] == studentId);
+
+      // Update the Firestore document with the modified list
+      await studentsList.doc(docId).update({
+        'studentDetails': currentStudents,
+      });
+    } else {
+      print('Document with ID $docId does not exist.');
+    }
+  }
+
+  Future<void> deleteTeacher(String docId, String studentId) async {
+    final docSnapshot = await studentsList.doc(docId).get();
+
+    if (docSnapshot.exists) {
+      List currentStudents = List.from(docSnapshot['TeachersList']);
+
+      currentStudents.removeWhere((student) => student['contact'] == studentId);
+
+      // Update the Firestore document with the modified list
+      await studentsList.doc(docId).update({
+        'TeachersList': currentStudents,
+      });
+    } else {
+      print('Document with ID $docId does not exist.');
+    }
   }
 }

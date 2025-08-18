@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:corona_lms_webapp/src/controller/classes_controllers/classes_controllers.dart';
 import 'package:corona_lms_webapp/src/controller/classes_controllers/fetch_classes.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class ClassesScreen extends StatefulWidget {
   const ClassesScreen({Key? key}) : super(key: key);
@@ -52,7 +55,7 @@ class _ClassesScreenState extends State<ClassesScreen>
     //   'uploadDate': '12 May 2023',
     //   'url': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     //   'thumbnail':
-    //       'https://www.bing.com/images/search?view=detailV2&ccid=zzF9NM61&id=60FB81936A188780A1458EF7431BB943162B2328&thid=OIP.zzF9NM61X6zFtt8KAUD11gHaEo&mediaurl=https%3a%2f%2fcdn.leverageedu.com%2fblog%2fwp-content%2fuploads%2f2020%2f03%2f24185535%2fOnline-Learning.png&exph=2293&expw=3667&q=Online+Education&simid=607994609461392870&FORM=IRPRST&ck=017E10602188304B53B48F0DF51DB413&selectedIndex=1&itb=0',
+    //       'https://www.bing.com/images/search?adview=detailV2&ccid=zzF9NM61&id=60FB81936A188780A1458EF7431BB943162B2328&thid=OIP.zzF9NM61X6zFtt8KAUD11gHaEo&mediaurl=https%3a%2f%2fcdn.leverageedu.com%2fblog%2fwp-content%2fuploads%2f2020%2f03%2f24185535%2fOnline-Learning.png&exph=2293&expw=3667&q=Online+Education&simid=607994609461392870&FORM=IRPRST&ck=017E10602188304B53B48F0DF51DB413&selectedIndex=1&itb=0',
     // },
     // {
     //   'id': 'CM-1001',
@@ -345,6 +348,8 @@ class _ClassesScreenState extends State<ClassesScreen>
     );
   }
 
+  String url = '';
+
   Widget _buildMaterialCard(Map<String, dynamic> material) {
     final classses = Provider.of<ClassDetailsProvider>(context);
     classses.fetchclass('classes_@corona', context);
@@ -566,7 +571,7 @@ class _ClassesScreenState extends State<ClassesScreen>
     final classmodel = ClassesService();
     final TextEditingController titleController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
-    final TextEditingController urlController = TextEditingController();
+    TextEditingController urlController = TextEditingController();
     String selectedClass = '10th';
     String selectedSubject = 'Mathematics';
     String selectedType = 'Video';
@@ -676,17 +681,18 @@ class _ClassesScreenState extends State<ClassesScreen>
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    FilePickerResult? result =
-                        await FilePicker.platform.pickFiles();
-                    if (result != null) {
-                      // Handle file upload
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('File selected successfully'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    }
+                    uploadFileCrossPlatform();
+                    // // FilePickerResult? result =
+                    // //     await FilePicker.platform.pickFiles();
+                    // if (result != null) {
+                    //   // Handle file upload
+                    //   ScaffoldMessenger.of(context).showSnackBar(
+                    //     const SnackBar(
+                    //       content: Text('File selected successfully'),
+                    //       backgroundColor: Colors.green,
+                    //     ),
+                    //   );
+                    // }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey[200],
@@ -718,7 +724,7 @@ class _ClassesScreenState extends State<ClassesScreen>
                 'class': selectedClass,
                 'subject': selectedSubject,
                 'uploadDate': formattedDate,
-                'url': urlController.text,
+                'url': selectedType == 'Video' ? urlController.text : url,
               });
               // Provider.of<ClassDetailsProvider>(context, listen: false)
               //     .fetchclass('classes_@corona', context);
@@ -916,6 +922,38 @@ class _ClassesScreenState extends State<ClassesScreen>
         ],
       ),
     );
+  }
+
+  Future<String?> uploadFileCrossPlatform() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(withData: true);
+      if (result == null || result.files.first.bytes == null) {
+        print("No file selected or empty file.");
+        return null;
+      }
+
+      Uint8List fileBytes = result.files.first.bytes!;
+      String fileName = result.files.first.name;
+
+      final storage = FirebaseStorage.instanceFor(
+        bucket: 'gs://corona-lms-cc0db.firebasestorage.app',
+      );
+
+      final ref = storage.ref().child('uploads/$fileName');
+
+      UploadTask uploadTask = ref.putData(fileBytes);
+
+      final snapshot = await uploadTask.whenComplete(() => null);
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      setState(() {
+        url = downloadUrl;
+      });
+      print("Upload successful: $downloadUrl");
+      return downloadUrl;
+    } catch (e) {
+      print("Error uploading file: $e");
+      return null;
+    }
   }
 
   void _showDeleteConfirmationDialog(Map<String, dynamic> material) {

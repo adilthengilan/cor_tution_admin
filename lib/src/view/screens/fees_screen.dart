@@ -1,6 +1,10 @@
+import 'dart:math';
+
+import 'package:corona_lms_webapp/src/controller/fee_recorder/fee_recorder.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class FeesScreen extends StatefulWidget {
   const FeesScreen({Key? key}) : super(key: key);
@@ -16,76 +20,76 @@ class _FeesScreenState extends State<FeesScreen>
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Paid', 'Due', 'Partial'];
 
-  final List<Map<String, dynamic>> _feeRecords = [
-    {
-      'id': 'FEE-1001',
-      'studentId': 'ST-1001',
-      'studentName': 'John Smith',
-      'course': 'Mathematics',
-      'amount': 500.0,
-      'dueDate': '15 May 2023',
-      'status': 'Paid',
-      'paymentDate': '10 May 2023',
-      'avatar': 'https://i.pravatar.cc/150?img=1',
-    },
-    {
-      'id': 'FEE-1002',
-      'studentId': 'ST-1002',
-      'studentName': 'Emily Johnson',
-      'course': 'Physics',
-      'amount': 600.0,
-      'dueDate': '20 May 2023',
-      'status': 'Due',
-      'paymentDate': '-',
-      'avatar': 'https://i.pravatar.cc/150?img=5',
-    },
-    {
-      'id': 'FEE-1003',
-      'studentId': 'ST-1003',
-      'studentName': 'Michael Brown',
-      'course': 'Chemistry',
-      'amount': 550.0,
-      'dueDate': '25 May 2023',
-      'status': 'Partial',
-      'paymentDate': '15 May 2023',
-      'avatar': 'https://i.pravatar.cc/150?img=3',
-    },
-    {
-      'id': 'FEE-1004',
-      'studentId': 'ST-1004',
-      'studentName': 'Sarah Davis',
-      'course': 'Biology',
-      'amount': 500.0,
-      'dueDate': '10 May 2023',
-      'status': 'Paid',
-      'paymentDate': '05 May 2023',
-      'avatar': 'https://i.pravatar.cc/150?img=4',
-    },
-    {
-      'id': 'FEE-1005',
-      'studentId': 'ST-1005',
-      'studentName': 'David Wilson',
-      'course': 'English',
-      'amount': 450.0,
-      'dueDate': '30 May 2023',
-      'status': 'Due',
-      'paymentDate': '-',
-      'avatar': 'https://i.pravatar.cc/150?img=6',
-    },
-    {
-      'id': 'FEE-1006',
-      'studentId': 'ST-1006',
-      'studentName': 'Jessica Taylor',
-      'course': 'History',
-      'amount': 500.0,
-      'dueDate': '05 Jun 2023',
-      'status': 'Due',
-      'paymentDate': '-',
-      'avatar': 'https://i.pravatar.cc/150?img=7',
-    },
+  List _feeRecords = [
+    // {
+    //   'id': 'FEE-1001',
+    //   'studentId': 'ST-1001',
+    //   'studentName': 'John Smith',
+    //   'course': 'Mathematics',
+    //   'amount': 500.0,
+    //   'dueDate': '15 May 2023',
+    //   'status': 'Paid',
+    //   'paymentDate': '10 May 2023',
+    //   'avatar': 'https://i.pravatar.cc/150?img=1',
+    // },
+    // {
+    //   'id': 'FEE-1002',
+    //   'studentId': 'ST-1002',
+    //   'studentName': 'Emily Johnson',
+    //   'course': 'Physics',
+    //   'amount': 600.0,
+    //   'dueDate': '20 May 2023',
+    //   'status': 'Due',
+    //   'paymentDate': '-',
+    //   'avatar': 'https://i.pravatar.cc/150?img=5',
+    // },
+    // {
+    //   'id': 'FEE-1003',
+    //   'studentId': 'ST-1003',
+    //   'studentName': 'Michael Brown',
+    //   'course': 'Chemistry',
+    //   'amount': 550.0,
+    //   'dueDate': '25 May 2023',
+    //   'status': 'Partial',
+    //   'paymentDate': '15 May 2023',
+    //   'avatar': 'https://i.pravatar.cc/150?img=3',
+    // },
+    // {
+    //   'id': 'FEE-1004',
+    //   'studentId': 'ST-1004',
+    //   'studentName': 'Sarah Davis',
+    //   'course': 'Biology',
+    //   'amount': 500.0,
+    //   'dueDate': '10 May 2023',
+    //   'status': 'Paid',
+    //   'paymentDate': '05 May 2023',
+    //   'avatar': 'https://i.pravatar.cc/150?img=4',
+    // },
+    // {
+    //   'id': 'FEE-1005',
+    //   'studentId': 'ST-1005',
+    //   'studentName': 'David Wilson',
+    //   'course': 'English',
+    //   'amount': 450.0,
+    //   'dueDate': '30 May 2023',
+    //   'status': 'Due',
+    //   'paymentDate': '-',
+    //   'avatar': 'https://i.pravatar.cc/150?img=6',
+    // },
+    // {
+    //   'id': 'FEE-1006',
+    //   'studentId': 'ST-1006',
+    //   'studentName': 'Jessica Taylor',
+    //   'course': 'History',
+    //   'amount': 500.0,
+    //   'dueDate': '05 Jun 2023',
+    //   'status': 'Due',
+    //   'paymentDate': '-',
+    //   'avatar': 'https://i.pravatar.cc/150?img=7',
+    // },
   ];
 
-  List<Map<String, dynamic>> get _filteredFeeRecords {
+  List get _filteredFeeRecords {
     if (_selectedFilter == 'All') {
       return _feeRecords.where((record) {
         final name = record['studentName'].toString().toLowerCase();
@@ -127,6 +131,9 @@ class _FeesScreenState extends State<FeesScreen>
 
   @override
   Widget build(BuildContext context) {
+    final feepro = Provider.of<FeeRecorder>(context, listen: false);
+    feepro.fetchStudents('', context);
+    _feeRecords = feepro.feedetails;
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -298,24 +305,24 @@ class _FeesScreenState extends State<FeesScreen>
                             ),
                           ),
                         ),
-                        Expanded(
-                          child: Text(
-                            'Fee ID',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            'Course',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ),
+                        // Expanded(
+                        //   child: Text(
+                        //     'Fee ID',
+                        //     style: TextStyle(
+                        //       fontWeight: FontWeight.bold,
+                        //       color: Colors.grey,
+                        //     ),
+                        //   ),
+                        // ),
+                        // Expanded(
+                        //   child: Text(
+                        //     'Course',
+                        //     style: TextStyle(
+                        //       fontWeight: FontWeight.bold,
+                        //       color: Colors.grey,
+                        //     ),
+                        //   ),
+                        // ),
                         Expanded(
                           child: Text(
                             'Amount',
@@ -325,15 +332,15 @@ class _FeesScreenState extends State<FeesScreen>
                             ),
                           ),
                         ),
-                        Expanded(
-                          child: Text(
-                            'Due Date',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ),
+                        // Expanded(
+                        //   child: Text(
+                        //     'Due Date',
+                        //     style: TextStyle(
+                        //       fontWeight: FontWeight.bold,
+                        //       color: Colors.grey,
+                        //     ),
+                        //   ),
+                        // ),
                         Expanded(
                           child: Text(
                             'Status',
@@ -377,45 +384,46 @@ class _FeesScreenState extends State<FeesScreen>
                                           child: Row(
                                             children: [
                                               CircleAvatar(
-                                                backgroundImage: NetworkImage(
-                                                    record['avatar']),
-                                              ),
+                                                  // backgroundImage: NetworkImage(
+                                                  //     record['avatar']),
+                                                  ),
                                               const SizedBox(width: 12),
                                               Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    record['studentName'],
+                                                    record['name'],
                                                     style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
                                                     ),
                                                   ),
-                                                  Text(
-                                                    record['studentId'],
-                                                    style: TextStyle(
-                                                      color: Colors.grey[600],
-                                                      fontSize: 12,
-                                                    ),
-                                                  ),
+                                                  // Text(
+                                                  //   record['studentId'],
+                                                  //   style: TextStyle(
+                                                  //     color: Colors.grey[600],
+                                                  //     fontSize: 12,
+                                                  //   ),
+                                                  // ),
                                                 ],
                                               ),
                                             ],
                                           ),
                                         ),
+                                        // Expanded(
+                                        //   child: Text(record['id']),
+                                        // ),
+                                        // Expanded(
+                                        //   child: Text(record['course']),
+                                        // ),
                                         Expanded(
-                                          child: Text(record['id']),
+                                          child: Text(
+                                              '\₹${record['totalAmountPaid']}'),
                                         ),
-                                        Expanded(
-                                          child: Text(record['course']),
-                                        ),
-                                        Expanded(
-                                          child: Text('\$${record['amount']}'),
-                                        ),
-                                        Expanded(
-                                          child: Text(record['dueDate']),
-                                        ),
+                                        // Expanded(
+                                        //   child: Text(record['dueDate']),
+                                        // ),
                                         Expanded(
                                           child: Container(
                                             padding: const EdgeInsets.symmetric(
@@ -938,6 +946,35 @@ class _FeesScreenState extends State<FeesScreen>
   }
 
   void _showAddFeeRecordDialog() {
+    String generatePassword({
+      int length = 8,
+      bool includeUppercase = true,
+      bool includeLowercase = true,
+      bool includeNumbers = true,
+      bool includeSymbols = true,
+    }) {
+      const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+      const numbers = '0123456789';
+      const symbols = '!@#\$%^&*()_-+=<>?/|';
+
+      String chars = '';
+      if (includeUppercase) chars += uppercase;
+      if (includeLowercase) chars += lowercase;
+      if (includeNumbers) chars += numbers;
+      if (includeSymbols) chars += symbols;
+
+      if (chars.isEmpty) return '';
+
+      final rand = Random.secure();
+      return List.generate(length, (index) => chars[rand.nextInt(chars.length)])
+          .join();
+    }
+
+    final TextEditingController namecontroller = TextEditingController();
+    final TextEditingController amountController = TextEditingController();
+    final TextEditingController date = TextEditingController();
+    String selectedStatus = 'Paid';
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -948,36 +985,46 @@ class _FeesScreenState extends State<FeesScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                DropdownButtonFormField<String>(
+                // DropdownButtonFormField<String>(
+                //   decoration: InputDecoration(
+                //     labelText: 'Student',
+                //     border: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(12),
+                //     ),
+                //   ),
+                //   items: _feeRecords.map<DropdownMenuItem<String>>((record) {
+                //     return DropdownMenuItem<String>(
+                //       value: record['studentId']
+                //           .toString(), // Ensure it's a String
+                //       child: Text(
+                //           '${record['studentName']} (${record['studentId']})'),
+                //     );
+                //   }).toList(),
+                //   onChanged: (value) {
+                //     // Your logic here
+                //   },
+                // ),
+                TextField(
+                  controller: namecontroller,
                   decoration: InputDecoration(
-                    labelText: 'Student',
+                    labelText: 'Student Name',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  items: _feeRecords.map<DropdownMenuItem<String>>((record) {
-                    return DropdownMenuItem<String>(
-                      value: record['studentId']
-                          .toString(), // Ensure it's a String
-                      child: Text(
-                          '${record['studentName']} (${record['studentId']})'),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    // Your logic here
-                  },
                 ),
                 const SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Course',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
+                // TextField(
+                //   decoration: InputDecoration(
+                //     labelText: 'Course',
+                //     border: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(12),
+                //     ),
+                //   ),
+                // ),
                 const SizedBox(height: 16),
                 TextField(
+                  controller: amountController,
                   decoration: InputDecoration(
                     labelText: 'Amount',
                     prefixText: '\$',
@@ -999,6 +1046,7 @@ class _FeesScreenState extends State<FeesScreen>
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
+                  value: selectedStatus,
                   decoration: InputDecoration(
                     labelText: 'Status',
                     border: OutlineInputBorder(
@@ -1010,7 +1058,11 @@ class _FeesScreenState extends State<FeesScreen>
                     DropdownMenuItem(value: 'Due', child: Text('Due')),
                     DropdownMenuItem(value: 'Partial', child: Text('Partial')),
                   ],
-                  onChanged: (value) {},
+                  onChanged: (value) {
+                    setState(() {
+                      selectedStatus = value!;
+                    });
+                  },
                 ),
               ],
             ),
@@ -1023,6 +1075,32 @@ class _FeesScreenState extends State<FeesScreen>
           ),
           ElevatedButton(
             onPressed: () {
+              DateTime _selectedDate = DateTime.now();
+              final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate);
+              final id = generatePassword();
+              // final data = {
+              //   'id': id,
+              //   'studentName': namecontroller.text,
+              //   'payment': [
+              //     {'amount': amountController.text, 'date': dateKey}
+              //   ],
+              //   'status': selectedStatus,
+              // };
+              // final feecontroller =
+              //     Provider.of<FeeRecorder>(context, listen: false);
+              int amount = int.tryParse(amountController.text.trim()) ?? 0;
+              DateTime? paymentDate = DateTime.tryParse(dateKey);
+
+              addOrUpdateStudentByName(
+                  docId: 'student_fees',
+                  studentId: id,
+                  studentName: namecontroller.text,
+                  amount: amount,
+                  date: paymentDate!,
+                  status: selectedStatus);
+              addToTotalAmount('student_fees', amount);
+
+              // print(data);
               // Add fee record logic here
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -1046,7 +1124,40 @@ class _FeesScreenState extends State<FeesScreen>
     );
   }
 
+  List get _filteredFeeRecordsname {
+    if (_selectedFilter == 'All') {
+      return _feeRecords.where((record) {
+        final name = record['studentName'].toString().toLowerCase();
+        final id = record['id'].toString().toLowerCase();
+        final studentId = record['studentId'].toString().toLowerCase();
+        final query = _searchController.text.toLowerCase();
+
+        return name.contains(query) ||
+            id.contains(query) ||
+            studentId.contains(query);
+      }).toList();
+    } else {
+      return _feeRecords.where((record) {
+        final name = record['studentName'].toString().toLowerCase();
+        final id = record['id'].toString().toLowerCase();
+        final studentId = record['studentId'].toString().toLowerCase();
+        final query = _searchController.text.toLowerCase();
+
+        return (name.contains(query) ||
+                id.contains(query) ||
+                studentId.contains(query)) &&
+            record['status'] == _selectedFilter;
+      }).toList();
+    }
+  }
+
   void _showEditFeeRecordDialog(Map<String, dynamic> record) {
+    final TextEditingController namecontroller =
+        TextEditingController(text: record['studentName']);
+    final TextEditingController amountcontroller =
+        TextEditingController(text: record['totalAmountPaid']);
+    String selectedstatus = record['status'];
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1064,33 +1175,29 @@ class _FeesScreenState extends State<FeesScreen>
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  controller: TextEditingController(
-                    text: '${record['studentName']} (${record['studentId']})',
-                  ),
+                  controller: namecontroller,
                   enabled: false,
                 ),
                 const SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Course',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  controller: TextEditingController(text: record['course']),
-                ),
+                // TextField(
+                //   decoration: InputDecoration(
+                //     labelText: 'Course',
+                //     border: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(12),
+                //     ),
+                //   ),
+                //   controller: TextEditingController(text: record['course']),
+                // ),
                 const SizedBox(height: 16),
                 TextField(
                   decoration: InputDecoration(
                     labelText: 'Amount',
-                    prefixText: '\$',
+                    prefixText: '\₹',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  controller:
-                      TextEditingController(text: record['amount'].toString()),
-                  keyboardType: TextInputType.number,
+                  controller: amountcontroller,
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -1111,13 +1218,17 @@ class _FeesScreenState extends State<FeesScreen>
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  value: record['status'],
+                  value: selectedstatus,
                   items: const [
                     DropdownMenuItem(value: 'Paid', child: Text('Paid')),
                     DropdownMenuItem(value: 'Due', child: Text('Due')),
                     DropdownMenuItem(value: 'Partial', child: Text('Partial')),
                   ],
-                  onChanged: (value) {},
+                  onChanged: (value) {
+                    setState(() {
+                      selectedstatus = value!;
+                    });
+                  },
                 ),
               ],
             ),
@@ -1130,7 +1241,18 @@ class _FeesScreenState extends State<FeesScreen>
           ),
           ElevatedButton(
             onPressed: () {
-              // Update fee record logic here
+              DateTime _selectedDate = DateTime.now();
+              final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate);
+              final provider = Provider.of<FeeRecorder>(context, listen: false);
+              final newFeeData = {
+                'id': record['id'],
+                'studentName': record['studentName'],
+                'amount': record['amount'],
+                'dueDate': dateKey,
+                'status': record['status'],
+              };
+              provider.updatefees(newFeeData, record['id']);
+
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
