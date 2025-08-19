@@ -61,6 +61,7 @@ Future<void> addOrUpdateStudentByName({
   required String docId,
   required String studentName,
   required String studentId,
+  required String phoneNumber,
   required int amount,
   required DateTime date,
   required String status, // Required to calculate payment status

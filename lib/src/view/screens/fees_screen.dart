@@ -974,6 +974,7 @@ class _FeesScreenState extends State<FeesScreen>
 
     final TextEditingController namecontroller = TextEditingController();
     final TextEditingController amountController = TextEditingController();
+    final TextEditingController phoneNumber = TextEditingController();
     final TextEditingController date = TextEditingController();
     String selectedStatus = 'Paid';
     showDialog(
@@ -1038,11 +1039,11 @@ class _FeesScreenState extends State<FeesScreen>
                 const SizedBox(height: 16),
                 TextField(
                   decoration: InputDecoration(
-                    labelText: 'Due Date',
+                    labelText: 'Phone',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    suffixIcon: const Icon(Icons.calendar_today),
+                    suffixIcon: const Icon(Icons.phone),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1110,6 +1111,7 @@ class _FeesScreenState extends State<FeesScreen>
                   docId: 'student_fees',
                   studentId: id!,
                   studentName: namecontroller.text,
+                  phoneNumber: phoneNumber.text,
                   amount: amount,
                   date: paymentDate!,
                   status: selectedStatus);
