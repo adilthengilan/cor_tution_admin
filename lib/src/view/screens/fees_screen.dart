@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:corona_lms_webapp/src/controller/fee_recorder/fee_recorder.dart';
+import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
@@ -19,7 +20,7 @@ class _FeesScreenState extends State<FeesScreen>
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Paid', 'Due', 'Partial'];
-
+  List<dynamic> _students = [];
   List _feeRecords = [
     // {
     //   'id': 'FEE-1001',
@@ -1075,9 +1076,23 @@ class _FeesScreenState extends State<FeesScreen>
           ),
           ElevatedButton(
             onPressed: () {
+              String? findStudentIdByName(List<dynamic> students, String name) {
+                for (var student in students) {
+                  if (student['student_name'] == name) {
+                    return student['id'];
+                  }
+                }
+                return null; // if not found
+              }
+
+              final Students =
+                  Provider.of<StudentDetailsProvider>(context, listen: false);
+              _students = Students.studentDetails;
+              String? id = findStudentIdByName(_students, namecontroller.text);
+
               DateTime _selectedDate = DateTime.now();
               final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate);
-              final id = generatePassword();
+              // final id = generatePassword();
               // final data = {
               //   'id': id,
               //   'studentName': namecontroller.text,
@@ -1093,7 +1108,7 @@ class _FeesScreenState extends State<FeesScreen>
 
               addOrUpdateStudentByName(
                   docId: 'student_fees',
-                  studentId: id,
+                  studentId: id!,
                   studentName: namecontroller.text,
                   amount: amount,
                   date: paymentDate!,

@@ -14,9 +14,22 @@ class AttendanceScreen extends StatefulWidget {
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
   final TextEditingController _searchController = TextEditingController();
+  String _selectedDivisions = 'All Divisions';
   String _selectedClass = 'All Classes';
-  final List<String> _divisions = [
+
+  final List<String> _classes = [
     'All Classes',
+    '12th',
+    '11th',
+    '10th',
+    '9th',
+    '8th',
+    '7th',
+    '6th'
+  ];
+
+  final List<String> _divisions = [
+    'All Divisions',
     'M1',
     'M2',
     'M3',
@@ -155,10 +168,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           name.contains(query) || id.contains(query) || rollNo.contains(query);
 
       // Filter by class
-      final matchesClass = _selectedClass == 'All Classes' ||
-          student['division'] == _selectedClass;
+      final matchesClass =
+          _selectedClass == 'All Classes' || student['class'] == _selectedClass;
+      final matchDivision = _selectedDivisions == 'All Divisions' ||
+          student['division'] == _selectedDivisions;
 
-      return matchesSearch && matchesClass;
+      return matchesSearch && matchesClass && matchDivision;
     }).toList();
   }
 
@@ -456,7 +471,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     child: DropdownButton<String>(
                       value: _selectedClass,
                       hint: const Text('Class'),
-                      items: _divisions.map((String value) {
+                      items: _classes.map((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(value),
@@ -465,6 +480,32 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       onChanged: (newValue) {
                         setState(() {
                           _selectedClass = newValue!;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedDivisions,
+                      hint: const Text('Division'),
+                      items: _divisions.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedDivisions = newValue!;
                         });
                       },
                     ),

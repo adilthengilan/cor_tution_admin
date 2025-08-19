@@ -17,7 +17,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Active', 'Inactive', 'Due Fees'];
   String _selectedClass = 'All Classes';
-  String _selectedDivision = 'Division';
+  String _selectedDivision = 'All Division';
 
   // making random passwords
   String generatePassword({
@@ -176,7 +176,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
       final matchesClass =
           _selectedClass == 'All Classes' || student['class'] == _selectedClass;
 
-      return matchesSearch && matchesStatus && matchesClass;
+      final matchDivision = _selectedDivision == 'All Division' ||
+          student['division'] == _selectedDivision;
+
+      return matchesSearch && matchesStatus && matchesClass && matchDivision;
     }).toList();
   }
 
@@ -334,7 +337,52 @@ class _StudentsScreenState extends State<StudentsScreen> {
                     ],
                   ),
                 ),
-
+                SizedBox(
+                  width: 100,
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Filter by Division:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedDivision,
+                            isExpanded: true,
+                            items: _Division.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (newValue) {
+                              setState(() {
+                                _selectedDivision = newValue!;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 100,
+                ),
                 // Class filter
                 Expanded(
                   child: Column(
