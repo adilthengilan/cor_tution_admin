@@ -14,6 +14,38 @@ class FeesScreen extends StatefulWidget {
   State<FeesScreen> createState() => _FeesScreenState();
 }
 
+String _selectedDivision = 'All Division';
+String _selectedClass = 'All Classes';
+
+final List<String> classes = [
+  'All Classes',
+  '12th',
+  '11th',
+  '10th',
+  '9th',
+  '8th',
+  '7th',
+  '6th'
+];
+final List<String> Division = [
+  'All Division',
+  'M1',
+  'M2',
+  'M3',
+  'M4',
+  'M5',
+  'M6',
+  'M7',
+  'E1',
+  'E2',
+  'E3',
+  'E4',
+  'E5',
+  'S1',
+  'S2',
+  'S3'
+];
+
 class _FeesScreenState extends State<FeesScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
@@ -21,74 +53,7 @@ class _FeesScreenState extends State<FeesScreen>
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Paid', 'Due', 'Partial'];
   List<dynamic> _students = [];
-  List _feeRecords = [
-    // {
-    //   'id': 'FEE-1001',
-    //   'studentId': 'ST-1001',
-    //   'studentName': 'John Smith',
-    //   'course': 'Mathematics',
-    //   'amount': 500.0,
-    //   'dueDate': '15 May 2023',
-    //   'status': 'Paid',
-    //   'paymentDate': '10 May 2023',
-    //   'avatar': 'https://i.pravatar.cc/150?img=1',
-    // },
-    // {
-    //   'id': 'FEE-1002',
-    //   'studentId': 'ST-1002',
-    //   'studentName': 'Emily Johnson',
-    //   'course': 'Physics',
-    //   'amount': 600.0,
-    //   'dueDate': '20 May 2023',
-    //   'status': 'Due',
-    //   'paymentDate': '-',
-    //   'avatar': 'https://i.pravatar.cc/150?img=5',
-    // },
-    // {
-    //   'id': 'FEE-1003',
-    //   'studentId': 'ST-1003',
-    //   'studentName': 'Michael Brown',
-    //   'course': 'Chemistry',
-    //   'amount': 550.0,
-    //   'dueDate': '25 May 2023',
-    //   'status': 'Partial',
-    //   'paymentDate': '15 May 2023',
-    //   'avatar': 'https://i.pravatar.cc/150?img=3',
-    // },
-    // {
-    //   'id': 'FEE-1004',
-    //   'studentId': 'ST-1004',
-    //   'studentName': 'Sarah Davis',
-    //   'course': 'Biology',
-    //   'amount': 500.0,
-    //   'dueDate': '10 May 2023',
-    //   'status': 'Paid',
-    //   'paymentDate': '05 May 2023',
-    //   'avatar': 'https://i.pravatar.cc/150?img=4',
-    // },
-    // {
-    //   'id': 'FEE-1005',
-    //   'studentId': 'ST-1005',
-    //   'studentName': 'David Wilson',
-    //   'course': 'English',
-    //   'amount': 450.0,
-    //   'dueDate': '30 May 2023',
-    //   'status': 'Due',
-    //   'paymentDate': '-',
-    //   'avatar': 'https://i.pravatar.cc/150?img=6',
-    // },
-    // {
-    //   'id': 'FEE-1006',
-    //   'studentId': 'ST-1006',
-    //   'studentName': 'Jessica Taylor',
-    //   'course': 'History',
-    //   'amount': 500.0,
-    //   'dueDate': '05 Jun 2023',
-    //   'status': 'Due',
-    //   'paymentDate': '-',
-    //   'avatar': 'https://i.pravatar.cc/150?img=7',
-    // },
-  ];
+  List _feeRecords = [];
 
   List get _filteredFeeRecords {
     if (_selectedFilter == 'All') {
@@ -173,7 +138,7 @@ class _FeesScreenState extends State<FeesScreen>
         controller: _tabController,
         children: [
           _buildFeeRecordsTab(),
-          _buildAnalyticsTab(),
+          // _buildAnalyticsTab(),
         ],
       ),
     );
@@ -306,24 +271,6 @@ class _FeesScreenState extends State<FeesScreen>
                             ),
                           ),
                         ),
-                        // Expanded(
-                        //   child: Text(
-                        //     'Fee ID',
-                        //     style: TextStyle(
-                        //       fontWeight: FontWeight.bold,
-                        //       color: Colors.grey,
-                        //     ),
-                        //   ),
-                        // ),
-                        // Expanded(
-                        //   child: Text(
-                        //     'Course',
-                        //     style: TextStyle(
-                        //       fontWeight: FontWeight.bold,
-                        //       color: Colors.grey,
-                        //     ),
-                        //   ),
-                        // ),
                         Expanded(
                           child: Text(
                             'Amount',
@@ -333,15 +280,6 @@ class _FeesScreenState extends State<FeesScreen>
                             ),
                           ),
                         ),
-                        // Expanded(
-                        //   child: Text(
-                        //     'Due Date',
-                        //     style: TextStyle(
-                        //       fontWeight: FontWeight.bold,
-                        //       color: Colors.grey,
-                        //     ),
-                        //   ),
-                        // ),
                         Expanded(
                           child: Text(
                             'Status',
@@ -351,7 +289,7 @@ class _FeesScreenState extends State<FeesScreen>
                             ),
                           ),
                         ),
-                        SizedBox(width: 80),
+                        SizedBox(width: 120),
                       ],
                     ),
                   ),
@@ -385,9 +323,17 @@ class _FeesScreenState extends State<FeesScreen>
                                           child: Row(
                                             children: [
                                               CircleAvatar(
-                                                  // backgroundImage: NetworkImage(
-                                                  //     record['avatar']),
+                                                child: Text(
+                                                  record['name'][0]
+                                                      .toUpperCase(),
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
                                                   ),
+                                                ),
+                                                backgroundColor:
+                                                    const Color(0xFF3B82F6),
+                                              ),
                                               const SizedBox(width: 12),
                                               Column(
                                                 crossAxisAlignment:
@@ -400,31 +346,15 @@ class _FeesScreenState extends State<FeesScreen>
                                                           FontWeight.bold,
                                                     ),
                                                   ),
-                                                  // Text(
-                                                  //   record['studentId'],
-                                                  //   style: TextStyle(
-                                                  //     color: Colors.grey[600],
-                                                  //     fontSize: 12,
-                                                  //   ),
-                                                  // ),
                                                 ],
                                               ),
                                             ],
                                           ),
                                         ),
-                                        // Expanded(
-                                        //   child: Text(record['id']),
-                                        // ),
-                                        // Expanded(
-                                        //   child: Text(record['course']),
-                                        // ),
                                         Expanded(
                                           child: Text(
                                               '\₹${record['totalAmountPaid']}'),
                                         ),
-                                        // Expanded(
-                                        //   child: Text(record['dueDate']),
-                                        // ),
                                         Expanded(
                                           child: Container(
                                             padding: const EdgeInsets.symmetric(
@@ -456,9 +386,17 @@ class _FeesScreenState extends State<FeesScreen>
                                           ),
                                         ),
                                         SizedBox(
-                                          width: 80,
+                                          width: 120,
                                           child: Row(
                                             children: [
+                                              IconButton(
+                                                icon: const Icon(Icons.print,
+                                                    color: Colors.green),
+                                                onPressed: () {
+                                                  // _showReceiptDialog(record);
+                                                },
+                                                tooltip: 'Print Receipt',
+                                              ),
                                               IconButton(
                                                 icon: const Icon(Icons.edit,
                                                     color: Color(0xFF3B82F6)),
@@ -466,6 +404,7 @@ class _FeesScreenState extends State<FeesScreen>
                                                   _showEditFeeRecordDialog(
                                                       record);
                                                 },
+                                                tooltip: 'Edit',
                                               ),
                                               IconButton(
                                                 icon: const Icon(Icons.delete,
@@ -474,6 +413,7 @@ class _FeesScreenState extends State<FeesScreen>
                                                   _showDeleteConfirmationDialog(
                                                       record);
                                                 },
+                                                tooltip: 'Delete',
                                               ),
                                             ],
                                           ),
@@ -574,7 +514,6 @@ class _FeesScreenState extends State<FeesScreen>
                               barTouchData: BarTouchData(
                                 enabled: true,
                                 touchTooltipData: BarTouchTooltipData(
-                                  // tooltipBgColor: Colors.blueGrey,
                                   getTooltipItem:
                                       (group, groupIndex, rod, rodIndex) {
                                     const months = [
@@ -947,232 +886,93 @@ class _FeesScreenState extends State<FeesScreen>
   }
 
   void _showAddFeeRecordDialog() {
-    String generatePassword({
-      int length = 8,
-      bool includeUppercase = true,
-      bool includeLowercase = true,
-      bool includeNumbers = true,
-      bool includeSymbols = true,
-    }) {
-      const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-      const numbers = '0123456789';
-      const symbols = '!@#\$%^&*()_-+=<>?/|';
-
-      String chars = '';
-      if (includeUppercase) chars += uppercase;
-      if (includeLowercase) chars += lowercase;
-      if (includeNumbers) chars += numbers;
-      if (includeSymbols) chars += symbols;
-
-      if (chars.isEmpty) return '';
-
-      final rand = Random.secure();
-      return List.generate(length, (index) => chars[rand.nextInt(chars.length)])
-          .join();
-    }
-
-    final TextEditingController namecontroller = TextEditingController();
-    final TextEditingController amountController = TextEditingController();
-    final TextEditingController phoneNumber = TextEditingController();
-    final TextEditingController date = TextEditingController();
-    String selectedStatus = 'Paid';
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add New Fee Record'),
-        content: SizedBox(
-          width: 500,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // DropdownButtonFormField<String>(
-                //   decoration: InputDecoration(
-                //     labelText: 'Student',
-                //     border: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(12),
-                //     ),
-                //   ),
-                //   items: _feeRecords.map<DropdownMenuItem<String>>((record) {
-                //     return DropdownMenuItem<String>(
-                //       value: record['studentId']
-                //           .toString(), // Ensure it's a String
-                //       child: Text(
-                //           '${record['studentName']} (${record['studentId']})'),
-                //     );
-                //   }).toList(),
-                //   onChanged: (value) {
-                //     // Your logic here
-                //   },
-                // ),
-                TextField(
-                  controller: namecontroller,
-                  decoration: InputDecoration(
-                    labelText: 'Student Name',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // TextField(
-                //   decoration: InputDecoration(
-                //     labelText: 'Course',
-                //     border: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(12),
-                //     ),
-                //   ),
-                // ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: amountController,
-                  decoration: InputDecoration(
-                    labelText: 'Amount',
-                    prefixText: '\$',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Phone',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    suffixIcon: const Icon(Icons.phone),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: selectedStatus,
-                  decoration: InputDecoration(
-                    labelText: 'Status',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: 'Paid', child: Text('Paid')),
-                    DropdownMenuItem(value: 'Due', child: Text('Due')),
-                    DropdownMenuItem(value: 'Partial', child: Text('Partial')),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      selectedStatus = value!;
-                    });
-                  },
-                ),
-              ],
-            ),
+      barrierDismissible: false,
+      builder: (context) {
+        return AddFeeRecordDialog(
+          onSubmit: _handleAddFeeRecord,
+        );
+      },
+    );
+  }
+
+  void _showReceiptDialog(Map<String, dynamic> record) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return ReceiptDialog(record: record);
+      },
+    );
+  }
+
+  void _handleAddFeeRecord(
+    String? selectedStudentId,
+    String studentName,
+    String phoneNumber,
+    int amount,
+    String selectedStatus,
+    DateTime selectedDate,
+  ) {
+    try {
+      // Add the fee record
+      addOrUpdateStudentByName(
+        docId: 'student_fees',
+        studentId: selectedStudentId!,
+        studentName: studentName,
+        phoneNumber: phoneNumber,
+        amount: amount,
+        date: selectedDate,
+        status: selectedStatus,
+      );
+
+      // Update total amount
+      addToTotalAmount('student_fees', amount);
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 8),
+              Text('Fee record added successfully for $studentName'),
+            ],
           ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              String? findStudentIdByName(List<dynamic> students, String name) {
-                for (var student in students) {
-                  if (student['student_name'] == name) {
-                    return student['id'];
-                  }
-                }
-                return null; // if not found
-              }
+      );
 
-              final Students =
-                  Provider.of<StudentDetailsProvider>(context, listen: false);
-              _students = Students.studentDetails;
-              String? id = findStudentIdByName(_students, namecontroller.text);
+      setState(() {}); // Refresh the UI
+    } catch (e) {
+      _showErrorSnackBar('Failed to add fee record. Please try again.');
+    }
+  }
 
-              DateTime _selectedDate = DateTime.now();
-              final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate);
-              // final id = generatePassword();
-              // final data = {
-              //   'id': id,
-              //   'studentName': namecontroller.text,
-              //   'payment': [
-              //     {'amount': amountController.text, 'date': dateKey}
-              //   ],
-              //   'status': selectedStatus,
-              // };
-              // final feecontroller =
-              //     Provider.of<FeeRecorder>(context, listen: false);
-              int amount = int.tryParse(amountController.text.trim()) ?? 0;
-              DateTime? paymentDate = DateTime.tryParse(dateKey);
-
-              addOrUpdateStudentByName(
-                  docId: 'student_fees',
-                  studentId: id!,
-                  studentName: namecontroller.text,
-                  phoneNumber: phoneNumber.text,
-                  amount: amount,
-                  date: paymentDate!,
-                  status: selectedStatus);
-              addToTotalAmount('student_fees', amount);
-
-              // print(data);
-              // Add fee record logic here
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Fee record added successfully'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Add Record'),
-          ),
-        ],
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(message),
+          ],
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
 
-  List get _filteredFeeRecordsname {
-    if (_selectedFilter == 'All') {
-      return _feeRecords.where((record) {
-        final name = record['studentName'].toString().toLowerCase();
-        final id = record['id'].toString().toLowerCase();
-        final studentId = record['studentId'].toString().toLowerCase();
-        final query = _searchController.text.toLowerCase();
-
-        return name.contains(query) ||
-            id.contains(query) ||
-            studentId.contains(query);
-      }).toList();
-    } else {
-      return _feeRecords.where((record) {
-        final name = record['studentName'].toString().toLowerCase();
-        final id = record['id'].toString().toLowerCase();
-        final studentId = record['studentId'].toString().toLowerCase();
-        final query = _searchController.text.toLowerCase();
-
-        return (name.contains(query) ||
-                id.contains(query) ||
-                studentId.contains(query)) &&
-            record['status'] == _selectedFilter;
-      }).toList();
-    }
-  }
-
   void _showEditFeeRecordDialog(Map<String, dynamic> record) {
     final TextEditingController namecontroller =
-        TextEditingController(text: record['studentName']);
+        TextEditingController(text: record['name']);
     final TextEditingController amountcontroller =
-        TextEditingController(text: record['totalAmountPaid']);
+        TextEditingController(text: record['totalAmountPaid'].toString());
     String selectedstatus = record['status'];
 
     showDialog(
@@ -1196,16 +996,6 @@ class _FeesScreenState extends State<FeesScreen>
                   enabled: false,
                 ),
                 const SizedBox(height: 16),
-                // TextField(
-                //   decoration: InputDecoration(
-                //     labelText: 'Course',
-                //     border: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(12),
-                //     ),
-                //   ),
-                //   controller: TextEditingController(text: record['course']),
-                // ),
-                const SizedBox(height: 16),
                 TextField(
                   decoration: InputDecoration(
                     labelText: 'Amount',
@@ -1215,17 +1005,6 @@ class _FeesScreenState extends State<FeesScreen>
                     ),
                   ),
                   controller: amountcontroller,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Due Date',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    suffixIcon: const Icon(Icons.calendar_today),
-                  ),
-                  controller: TextEditingController(text: record['dueDate']),
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
@@ -1242,9 +1021,7 @@ class _FeesScreenState extends State<FeesScreen>
                     DropdownMenuItem(value: 'Partial', child: Text('Partial')),
                   ],
                   onChanged: (value) {
-                    setState(() {
-                      selectedstatus = value!;
-                    });
+                    selectedstatus = value!;
                   },
                 ),
               ],
@@ -1263,14 +1040,15 @@ class _FeesScreenState extends State<FeesScreen>
               final provider = Provider.of<FeeRecorder>(context, listen: false);
               final newFeeData = {
                 'id': record['id'],
-                'studentName': record['studentName'],
-                'amount': record['amount'],
+                'studentName': record['name'],
+                'amount': int.parse(amountcontroller.text),
                 'dueDate': dateKey,
-                'status': record['status'],
+                'status': selectedstatus,
               };
               provider.updatefees(newFeeData, record['id']);
 
               Navigator.pop(context);
+              setState(() {});
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Fee record updated successfully'),
@@ -1297,8 +1075,8 @@ class _FeesScreenState extends State<FeesScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Fee Record'),
-        content:
-            Text('Are you sure you want to delete fee record ${record['id']}?'),
+        content: Text(
+            'Are you sure you want to delete fee record for ${record['name']}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -1308,6 +1086,7 @@ class _FeesScreenState extends State<FeesScreen>
             onPressed: () {
               // Delete fee record logic here
               Navigator.pop(context);
+              setState(() {});
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Fee record deleted successfully'),
@@ -1323,6 +1102,786 @@ class _FeesScreenState extends State<FeesScreen>
               ),
             ),
             child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Separate StatefulWidget for Add Fee Record Dialog
+class AddFeeRecordDialog extends StatefulWidget {
+  final Function(String?, String, String, int, String, DateTime) onSubmit;
+
+  const AddFeeRecordDialog({
+    Key? key,
+    required this.onSubmit,
+  }) : super(key: key);
+
+  @override
+  State<AddFeeRecordDialog> createState() => _AddFeeRecordDialogState();
+}
+
+class _AddFeeRecordDialogState extends State<AddFeeRecordDialog> {
+  // Controllers
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
+
+  // State variables
+  String _selectedStatus = 'Paid';
+  DateTime _selectedDate = DateTime.now();
+  String _selectedClass = 'All Classes';
+  String _selectedDivision = 'All Division';
+  String? _selectedStudentId;
+  String _searchQuery = '';
+  List<dynamic> _students = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _amountController.dispose();
+    _phoneController.dispose();
+    _dateController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<dynamic> get _filteredStudents {
+    if (_students.isEmpty) return [];
+
+    return _students.where((student) {
+      // Class and Division filtering
+      bool matchesClass =
+          _selectedClass == 'All Classes' || student['class'] == _selectedClass;
+      bool matchesDivision = _selectedDivision == 'All Division' ||
+          student['division'] == _selectedDivision;
+
+      // Search filtering
+      bool matchesSearch = _searchQuery.isEmpty ||
+          student['student_name']
+              .toString()
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()) ||
+          student['id'].toString().contains(_searchQuery);
+
+      return matchesClass && matchesDivision && matchesSearch;
+    }).toList()
+      ..sort((a, b) =>
+          a['student_name'].toString().compareTo(b['student_name'].toString()));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Get students from provider
+    final studentsProvider =
+        Provider.of<StudentDetailsProvider>(context, listen: false);
+    _students = studentsProvider.studentDetails;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Color(0xFF3B82F6),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.add_card, color: Colors.white, size: 28),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Add New Fee Record',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+
+            // Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Filter Section
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(Icons.filter_list,
+                                  size: 20, color: Color(0xFF3B82F6)),
+                              SizedBox(width: 8),
+                              Text(
+                                'Filter Students',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Color(0xFF3B82F6),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Class & Division Filters
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildDropdownField(
+                                  label: 'Class',
+                                  value: _selectedClass,
+                                  items: classes,
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      _selectedClass = newValue!;
+                                      _selectedStudentId = null;
+                                      _nameController.clear();
+                                      _phoneController.clear();
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildDropdownField(
+                                  label: 'Division',
+                                  value: _selectedDivision,
+                                  items: Division,
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      _selectedDivision = newValue!;
+                                      _selectedStudentId = null;
+                                      _nameController.clear();
+                                      _phoneController.clear();
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Search Field
+                          TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              labelText: 'Search by name or ID',
+                              prefixIcon: const Icon(Icons.search),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                _searchQuery = value;
+                                _selectedStudentId = null;
+                                _nameController.clear();
+                                _phoneController.clear();
+                              });
+                            },
+                          ),
+
+                          // Results count
+                          const SizedBox(height: 8),
+                          Text(
+                            '${_filteredStudents.length} students found',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Student Selection
+                    _buildDropdownField(
+                      label: 'Select Student *',
+                      value: _selectedStudentId,
+                      items: _filteredStudents
+                          .map((student) => student['id'].toString())
+                          .toList(),
+                      itemBuilder: (studentId) {
+                        final studentData = _filteredStudents
+                            .firstWhere((s) => s['id'].toString() == studentId);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              studentData['student_name'].toString(),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                            Text(
+                              'ID: ${studentData['id']} • Class: ${studentData['class']}-${studentData['division']}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedStudentId = value;
+                          if (value != null) {
+                            final studentData = _filteredStudents
+                                .firstWhere((s) => s['id'].toString() == value);
+                            _nameController.text =
+                                studentData['student_name'].toString();
+                            _phoneController.text =
+                                studentData['phone']?.toString() ?? '';
+                          }
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Form Fields
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: TextField(
+                            controller: _nameController,
+                            decoration: InputDecoration(
+                              labelText: 'Student Name',
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                              prefixIcon: const Icon(Icons.person),
+                            ),
+                            readOnly: true,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller: _amountController,
+                            decoration: InputDecoration(
+                              labelText: 'Amount *',
+                              prefixText: '\₹ ',
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                              prefixIcon: const Icon(Icons.attach_money),
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _phoneController,
+                            decoration: InputDecoration(
+                              labelText: 'Phone Number',
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                              prefixIcon: const Icon(Icons.phone),
+                            ),
+                            keyboardType: TextInputType.phone,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildDropdownField(
+                            label: 'Status',
+                            value: _selectedStatus,
+                            items: const ['Paid', 'Due', 'Partial'],
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedStatus = value!;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Date Field
+                    TextField(
+                      controller: _dateController,
+                      decoration: InputDecoration(
+                        labelText: 'Payment Date',
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                        prefixIcon: const Icon(Icons.calendar_today),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.edit_calendar),
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: _selectedDate,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2030),
+                            );
+                            if (picked != null) {
+                              setState(() {
+                                _selectedDate = picked;
+                                _dateController.text =
+                                    DateFormat('yyyy-MM-dd').format(picked);
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      readOnly: true,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Actions
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: _handleSubmit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3B82F6),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                    child: const Text('Add Record'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdownField({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+    Widget Function(String)? itemBuilder,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              isExpanded: true,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              items: items.map<DropdownMenuItem<String>>((String item) {
+                if (itemBuilder != null) {
+                  return DropdownMenuItem<String>(
+                    value: item,
+                    child: itemBuilder!(item),
+                  );
+                } else {
+                  return DropdownMenuItem<String>(
+                    value: item,
+                    child: Text(item),
+                  );
+                }
+              }).toList(),
+              onChanged: onChanged,
+              hint: Text('Select $label'),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _handleSubmit() {
+    // Validation
+    if (_selectedStudentId == null || _selectedStudentId!.isEmpty) {
+      _showErrorSnackBar('Please select a student');
+      return;
+    }
+
+    if (_amountController.text.trim().isEmpty) {
+      _showErrorSnackBar('Please enter an amount');
+      return;
+    }
+
+    final amount = int.tryParse(_amountController.text.trim());
+    if (amount == null || amount <= 0) {
+      _showErrorSnackBar('Please enter a valid amount');
+      return;
+    }
+
+    // Submit the form
+    widget.onSubmit(
+      _selectedStudentId,
+      _nameController.text,
+      _phoneController.text,
+      amount,
+      _selectedStatus,
+      _selectedDate,
+    );
+
+    Navigator.pop(context);
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(message),
+          ],
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+}
+
+// Receipt Dialog Widget
+class ReceiptDialog extends StatelessWidget {
+  final Map<String, dynamic> record;
+
+  const ReceiptDialog({
+    Key? key,
+    required this.record,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final receiptId = 'RCP-${DateTime.now().millisecondsSinceEpoch}';
+    final currentDate = DateFormat('dd/MM/yyyy hh:mm a').format(DateTime.now());
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        width: 400,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Fee Receipt',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF3B82F6),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+
+            const Divider(thickness: 2),
+
+            // Receipt Content
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // School/Institution Header
+                  Center(
+                    child: Column(
+                      children: [
+                        const Text(
+                          'CORONA LEARNING MANAGEMENT',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF3B82F6),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Fee Payment Receipt',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Receipt Details
+                  _buildReceiptRow('Receipt ID:', receiptId),
+                  _buildReceiptRow('Date & Time:', currentDate),
+                  const SizedBox(height: 16),
+
+                  const Divider(),
+                  const SizedBox(height: 16),
+
+                  // Student Details
+                  const Text(
+                    'Student Details:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Color(0xFF3B82F6),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildReceiptRow('Name:', record['name']),
+                  _buildReceiptRow(
+                      'Student ID:', record['id']?.toString() ?? 'N/A'),
+
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 16),
+
+                  // Payment Details
+                  const Text(
+                    'Payment Details:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Color(0xFF3B82F6),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildReceiptRow(
+                      'Amount Paid:', '₹${record['totalAmountPaid']}'),
+                  _buildReceiptRow('Payment Status:', record['status']),
+                  _buildReceiptRow('Payment Method:',
+                      'Cash/Online'), // You can make this dynamic
+
+                  const SizedBox(height: 20),
+
+                  // Total Section
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF3B82F6)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Total Amount:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        Text(
+                          '₹${record['totalAmountPaid']}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Color(0xFF3B82F6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Footer
+                  Center(
+                    child: Column(
+                      children: [
+                        Text(
+                          'Thank you for your payment!',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'This is a computer-generated receipt.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Action Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Print functionality - you can implement actual printing here
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Receipt printed successfully!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.print),
+                  label: const Text('Print'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Download functionality
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Receipt downloaded successfully!'),
+                        backgroundColor: Colors.blue,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3B82F6),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.download),
+                  label: const Text('Download'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReceiptRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.black,
+              ),
+            ),
           ),
         ],
       ),

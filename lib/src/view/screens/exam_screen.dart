@@ -1,4 +1,7 @@
+import 'package:corona_lms_webapp/src/controller/student_controllers/student_service_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:math';
 
 class ExamsScreen extends StatefulWidget {
   const ExamsScreen({Key? key}) : super(key: key);
@@ -11,7 +14,13 @@ class _ExamsScreenState extends State<ExamsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   String _selectedClass = 'All Classes';
+  String _selectedSubject = 'All Subjects';
+  List<Map<String, dynamic>> _allExams = [];
+  bool _isLoading = true;
+
   final List<String> _classes = [
     'All Classes',
     '12th',
@@ -22,7 +31,7 @@ class _ExamsScreenState extends State<ExamsScreen>
     '7th',
     '6th'
   ];
-  String _selectedSubject = 'All Subjects';
+
   final List<String> _subjects = [
     'All Subjects',
     'Mathematics',
@@ -34,125 +43,11 @@ class _ExamsScreenState extends State<ExamsScreen>
     'Geography'
   ];
 
-  final List<Map<String, dynamic>> _exams = [
-    // {
-    //   'id': 'EX-1001',
-    //   'title': 'Algebra Mid-Term',
-    //   'description':
-    //       'Mid-term examination covering linear equations, polynomials, and factorization.',
-    //   'class': '10th',
-    //   'subject': 'Mathematics',
-    //   'duration': 60,
-    //   'totalQuestions': 30,
-    //   'passingMarks': 40,
-    //   'totalMarks': 100,
-    //   'status': 'Active',
-    //   'createdDate': '12 May 2023',
-    //   'dueDate': '20 May 2023',
-    // },
-    // {
-    //   'id': 'EX-1002',
-    //   'title': 'Newton\'s Laws Quiz',
-    //   'description':
-    //       'Quick assessment on Newton\'s three laws of motion with numerical problems.',
-    //   'class': '12th',
-    //   'subject': 'Physics',
-    //   'duration': 30,
-    //   'totalQuestions': 15,
-    //   'passingMarks': 20,
-    //   'totalMarks': 50,
-    //   'status': 'Active',
-    //   'createdDate': '15 May 2023',
-    //   'dueDate': '22 May 2023',
-    // },
-    // {
-    //   'id': 'EX-1003',
-    //   'title': 'Periodic Table Test',
-    //   'description':
-    //       'Comprehensive test on the periodic table, elements, and their properties.',
-    //   'class': '11th',
-    //   'subject': 'Chemistry',
-    //   'duration': 45,
-    //   'totalQuestions': 25,
-    //   'passingMarks': 30,
-    //   'totalMarks': 75,
-    //   'status': 'Upcoming',
-    //   'createdDate': '20 May 2023',
-    //   'dueDate': '27 May 2023',
-    // },
-    // {
-    //   'id': 'EX-1004',
-    //   'title': 'Cell Biology Final',
-    //   'description':
-    //       'Final examination covering cell structure, organelles, and cellular processes.',
-    //   'class': '10th',
-    //   'subject': 'Biology',
-    //   'duration': 90,
-    //   'totalQuestions': 40,
-    //   'passingMarks': 50,
-    //   'totalMarks': 120,
-    //   'status': 'Completed',
-    //   'createdDate': '25 May 2023',
-    //   'dueDate': '01 Jun 2023',
-    // },
-    // {
-    //   'id': 'EX-1005',
-    //   'title': 'Shakespeare Literature Quiz',
-    //   'description':
-    //       'Quiz on Shakespeare\'s major works, characters, and literary devices.',
-    //   'class': '9th',
-    //   'subject': 'English',
-    //   'duration': 40,
-    //   'totalQuestions': 20,
-    //   'passingMarks': 24,
-    //   'totalMarks': 60,
-    //   'status': 'Active',
-    //   'createdDate': '30 May 2023',
-    //   'dueDate': '05 Jun 2023',
-    // },
-    // {
-    //   'id': 'EX-1006',
-    //   'title': 'World War II Assessment',
-    //   'description':
-    //       'Comprehensive assessment on World War II events, key figures, and impacts.',
-    //   'class': '8th',
-    //   'subject': 'History',
-    //   'duration': 60,
-    //   'totalQuestions': 30,
-    //   'passingMarks': 36,
-    //   'totalMarks': 90,
-    //   'status': 'Upcoming',
-    //   'createdDate': '05 Jun 2023',
-    //   'dueDate': '12 Jun 2023',
-    // },
-  ];
-
-  List<Map<String, dynamic>> get _filteredExams {
-    return _exams.where((exam) {
-      final title = exam['title'].toString().toLowerCase();
-      final description = exam['description'].toString().toLowerCase();
-      final query = _searchController.text.toLowerCase();
-
-      // Filter by search query
-      final matchesSearch =
-          title.contains(query) || description.contains(query);
-
-      // Filter by class
-      final matchesClass =
-          _selectedClass == 'All Classes' || exam['class'] == _selectedClass;
-
-      // Filter by subject
-      final matchesSubject = _selectedSubject == 'All Subjects' ||
-          exam['subject'] == _selectedSubject;
-
-      return matchesSearch && matchesClass && matchesSubject;
-    }).toList();
-  }
-
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
+    _loadExams();
   }
 
   @override
@@ -162,181 +57,318 @@ class _ExamsScreenState extends State<ExamsScreen>
     super.dispose();
   }
 
+  // Load exams from Firestore
+  Future<void> _loadExams() async {
+    try {
+      final docSnapshot =
+          await _firestore.collection('exams').doc('exam-list').get();
+
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data();
+
+        setState(() {
+          _allExams = (data?['exams'] as List<dynamic>? ?? []).map((exam) {
+            return {
+              ...exam as Map<String, dynamic>,
+              'createdAt': (exam['createdAt'] as Timestamp?)?.toDate(),
+            };
+          }).toList();
+
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _allExams = [];
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      _showErrorSnackBar('Error loading exams: $e');
+    }
+  }
+
+  // Add exam to Firestore
+  Future<void> _addExamToFirestore({
+    required String id,
+    required String title,
+    required String description,
+    required String className,
+    required String subject,
+    required int duration,
+    required int questionCount,
+    required String status,
+    required List<Map<String, dynamic>> questions,
+  }) async {
+    try {
+      final examData = {
+        'id': id,
+        'title': title,
+        'description': description,
+        'class': className,
+        'subject': subject,
+        'duration': duration,
+        'questionCount': questionCount,
+        'status': status,
+        'questions': questions
+            .map((q) => {
+                  'question': q['question'],
+                  'options': q['options'],
+                  'correctAnswer': q['correctAnswer'],
+                  'marks': q['marks'],
+                })
+            .toList(),
+        'createdAt': DateTime.now(),
+        'updatedAt': DateTime.now(),
+      };
+
+      final service = StudentService();
+      service.addexams('exam-list', examData);
+      print(examData);
+      // await _firestore.collection('exams').doc('exams_mcq').set([]);
+      _showSuccessSnackBar('Exam created successfully');
+      _loadExams(); // Reload exams
+    } catch (e) {
+      _showErrorSnackBar('Error creating exam: $e');
+    }
+  }
+
+  // Filter exams based on status and search criteria
+  List<Map<String, dynamic>> _getFilteredExams(String status) {
+    return _allExams.where((exam) {
+      final matchesStatus = status == 'All' || exam['status'] == status;
+      final matchesSearch = _searchController.text.isEmpty ||
+          exam['title']
+              .toString()
+              .toLowerCase()
+              .contains(_searchController.text.toLowerCase()) ||
+          exam['description']
+              .toString()
+              .toLowerCase()
+              .contains(_searchController.text.toLowerCase());
+      final matchesClass =
+          _selectedClass == 'All Classes' || exam['class'] == _selectedClass;
+      final matchesSubject = _selectedSubject == 'All Subjects' ||
+          exam['subject'] == _selectedSubject;
+
+      return matchesStatus && matchesSearch && matchesClass && matchesSubject;
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        shadowColor: Colors.black.withOpacity(0.1),
         title: const Text(
-          'Exams',
+          'MCQ Exam Manager',
           style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
+            color: Color(0xFF1E293B),
+            fontWeight: FontWeight.w700,
+            fontSize: 24,
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.black),
-            onPressed: () {},
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            child: IconButton(
+              icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
+              onPressed: _loadExams,
+            ),
           ),
-          const SizedBox(width: 8),
-          const CircleAvatar(
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=13'),
-          ),
-          const SizedBox(width: 16),
         ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: const Color(0xFF3B82F6),
-          unselectedLabelColor: Colors.grey,
+          unselectedLabelColor: const Color(0xFF64748B),
           indicatorColor: const Color(0xFF3B82F6),
+          indicatorWeight: 3,
           tabs: const [
             Tab(text: 'All Exams'),
-            Tab(text: 'Active'),
             Tab(text: 'Upcoming'),
+            Tab(text: 'Active'),
+            Tab(text: 'Completed'),
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildExamsTab('All'),
-          _buildExamsTab('Active'),
-          _buildExamsTab('Upcoming'),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showAddExamDialog();
-        },
-        backgroundColor: const Color(0xFFFFC107),
-        child: const Icon(Icons.add, color: Colors.black),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildExamsTab('All'),
+                _buildExamsTab('Upcoming'),
+                _buildExamsTab('Active'),
+                _buildExamsTab('Completed'),
+              ],
+            ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showCreateExamDialog,
+        backgroundColor: const Color(0xFF3B82F6),
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add),
+        label: const Text('Create Exam'),
       ),
     );
   }
 
   Widget _buildExamsTab(String status) {
-    final exams = status == 'All'
-        ? _filteredExams
-        : _filteredExams.where((exam) => exam['status'] == status).toList();
+    final exams = _getFilteredExams(status);
 
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
+        children: [
+          _buildFilterSection(),
+          const SizedBox(height: 24),
+          Expanded(
+            child: exams.isEmpty
+                ? _buildEmptyState(status)
+                : ListView.builder(
+                    itemCount: exams.length,
+                    itemBuilder: (context, index) =>
+                        _buildExamCard(exams[index]),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Search and filter
+          const Text(
+            'Filter Exams',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (value) {
-                      setState(() {});
-                    },
-                    decoration: const InputDecoration(
-                      hintText: 'Search exams...',
-                      prefixIcon: Icon(Icons.search),
-                      border: InputBorder.none,
+                flex: 2,
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: 'Search exams...',
+                    prefixIcon:
+                        const Icon(Icons.search, color: Color(0xFF64748B)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFF3B82F6)),
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedClass,
-                    hint: const Text('Class'),
-                    items: _classes.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        _selectedClass = newValue!;
-                      });
-                    },
-                  ),
+              Expanded(
+                child: _buildDropdown(
+                  value: _selectedClass,
+                  items: _classes,
+                  onChanged: (value) => setState(() => _selectedClass = value!),
+                  hint: 'Class',
                 ),
               ),
               const SizedBox(width: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedSubject,
-                    hint: const Text('Subject'),
-                    items: _subjects.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        _selectedSubject = newValue!;
-                      });
-                    },
-                  ),
+              Expanded(
+                child: _buildDropdown(
+                  value: _selectedSubject,
+                  items: _subjects,
+                  onChanged: (value) =>
+                      setState(() => _selectedSubject = value!),
+                  hint: 'Subject',
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
 
-          // Exams list
-          Expanded(
-            child: exams.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.assignment_outlined,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No exams found',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: exams.length,
-                    itemBuilder: (context, index) {
-                      final exam = exams[index];
-                      return _buildExamCard(exam);
-                    },
-                  ),
+  Widget _buildDropdown({
+    required String value,
+    required List<String> items,
+    required Function(String?) onChanged,
+    required String hint,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          hint: Text(hint),
+          isExpanded: true,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          items: items
+              .map((item) => DropdownMenuItem(
+                    value: item,
+                    child: Text(item),
+                  ))
+              .toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String status) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.quiz_outlined,
+            size: 80,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            status == 'All' ? 'No exams created yet' : 'No $status exams',
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Create your first MCQ exam to get started',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[500],
+            ),
           ),
         ],
       ),
@@ -344,21 +376,12 @@ class _ExamsScreenState extends State<ExamsScreen>
   }
 
   Widget _buildExamCard(Map<String, dynamic> exam) {
-    Color statusColor;
-
-    switch (exam['status']) {
-      case 'Active':
-        statusColor = Colors.green;
-        break;
-      case 'Upcoming':
-        statusColor = Colors.orange;
-        break;
-      case 'Completed':
-        statusColor = Colors.blue;
-        break;
-      default:
-        statusColor = Colors.grey;
-    }
+    final statusColors = {
+      'Upcoming': Colors.orange,
+      'Active': Colors.green,
+      'Completed': Colors.blue,
+    };
+    final statusColor = statusColors[exam['status']] ?? Colors.grey;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -376,11 +399,15 @@ class _ExamsScreenState extends State<ExamsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF3B82F6).withOpacity(0.05),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF3B82F6).withOpacity(0.1),
+                  const Color(0xFF1E40AF).withOpacity(0.05),
+                ],
+              ),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -393,17 +420,18 @@ class _ExamsScreenState extends State<ExamsScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        exam['title'],
+                        exam['title'] ?? 'Untitled Exam',
                         style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
+                          color: Color(0xFF1E293B),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 8),
                       Text(
-                        exam['description'],
-                        style: TextStyle(
-                          color: Colors.grey[600],
+                        exam['description'] ?? 'No description',
+                        style: const TextStyle(
+                          color: Color(0xFF64748B),
                           fontSize: 14,
                         ),
                       ),
@@ -414,103 +442,62 @@ class _ExamsScreenState extends State<ExamsScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: statusColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    exam['status'],
+                    exam['status'] ?? 'Unknown',
                     style: TextStyle(
                       color: statusColor,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-
-          // Details
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    _buildExamDetail(Icons.class_, 'Class', exam['class']),
-                    _buildExamDetail(Icons.subject, 'Subject', exam['subject']),
-                    _buildExamDetail(
-                        Icons.timer, 'Duration', '${exam['duration']} mins'),
-                    _buildExamDetail(Icons.help_outline, 'Questions',
-                        exam['totalQuestions'].toString()),
+                    _buildExamStat(
+                        Icons.school, 'Class', exam['class'] ?? 'N/A'),
+                    _buildExamStat(
+                        Icons.book, 'Subject', exam['subject'] ?? 'N/A'),
+                    _buildExamStat(Icons.timer, 'Duration',
+                        '${exam['duration'] ?? 0} min'),
+                    _buildExamStat(Icons.quiz, 'Questions',
+                        '${exam['questionCount'] ?? 0}'),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    _buildExamDetail(Icons.check_circle_outline,
-                        'Passing Marks', exam['passingMarks'].toString()),
-                    _buildExamDetail(Icons.grade, 'Total Marks',
-                        exam['totalMarks'].toString()),
-                    _buildExamDetail(
-                        Icons.calendar_today, 'Due Date', exam['dueDate']),
-                    _buildExamDetail(
-                        Icons.date_range, 'Created', exam['createdDate']),
+                    _buildActionButton(
+                      icon: Icons.visibility,
+                      label: 'View',
+                      color: Colors.grey,
+                      onPressed: () => _showViewExamDialog(exam),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildActionButton(
+                      icon: Icons.edit,
+                      label: 'Edit',
+                      color: const Color(0xFF3B82F6),
+                      onPressed: () => _showEditExamDialog(exam),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildActionButton(
+                      icon: Icons.delete,
+                      label: 'Delete',
+                      color: Colors.red,
+                      onPressed: () => _showDeleteDialog(exam),
+                    ),
                   ],
-                ),
-              ],
-            ),
-          ),
-
-          // Actions
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    _showViewQuestionsDialog(exam);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[200],
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: const Icon(Icons.visibility),
-                  label: const Text('View Questions'),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    _showEditExamDialog(exam);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B82F6),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: const Icon(Icons.edit),
-                  label: const Text('Edit'),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    _showDeleteConfirmationDialog(exam);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: const Icon(Icons.delete),
-                  label: const Text('Delete'),
                 ),
               ],
             ),
@@ -520,27 +507,29 @@ class _ExamsScreenState extends State<ExamsScreen>
     );
   }
 
-  Widget _buildExamDetail(IconData icon, String label, String value) {
+  Widget _buildExamStat(IconData icon, String label, String value) {
     return Expanded(
       child: Row(
         children: [
-          Icon(icon, size: 16, color: Colors.grey[600]),
-          const SizedBox(width: 4),
+          Icon(icon, size: 16, color: const Color(0xFF64748B)),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: TextStyle(
-                  color: Colors.grey[600],
+                style: const TextStyle(
+                  color: Color(0xFF64748B),
                   fontSize: 12,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
                 value,
                 style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
                   fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -550,97 +539,86 @@ class _ExamsScreenState extends State<ExamsScreen>
     );
   }
 
-  void _showAddExamDialog() {
-    final TextEditingController titleController = TextEditingController();
-    final TextEditingController descriptionController = TextEditingController();
-    final TextEditingController durationController =
-        TextEditingController(text: '60');
-    final TextEditingController totalQuestionsController =
-        TextEditingController(text: '30');
-    final TextEditingController passingMarksController =
-        TextEditingController(text: '40');
-    final TextEditingController totalMarksController =
-        TextEditingController(text: '100');
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color.withOpacity(0.1),
+        foregroundColor: color,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+      icon: Icon(icon, size: 16),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+    );
+  }
+
+  void _showCreateExamDialog() {
+    final titleController = TextEditingController();
+    final descriptionController = TextEditingController();
+    final durationController = TextEditingController(text: '60');
+    final questionCountController = TextEditingController(text: '10');
     String selectedClass = '10th';
     String selectedSubject = 'Mathematics';
     String selectedStatus = 'Upcoming';
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add New Exam'),
-        content: SizedBox(
-          width: 500,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          width: 600,
+          padding: const EdgeInsets.all(24),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextField(
-                  controller: titleController,
-                  decoration: InputDecoration(
-                    labelText: 'Title',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                const Text(
+                  'Create New MCQ Exam',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1E293B),
                   ),
                 ),
+                const SizedBox(height: 24),
+                _buildTextField(titleController, 'Exam Title', Icons.title),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: descriptionController,
-                  decoration: InputDecoration(
-                    labelText: 'Description',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  maxLines: 3,
-                ),
+                _buildTextField(
+                    descriptionController, 'Description', Icons.description,
+                    maxLines: 3),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          labelText: 'Class',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                      child: _buildFormDropdown(
                         value: selectedClass,
-                        items: _classes
-                            .where((c) => c != 'All Classes')
-                            .map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          selectedClass = value!;
-                        },
+                        items:
+                            _classes.where((c) => c != 'All Classes').toList(),
+                        onChanged: (value) => selectedClass = value!,
+                        label: 'Class',
+                        icon: Icons.school,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          labelText: 'Subject',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                      child: _buildFormDropdown(
                         value: selectedSubject,
                         items: _subjects
                             .where((s) => s != 'All Subjects')
-                            .map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          selectedSubject = value!;
-                        },
+                            .toList(),
+                        onChanged: (value) => selectedSubject = value!,
+                        label: 'Subject',
+                        icon: Icons.book,
                       ),
                     ),
                   ],
@@ -649,395 +627,746 @@ class _ExamsScreenState extends State<ExamsScreen>
                 Row(
                   children: [
                     Expanded(
-                      child: TextField(
-                        controller: durationController,
-                        decoration: InputDecoration(
-                          labelText: 'Duration (minutes)',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
+                      child: _buildTextField(
+                          durationController, 'Duration (minutes)', Icons.timer,
+                          keyboardType: TextInputType.number),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: TextField(
-                        controller: totalQuestionsController,
-                        decoration: InputDecoration(
-                          labelText: 'Total Questions',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
+                      child: _buildTextField(
+                          questionCountController, 'Question Count', Icons.quiz,
+                          keyboardType: TextInputType.number),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: passingMarksController,
-                        decoration: InputDecoration(
-                          labelText: 'Passing Marks',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextField(
-                        controller: totalMarksController,
-                        decoration: InputDecoration(
-                          labelText: 'Total Marks',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Status',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                _buildFormDropdown(
                   value: selectedStatus,
-                  items: const [
-                    DropdownMenuItem(value: 'Active', child: Text('Active')),
-                    DropdownMenuItem(
-                        value: 'Upcoming', child: Text('Upcoming')),
+                  items: const ['Upcoming', 'Active'],
+                  onChanged: (value) => selectedStatus = value!,
+                  label: 'Status',
+                  icon: Icons.flag,
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        if (titleController.text.isEmpty ||
+                            questionCountController.text.isEmpty) {
+                          _showErrorSnackBar(
+                              'Please fill in all required fields');
+                          return;
+                        }
+                        Navigator.pop(context);
+                        _showAddQuestionsDialog(
+                          title: titleController.text,
+                          description: descriptionController.text,
+                          className: selectedClass,
+                          subject: selectedSubject,
+                          duration: int.parse(durationController.text),
+                          questionCount:
+                              int.parse(questionCountController.text),
+                          status: selectedStatus,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3B82F6),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      icon: const Icon(Icons.arrow_forward),
+                      label: const Text('Add Questions'),
+                    ),
                   ],
-                  onChanged: (value) {
-                    selectedStatus = value!;
-                  },
                 ),
               ],
             ),
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      ),
+    );
+  }
+
+  bool _isSavingExam = false;
+
+  void _showAddQuestionsDialog({
+    required String title,
+    required String description,
+    required String className,
+    required String subject,
+    required int duration,
+    required int questionCount,
+    required String status,
+  }) {
+    List<Map<String, dynamic>> questions = List.generate(
+      questionCount,
+      (index) => {
+        'question': '',
+        'options': ['', '', '', ''],
+        'correctAnswer': 0,
+        'marks': 1,
+      },
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.9,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Add Questions - $title',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                          Text(
+                            '$className • $subject • $questionCount Questions',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: questionCount,
+                    itemBuilder: (context, index) => Container(
+                      margin: const EdgeInsets.only(bottom: 24),
+                      child: _buildQuestionCard(
+                        questionNumber: index + 1,
+                        question: questions[index],
+                        onChanged: () => setDialogState(() {}),
+                      ),
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 16),
+                    // Add this as a class variable
+
+// Debugged Save Exam Button
+                    ElevatedButton.icon(
+                      onPressed: _isSavingExam
+                          ? null
+                          : () async {
+                              setState(() {
+                                _isSavingExam = true;
+                              });
+
+                              try {
+                                print('hi');
+
+                                // Debug: Check if questions is null
+                                if (questions == null) {
+                                  print('ERROR: questions is null');
+                                  _showErrorSnackBar(
+                                      'Questions data is not available');
+                                  return;
+                                }
+
+                                print('Questions length: ${questions.length}');
+
+                                // Safe validation with null checks
+                                bool allValid = true;
+
+                                for (int i = 0; i < questions.length; i++) {
+                                  final question = questions[i];
+                                  print('Checking question $i: $question');
+
+                                  // Check if question exists and has required fields
+                                  if (question == null) {
+                                    print('ERROR: Question $i is null');
+                                    allValid = false;
+                                    break;
+                                  }
+
+                                  if (question['question'] == null ||
+                                      question['question']
+                                          .toString()
+                                          .trim()
+                                          .isEmpty) {
+                                    print(
+                                        'ERROR: Question $i has empty question text');
+                                    allValid = false;
+                                    break;
+                                  }
+
+                                  if (question['options'] == null) {
+                                    print(
+                                        'ERROR: Question $i has null options');
+                                    allValid = false;
+                                    break;
+                                  }
+
+                                  final options = question['options'] as List?;
+                                  if (options == null || options.isEmpty) {
+                                    print(
+                                        'ERROR: Question $i has empty options list');
+                                    allValid = false;
+                                    break;
+                                  }
+
+                                  // Check each option
+                                  for (int j = 0; j < options.length; j++) {
+                                    if (options[j] == null ||
+                                        options[j].toString().trim().isEmpty) {
+                                      print(
+                                          'ERROR: Question $i, option $j is empty');
+                                      allValid = false;
+                                      break;
+                                    }
+                                  }
+
+                                  if (!allValid) break;
+                                }
+
+                                print('Validation result: $allValid');
+
+                                if (!allValid) {
+                                  _showErrorSnackBar(
+                                      'Please complete all questions and options');
+                                  return;
+                                }
+
+                                print('demo - validation passed');
+
+                                // Generate random ID
+                                Random random = Random();
+                                int randomNumber = random.nextInt(9999999);
+                                String examId = "cor@$randomNumber";
+
+                                print('Generated exam ID: $examId');
+
+                                // Close dialog first
+                                if (Navigator.canPop(context)) {
+                                  Navigator.pop(context);
+                                }
+
+                                // Save to Firestore
+                                await _addExamToFirestore(
+                                  id: examId,
+                                  title: title,
+                                  description: description,
+                                  className: className,
+                                  subject: subject,
+                                  duration: duration,
+                                  questionCount: questionCount,
+                                  status: status,
+                                  questions: questions,
+                                );
+
+                                print('Exam saved successfully');
+                              } catch (e, stackTrace) {
+                                print('ERROR in save exam: $e');
+                                print('Stack trace: $stackTrace');
+                                _showErrorSnackBar(
+                                    'Failed to save exam: ${e.toString()}');
+                              } finally {
+                                if (mounted) {
+                                  setState(() {
+                                    _isSavingExam = false;
+                                  });
+                                }
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _isSavingExam
+                            ? Colors.grey
+                            : const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                      icon: _isSavingExam
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Icon(Icons.save),
+                      label: Text(_isSavingExam ? 'Saving...' : 'Save Exam'),
+                    )
+                  ],
+                ),
+              ],
+            ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _showAddQuestionsDialog();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuestionCard({
+    required int questionNumber,
+    required Map<String, dynamic> question,
+    required VoidCallback onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3B82F6).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Question $questionNumber',
+                  style: const TextStyle(
+                    color: Color(0xFF3B82F6),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              SizedBox(
+                width: 80,
+                child: TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Marks',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.all(8),
+                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    question['marks'] = int.tryParse(value) ?? 1;
+                    onChanged();
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            decoration: InputDecoration(
+              labelText: 'Question Text',
+              hintText: 'Enter your question here...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Continue to Add Questions'),
+            maxLines: 2,
+            onChanged: (value) {
+              question['question'] = value;
+              onChanged();
+            },
           ),
+          const SizedBox(height: 16),
+          const Text(
+            'Answer Options:',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...List.generate(4, (index) {
+            final labels = ['A', 'B', 'C', 'D'];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  Radio<int>(
+                    value: index,
+                    groupValue: question['correctAnswer'],
+                    onChanged: (value) {
+                      question['correctAnswer'] = value!;
+                      onChanged();
+                    },
+                    activeColor: const Color(0xFF10B981),
+                  ),
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: question['correctAnswer'] == index
+                          ? const Color(0xFF10B981).withOpacity(0.2)
+                          : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        labels[index],
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: question['correctAnswer'] == index
+                              ? const Color(0xFF10B981)
+                              : Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Option ${labels[index]}',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: const EdgeInsets.all(12),
+                      ),
+                      onChanged: (value) {
+                        question['options'][index] = value;
+                        onChanged();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );
   }
 
-  void _showAddQuestionsDialog() {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormDropdown({
+    required String value,
+    required List<String> items,
+    required Function(String?) onChanged,
+    required String label,
+    required IconData icon,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      items: items
+          .map((item) => DropdownMenuItem(
+                value: item,
+                child: Text(item),
+              ))
+          .toList(),
+      onChanged: onChanged,
+    );
+  }
+
+  void _showViewExamDialog(Map<String, dynamic> exam) {
+    final questions = List<Map<String, dynamic>>.from(exam['questions'] ?? []);
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Questions'),
-        content: SizedBox(
-          width: 800,
-          height: 600,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.8,
+          height: MediaQuery.of(context).size.height * 0.8,
+          padding: const EdgeInsets.all(24),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Question form
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      _buildQuestionForm(0),
-                      const Divider(height: 32),
-                      // _buildQuestionForm(2),
-                      // const Divider(height: 32),
-                      // _buildQuestionForm(3),
-                    ],
-                  ),
+              Text(
+                'View Exam: ${exam['title']}',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E293B),
                 ),
               ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3B82F6).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    _buildExamInfo('Class', exam['class'] ?? 'N/A'),
+                    _buildExamInfo('Subject', exam['subject'] ?? 'N/A'),
+                    _buildExamInfo(
+                        'Questions', '${exam['questionCount'] ?? 0}'),
+                    _buildExamInfo('Duration', '${exam['duration'] ?? 0} min'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: questions.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No questions found',
+                          style:
+                              TextStyle(fontSize: 16, color: Color(0xFF64748B)),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: questions.length,
+                        itemBuilder: (context, index) {
+                          final question = questions[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Question ${index + 1} (${question['marks']} marks)',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                    color: Color(0xFF1E293B),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  question['question'] ?? 'No question text',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                const SizedBox(height: 12),
+                                ...List.generate(4, (optIndex) {
+                                  final options = List<String>.from(
+                                      question['options'] ?? []);
+                                  if (optIndex >= options.length)
+                                    return Container();
 
-              // Add more button
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(vertical: 16),
-              //   child: ElevatedButton.icon(
-              //     onPressed: () {
-              //       // Add more question form
-              //     },
-              //     style: ElevatedButton.styleFrom(
-              //       backgroundColor: Colors.grey[200],
-              //       foregroundColor: Colors.black,
-              //       shape: RoundedRectangleBorder(
-              //         borderRadius: BorderRadius.circular(12),
-              //       ),
-              //     ),
-              //     icon: const Icon(Icons.add),
-              //     label: const Text('Add More Questions'),
-              //   ),
-              // ),
+                                  final isCorrect =
+                                      question['correctAnswer'] == optIndex;
+                                  final labels = ['A', 'B', 'C', 'D'];
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 4),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 24,
+                                          height: 24,
+                                          decoration: BoxDecoration(
+                                            color: isCorrect
+                                                ? const Color(0xFF10B981)
+                                                : Colors.grey.shade300,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              labels[optIndex],
+                                              style: TextStyle(
+                                                color: isCorrect
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            options[optIndex],
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: isCorrect
+                                                  ? FontWeight.w600
+                                                  : FontWeight.normal,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // Save exam with questions
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Exam created successfully'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Save Exam'),
-          ),
-        ],
       ),
     );
   }
 
-  Widget _buildQuestionForm(int questionNumber) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Question',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () {
-                // Delete question
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          decoration: InputDecoration(
-            labelText: 'Question Text',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+  Widget _buildExamInfo(String label, String value) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF64748B),
+              fontWeight: FontWeight.w500,
             ),
           ),
-          maxLines: 2,
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Question Type',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                value: 'Multiple Choice',
-                items: const [
-                  DropdownMenuItem(
-                      value: 'Multiple Choice', child: Text('Multiple Choice')),
-                  DropdownMenuItem(
-                      value: 'True/False', child: Text('True/False')),
-                ],
-                onChanged: (value) {},
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: TextField(
-                decoration: InputDecoration(
-                  labelText: 'Marks',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-                controller: TextEditingController(text: '1'),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          'Options:',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        _buildOptionField('A', true),
-        const SizedBox(height: 8),
-        _buildOptionField('B', false),
-        const SizedBox(height: 8),
-        _buildOptionField('C', false),
-        const SizedBox(height: 8),
-        _buildOptionField('D', false),
-      ],
-    );
-  }
-
-  Widget _buildOptionField(String option, bool isCorrect) {
-    return Row(
-      children: [
-        Radio(
-          value: isCorrect,
-          groupValue: true,
-          onChanged: (value) {},
-          activeColor: const Color(0xFF3B82F6),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          'Option $option:',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Enter option $option',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Color(0xFF1E293B),
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   void _showEditExamDialog(Map<String, dynamic> exam) {
-    final TextEditingController titleController =
-        TextEditingController(text: exam['title']);
-    final TextEditingController descriptionController =
+    final titleController = TextEditingController(text: exam['title']);
+    final descriptionController =
         TextEditingController(text: exam['description']);
-    final TextEditingController durationController =
+    final durationController =
         TextEditingController(text: exam['duration'].toString());
-    final TextEditingController totalQuestionsController =
-        TextEditingController(text: exam['totalQuestions'].toString());
-    final TextEditingController passingMarksController =
-        TextEditingController(text: exam['passingMarks'].toString());
-    final TextEditingController totalMarksController =
-        TextEditingController(text: exam['totalMarks'].toString());
     String selectedClass = exam['class'];
     String selectedSubject = exam['subject'];
     String selectedStatus = exam['status'];
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Exam'),
-        content: SizedBox(
-          width: 500,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          width: 600,
+          padding: const EdgeInsets.all(24),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextField(
-                  controller: titleController,
-                  decoration: InputDecoration(
-                    labelText: 'Title',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                const Text(
+                  'Edit Exam',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1E293B),
                   ),
                 ),
+                const SizedBox(height: 24),
+                _buildTextField(titleController, 'Exam Title', Icons.title),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: descriptionController,
-                  decoration: InputDecoration(
-                    labelText: 'Description',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  maxLines: 3,
-                ),
+                _buildTextField(
+                    descriptionController, 'Description', Icons.description,
+                    maxLines: 3),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          labelText: 'Class',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                      child: _buildFormDropdown(
                         value: selectedClass,
-                        items: _classes
-                            .where((c) => c != 'All Classes')
-                            .map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          selectedClass = value!;
-                        },
+                        items:
+                            _classes.where((c) => c != 'All Classes').toList(),
+                        onChanged: (value) => selectedClass = value!,
+                        label: 'Class',
+                        icon: Icons.school,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          labelText: 'Subject',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                      child: _buildFormDropdown(
                         value: selectedSubject,
                         items: _subjects
                             .where((s) => s != 'All Subjects')
-                            .map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          selectedSubject = value!;
-                        },
+                            .toList(),
+                        onChanged: (value) => selectedSubject = value!,
+                        label: 'Subject',
+                        icon: Icons.book,
                       ),
                     ),
                   ],
@@ -1046,325 +1375,124 @@ class _ExamsScreenState extends State<ExamsScreen>
                 Row(
                   children: [
                     Expanded(
-                      child: TextField(
-                        controller: durationController,
-                        decoration: InputDecoration(
-                          labelText: 'Duration (minutes)',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
+                      child: _buildTextField(
+                          durationController, 'Duration (minutes)', Icons.timer,
+                          keyboardType: TextInputType.number),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: TextField(
-                        controller: totalQuestionsController,
-                        decoration: InputDecoration(
-                          labelText: 'Total Questions',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        keyboardType: TextInputType.number,
+                      child: _buildFormDropdown(
+                        value: selectedStatus,
+                        items: const ['Upcoming', 'Active', 'Completed'],
+                        onChanged: (value) => selectedStatus = value!,
+                        label: 'Status',
+                        icon: Icons.flag,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 32),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Expanded(
-                      child: TextField(
-                        controller: passingMarksController,
-                        decoration: InputDecoration(
-                          labelText: 'Passing Marks',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
                     ),
                     const SizedBox(width: 16),
-                    Expanded(
-                      child: TextField(
-                        controller: totalMarksController,
-                        decoration: InputDecoration(
-                          labelText: 'Total Marks',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
+                    // ElevatedButton.icon(
+                    //   onPressed: () async {
+                    //     final service = StudentService();
+
+                    //     try {
+
+                    //       Navigator.pop(context);
+                    //       _showSuccessSnackBar('Exam updated successfully');
+                    //       _loadExams();
+                    //     } catch (e) {
+                    //       _showErrorSnackBar('Error updating exam: $e');
+                    //     }
+                    //   },
+                    //   style: ElevatedButton.styleFrom(
+                    //     backgroundColor: const Color(0xFF3B82F6),
+                    //     foregroundColor: Colors.white,
+                    //     shape: RoundedRectangleBorder(
+                    //       borderRadius: BorderRadius.circular(8),
+                    //     ),
+                    //   ),
+                    //   icon: const Icon(Icons.save),
+                    //   label: const Text('Update Exam'),
+                    // ),
                   ],
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Status',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  value: selectedStatus,
-                  items: const [
-                    DropdownMenuItem(value: 'Active', child: Text('Active')),
-                    DropdownMenuItem(
-                        value: 'Upcoming', child: Text('Upcoming')),
-                    DropdownMenuItem(
-                        value: 'Completed', child: Text('Completed')),
-                  ],
-                  onChanged: (value) {
-                    selectedStatus = value!;
-                  },
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showDeleteDialog(Map<String, dynamic> exam) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Delete Exam',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+            'Are you sure you want to delete "${exam['title']}"? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              // Update exam details
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Exam updated successfully'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Update Exam'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showViewQuestionsDialog(Map<String, dynamic> exam) {
-    // Sample questions for the exam
-    final List<Map<String, dynamic>> questions = [
-      // {
-      //   'id': 'Q-1001',
-      //   'text': 'What is the formula for the area of a circle?',
-      //   'type': 'Multiple Choice',
-      //   'options': [
-      //     {'id': 'A', 'text': 'πr²', 'isCorrect': true},
-      //     {'id': 'B', 'text': '2πr', 'isCorrect': false},
-      //     {'id': 'C', 'text': 'πd', 'isCorrect': false},
-      //     {'id': 'D', 'text': '2πr²', 'isCorrect': false},
-      //   ],
-      //   'marks': 2,
-      // },
-      // {
-      //   'id': 'Q-1002',
-      //   'text': 'Which of the following is a quadratic equation?',
-      //   'type': 'Multiple Choice',
-      //   'options': [
-      //     {'id': 'A', 'text': 'y = mx + c', 'isCorrect': false},
-      //     {'id': 'B', 'text': 'y = ax² + bx + c', 'isCorrect': true},
-      //     {'id': 'C', 'text': 'y = ax³ + bx² + cx + d', 'isCorrect': false},
-      //     {'id': 'D', 'text': 'y = a/x', 'isCorrect': false},
-      //   ],
-      //   'marks': 2,
-      // },
-      // {
-      //   'id': 'Q-1003',
-      //   'text': 'The Pythagorean theorem applies to right-angled triangles.',
-      //   'type': 'True/False',
-      //   'options': [
-      //     {'id': 'A', 'text': 'True', 'isCorrect': true},
-      //     {'id': 'B', 'text': 'False', 'isCorrect': false},
-      //   ],
-      //   'marks': 1,
-      // },
-    ];
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Questions: ${exam['title']}'),
-        content: SizedBox(
-          width: 800,
-          height: 600,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Exam details
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    _buildExamDetail(Icons.class_, 'Class', exam['class']),
-                    _buildExamDetail(Icons.subject, 'Subject', exam['subject']),
-                    _buildExamDetail(Icons.help_outline, 'Questions',
-                        exam['totalQuestions'].toString()),
-                    _buildExamDetail(Icons.grade, 'Total Marks',
-                        exam['totalMarks'].toString()),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Questions list
-              Expanded(
-                child: ListView.separated(
-                  itemCount: questions.length,
-                  separatorBuilder: (context, index) =>
-                      const Divider(height: 32),
-                  itemBuilder: (context, index) {
-                    final question = questions[index];
-                    return _buildQuestionView(index + 1, question);
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _showAddQuestionsDialog();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Edit Questions'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuestionView(int questionNumber, Map<String, dynamic> question) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Question $questionNumber (${question['marks']} marks)',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                question['type'],
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[700],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(question['text']),
-        const SizedBox(height: 16),
-        ...question['options'].map<Widget>((option) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: option['isCorrect']
-                        ? const Color(0xFF3B82F6)
-                        : Colors.grey[200],
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      option['id'],
-                      style: TextStyle(
-                        color:
-                            option['isCorrect'] ? Colors.white : Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(option['text']),
-              ],
-            ),
-          );
-        }).toList(),
-      ],
-    );
-  }
-
-  void _showDeleteConfirmationDialog(Map<String, dynamic> exam) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Exam'),
-        content: Text('Are you sure you want to delete "${exam['title']}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // Delete exam logic here
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Exam deleted successfully'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+            onPressed: () async {
+              final services = StudentService();
+              try {
+                await services.deleteExam('exam-list', exam['id']);
+                Navigator.pop(context);
+                _showSuccessSnackBar('Exam deleted successfully');
+                _loadExams();
+              } catch (e) {
+                _showErrorSnackBar('Error deleting exam: $e');
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
             child: const Text('Delete'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color(0xFF10B981),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

@@ -528,150 +528,159 @@ class _StudentsScreenState extends State<StudentsScreen> {
                               itemCount: _filteredStudents.length,
                               itemBuilder: (context, index) {
                                 final student = _filteredStudents[index];
-                                return Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Row(
-                                        children: [
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Row(
-                                              children: [
-                                                CircleAvatar(
-                                                  backgroundImage: NetworkImage(
-                                                      " student['avatar']"),
-                                                ),
-                                                const SizedBox(width: 12),
-                                                Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      student['student_name'],
-                                                      style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
+                                return InkWell(
+                                  onTap: () => showStudentDetailsDialog(
+                                      context, student),
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Row(
+                                          children: [
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              flex: 2,
+                                              child: Row(
+                                                children: [
+                                                  CircleAvatar(
+                                                    backgroundImage: NetworkImage(
+                                                        " student['avatar']"),
+                                                  ),
+                                                  const SizedBox(width: 12),
+                                                  Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        student['student_name'],
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
                                                       ),
-                                                    ),
-                                                    Text(
-                                                      student['email'],
-                                                      style: TextStyle(
-                                                        color: Colors.grey[600],
-                                                        fontSize: 12,
+                                                      Text(
+                                                        student['email'],
+                                                        style: TextStyle(
+                                                          color:
+                                                              Colors.grey[600],
+                                                          fontSize: 12,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: Text(student['id']),
-                                          ),
-                                          Expanded(
-                                            child: Text(student['class']),
-                                          ),
-                                          // Expanded(
-                                          //   child: Text(student['Division']),
-                                          // ),
-                                          // Expanded(
-                                          //   child: Text(student['course']),
-                                          // ),
-                                          Expanded(
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 6),
-                                              decoration: BoxDecoration(
-                                                color: student['status'] ==
-                                                        'Active'
-                                                    ? Colors.green
-                                                        .withOpacity(0.1)
-                                                    : Colors.red
-                                                        .withOpacity(0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
+                                                    ],
+                                                  ),
+                                                ],
                                               ),
-                                              child: Text(
-                                                student['status'],
-                                                style: TextStyle(
+                                            ),
+                                            Expanded(
+                                              child: Text(student['id']),
+                                            ),
+                                            Expanded(
+                                              child: Text(student['class']),
+                                            ),
+                                            // Expanded(
+                                            //   child: Text(student['Division']),
+                                            // ),
+                                            // Expanded(
+                                            //   child: Text(student['course']),
+                                            // ),
+                                            Expanded(
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 6),
+                                                decoration: BoxDecoration(
                                                   color: student['status'] ==
                                                           'Active'
                                                       ? Colors.green
-                                                      : Colors.red,
-                                                  fontWeight: FontWeight.bold,
+                                                          .withOpacity(0.1)
+                                                      : Colors.red
+                                                          .withOpacity(0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                                child: Text(
+                                                  student['status'],
+                                                  style: TextStyle(
+                                                    color: student['status'] ==
+                                                            'Active'
+                                                        ? Colors.green
+                                                        : Colors.red,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                          Expanded(
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 6),
-                                              decoration: BoxDecoration(
-                                                color: student['fee_status'] ==
-                                                        'Paid'
-                                                    ? Colors.green
-                                                        .withOpacity(0.1)
-                                                    : student['fee_status'] ==
-                                                            'Due'
-                                                        ? Colors.red
-                                                            .withOpacity(0.1)
-                                                        : Colors.orange
-                                                            .withOpacity(0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                              child: Text(
-                                                student['fee_status'],
-                                                style: TextStyle(
+                                            Expanded(
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 6),
+                                                decoration: BoxDecoration(
                                                   color: student[
                                                               'fee_status'] ==
                                                           'Paid'
                                                       ? Colors.green
+                                                          .withOpacity(0.1)
                                                       : student['fee_status'] ==
                                                               'Due'
                                                           ? Colors.red
-                                                          : Colors.orange,
-                                                  fontWeight: FontWeight.bold,
+                                                              .withOpacity(0.1)
+                                                          : Colors.orange
+                                                              .withOpacity(0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                                child: Text(
+                                                  student['fee_status'],
+                                                  style: TextStyle(
+                                                    color: student[
+                                                                'fee_status'] ==
+                                                            'Paid'
+                                                        ? Colors.green
+                                                        : student['fee_status'] ==
+                                                                'Due'
+                                                            ? Colors.red
+                                                            : Colors.orange,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                          SizedBox(
-                                            width: 80,
-                                            child: Row(
-                                              children: [
-                                                IconButton(
-                                                  icon: const Icon(Icons.edit,
-                                                      color: Color(0xFF3B82F6)),
-                                                  onPressed: () {
-                                                    _showEditStudentDialog(
-                                                        student);
-                                                  },
-                                                ),
-                                                IconButton(
-                                                  icon: const Icon(Icons.delete,
-                                                      color: Colors.red),
-                                                  onPressed: () {
-                                                    _showDeleteConfirmationDialog(
-                                                        student);
-                                                  },
-                                                ),
-                                              ],
+                                            SizedBox(
+                                              width: 80,
+                                              child: Row(
+                                                children: [
+                                                  IconButton(
+                                                    icon: const Icon(Icons.edit,
+                                                        color:
+                                                            Color(0xFF3B82F6)),
+                                                    onPressed: () {
+                                                      _showEditStudentDialog(
+                                                          student);
+                                                    },
+                                                  ),
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                        Icons.delete,
+                                                        color: Colors.red),
+                                                    onPressed: () {
+                                                      _showDeleteConfirmationDialog(
+                                                          student);
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    if (index < _filteredStudents.length - 1)
-                                      const Divider(),
-                                  ],
+                                      if (index < _filteredStudents.length - 1)
+                                        const Divider(),
+                                    ],
+                                  ),
                                 );
                               },
                             ),
@@ -890,6 +899,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
         TextEditingController(text: student['contact']);
     final TextEditingController passwordController =
         TextEditingController(text: student['password']);
+    final TextEditingController dobController =
+        TextEditingController(text: student['dob']);
+    final TextEditingController dojController =
+        TextEditingController(text: student['doj']);
     String selectedClass = student['class'];
     // String selectedCourse = student['course'];
     String selectedStatus = student['status'];
@@ -941,6 +954,28 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   controller: passwordController,
                   decoration: InputDecoration(
                     labelText: 'Password',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: dobController,
+                  decoration: InputDecoration(
+                    labelText: 'DOB',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: dojController,
+                  decoration: InputDecoration(
+                    labelText: 'DOJ',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -1057,7 +1092,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 'email': emailController.text,
                 'division': selectedDivision,
                 'id': student['id'],
-                'password': passwordController.text
+                'password': passwordController.text,
+                'dob': dobController.text,
+                'doj': dojController.text,
+                'image': student['image']
               };
               final obj = StudentService();
               obj.updateStudent('Student_list_@12', student['id'], newdata);
@@ -1122,4 +1160,172 @@ class _StudentsScreenState extends State<StudentsScreen> {
       ),
     );
   }
+}
+
+void showStudentDetailsDialog(
+    BuildContext context, Map<String, dynamic> studentData) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        elevation: 8,
+        child: SingleChildScrollView(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Student Details',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(Icons.close, color: Colors.grey[600]),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Student Name (Prominent)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.blue[100]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Student Name',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.blue[700],
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        studentData['student_name'] ?? 'N/A',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Details Grid
+                _buildDetailRow('Class', studentData['class']),
+                _buildDetailRow('Division', studentData['division']),
+                _buildDetailRow('Status', studentData['status']),
+                _buildDetailRow('Fee Status', studentData['fee_status']),
+                _buildDetailRow('Contact', studentData['contact']),
+                _buildDetailRow('Password', studentData['password']),
+
+                _buildDetailRow('Email', studentData['email']),
+                _buildDetailRow('Student ID', studentData['id']),
+                _buildDetailRow('Date of Birth', studentData['dob']),
+                _buildDetailRow('Date of Joining', studentData['doj']),
+
+                const SizedBox(height: 24),
+
+                // Close Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[600],
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 2,
+                    ),
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Widget _buildDetailRow(String label, dynamic value) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 16),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Text(
+              value?.toString() ?? 'N/A',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[800],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }

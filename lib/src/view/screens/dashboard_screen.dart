@@ -156,39 +156,50 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildStatsCards() {
+    final controller =
+        Provider.of<StudentDetailsProvider>(context, listen: false);
+    final controller1 =
+        Provider.of<ClassDetailsProvider>(context, listen: false);
+
     return Row(
       children: [
         _buildStatCard(
           title: 'Total Students',
-          value: '0',
+          value: controller.studentDetails.isEmpty
+              ? '0'
+              : '${controller.studentDetails.length}',
           icon: Icons.people,
           color: const Color(0xFF3B82F6),
           increase: '+0%',
         ),
         const SizedBox(width: 16),
         _buildStatCard(
-          title: 'Total Courses',
-          value: '0',
+          title: 'Total Classes',
+          value: controller1.classDetails.isEmpty
+              ? '0'
+              : '${controller1.classDetails.length}',
           icon: Icons.book,
           color: const Color(0xFFFFC107),
           increase: '+0%',
         ),
         const SizedBox(width: 16),
         _buildStatCard(
-          title: 'Revenue',
-          value: '\$0',
-          icon: Icons.attach_money,
-          color: const Color(0xFF10B981),
+          title: 'Total Teachers',
+          value: controller.TeacherDetails.isEmpty
+              ? '0'
+              : '${controller.TeacherDetails.length}',
+          icon: Icons.people,
+          color: const Color(0xFF3B82F6),
           increase: '+0',
         ),
         const SizedBox(width: 16),
         _buildStatCard(
-          title: 'Due Fees',
+          title: 'Total Exams',
           value: '\$0',
-          icon: Icons.payment,
+          icon: Icons.note,
           color: const Color(0xFFEF4444),
           increase: '+0%',
-          isPositive: false,
+          isPositive: true,
         ),
       ],
     );
@@ -435,37 +446,41 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildStudentsTable() {
-    final students = [
-      {
-        'name': 'John Smith',
-        'id': 'ST-1001',
-        'course': 'Mathematics',
-        'attendance': 92,
-        'fee': 'Paid',
-      },
-      {
-        'name': 'Emily Johnson',
-        'id': 'ST-1002',
-        'course': 'Physics',
-        'attendance': 88,
-        'fee': 'Due',
-      },
-      {
-        'name': 'Michael Brown',
-        'id': 'ST-1003',
-        'course': 'Chemistry',
-        'attendance': 95,
-        'fee': 'Paid',
-      },
-      {
-        'name': 'Sarah Davis',
-        'id': 'ST-1004',
-        'course': 'Mathematics',
-        'attendance': 78,
-        'fee': 'Partial',
-      },
-    ];
+    final controller =
+        Provider.of<StudentDetailsProvider>(context, listen: false);
 
+    List students = [
+      // {
+      //   'name': 'John Smith',
+      //   'id': 'ST-1001',
+      //   'course': 'Mathematics',
+      //   'attendance': 92,
+      //   'fee': 'Paid',
+      // },
+      // {
+      //   'name': 'Emily Johnson',
+      //   'id': 'ST-1002',
+      //   'course': 'Physics',
+      //   'attendance': 88,
+      //   'fee': 'Due',
+      // },
+      // {
+      //   'name': 'Michael Brown',
+      //   'id': 'ST-1003',
+      //   'course': 'Chemistry',
+      //   'attendance': 95,
+      //   'fee': 'Paid',
+      // },
+      // {
+      //   'name': 'Sarah Davis',
+      //   'id': 'ST-1004',
+      //   'course': 'Mathematics',
+      //   'attendance': 78,
+      //   'fee': 'Partial',
+      // },
+    ];
+    List tempdata = controller.studentDetails;
+    students = tempdata.take(10).toList();
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -544,12 +559,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundImage: NetworkImage(
-                                'https://i.pravatar.cc/150?img=${students.indexOf(student) + 10}'),
+                            backgroundImage: NetworkImage(''),
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            student['name'] as String,
+                            student['student_name'] as String,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
@@ -560,54 +574,54 @@ class _DashboardScreenState extends State<DashboardScreen>
                     Expanded(
                       child: Text(student['id'] as String),
                     ),
-                    Expanded(
-                      child: Text(student['course'] as String),
-                    ),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 50,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: (student['attendance'] as int) > 90
-                                  ? Colors.green
-                                  : (student['attendance'] as int) > 80
-                                      ? Colors.orange
-                                      : Colors.red,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text('${student['attendance']}%'),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: (student['fee'] as String) == 'Paid'
-                              ? Colors.green.withOpacity(0.1)
-                              : (student['fee'] as String) == 'Due'
-                                  ? Colors.red.withOpacity(0.1)
-                                  : Colors.orange.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          student['fee'] as String,
-                          style: TextStyle(
-                            color: (student['fee'] as String) == 'Paid'
-                                ? Colors.green
-                                : (student['fee'] as String) == 'Due'
-                                    ? Colors.red
-                                    : Colors.orange,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Expanded(
+                    //   child: Text(student['course'] as String),
+                    // ),
+                    // Expanded(
+                    //   child: Row(
+                    //     children: [
+                    //       Container(
+                    //         width: 50,
+                    //         height: 8,
+                    //         decoration: BoxDecoration(
+                    //           color: (student['attendance'] as int) > 90
+                    //               ? Colors.green
+                    //               : (student['attendance'] as int) > 80
+                    //                   ? Colors.orange
+                    //                   : Colors.red,
+                    //           borderRadius: BorderRadius.circular(4),
+                    //         ),
+                    //       ),
+                    //       const SizedBox(width: 8),
+                    //       Text('${student['attendance']}%'),
+                    //     ],
+                    //   ),
+                    // ),
+                    // Expanded(
+                    //   child: Container(
+                    //     padding: const EdgeInsets.symmetric(
+                    //         horizontal: 12, vertical: 6),
+                    //     decoration: BoxDecoration(
+                    //       color: (student['fee'] as String) == 'Paid'
+                    //           ? Colors.green.withOpacity(0.1)
+                    //           : (student['fee'] as String) == 'Due'
+                    //               ? Colors.red.withOpacity(0.1)
+                    //               : Colors.orange.withOpacity(0.1),
+                    //       borderRadius: BorderRadius.circular(20),
+                    //     ),
+                    //     child: Text(
+                    //       student['fee'] as String,
+                    //       style: TextStyle(
+                    //         color: (student['fee'] as String) == 'Paid'
+                    //             ? Colors.green
+                    //             : (student['fee'] as String) == 'Due'
+                    //                 ? Colors.red
+                    //                 : Colors.orange,
+                    //         fontWeight: FontWeight.bold,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                     SizedBox(
                       width: 40,
                       child: IconButton(
@@ -830,6 +844,10 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildProfileCard() {
+    final controller1 =
+        Provider.of<ClassDetailsProvider>(context, listen: false);
+    final controller =
+        Provider.of<StudentDetailsProvider>(context, listen: false);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -850,8 +868,8 @@ class _DashboardScreenState extends State<DashboardScreen>
             backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=13'),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Esther Howard',
+          Text(
+            '${controller.teacher_name}',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -867,11 +885,11 @@ class _DashboardScreenState extends State<DashboardScreen>
           const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 16),
-          _buildProfileStat('Students', '1,245'),
+          _buildProfileStat('Students', '${controller.studentDetails.length}'),
           const SizedBox(height: 12),
-          _buildProfileStat('Courses', '42'),
+          _buildProfileStat('Courses', '${controller1.classDetails.length}'),
           const SizedBox(height: 12),
-          _buildProfileStat('Attendance', '92%'),
+          // _buildProfileStat('Attendance', '92%'),
           const SizedBox(height: 16),
           // SizedBox(
           //   width: double.infinity,

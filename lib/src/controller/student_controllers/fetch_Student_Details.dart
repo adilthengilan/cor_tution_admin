@@ -9,6 +9,7 @@ class StudentDetailsProvider extends ChangeNotifier {
   var docids = '';
   List studentDetails = [];
   List TeacherDetails = [];
+  String teacher_name = '';
   final CollectionReference studentsList =
       FirebaseFirestore.instance.collection('studentList');
 

@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class StudentService {
   final CollectionReference studentsList =
       FirebaseFirestore.instance.collection('studentList');
+  final CollectionReference examsList =
+      FirebaseFirestore.instance.collection('exams');
 
   /// CREATE a new document with empty studentDetails array
   Future<void> createStudentList(String docId) async {
@@ -87,6 +89,43 @@ class StudentService {
       // Update the Firestore document with the modified list
       await studentsList.doc(docId).update({
         'TeachersList': currentStudents,
+      });
+    } else {
+      print('Document with ID $docId does not exist.');
+    }
+  }
+
+  Future<void> addexams(String docId, Map<String, dynamic> exams) async {
+    await examsList.doc(docId).update({
+      'exams': FieldValue.arrayUnion([exams])
+    });
+  }
+
+  Future<void> updateexam(String docId, String examId, newExam) async {
+    final doc = await examsList.doc(docId).get();
+    List currentexam = doc['exam-list'];
+
+    // Remove old student
+    currentexam.removeWhere((student) => student['id'] == examId);
+    // Add updated student
+    currentexam.add(newExam);
+
+    await examsList.doc(docId).update({
+      'exams': currentexam,
+    });
+  }
+
+  Future<void> deleteExam(String docId, String examId) async {
+    final docSnapshot = await examsList.doc(docId).get();
+
+    if (docSnapshot.exists) {
+      List examsnow = List.from(docSnapshot['exams']);
+
+      examsnow.removeWhere((exam) => exam['id'] == examId);
+
+      // Update the Firestore document with the modified list
+      await examsList.doc(docId).update({
+        'exams': examsnow,
       });
     } else {
       print('Document with ID $docId does not exist.');

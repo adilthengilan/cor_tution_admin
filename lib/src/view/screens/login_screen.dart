@@ -62,6 +62,8 @@ class _LoginScreenState extends State<LoginScreen>
           _isLoading = false;
         });
         context.go('/dashboard');
+        Provider.of<StudentDetailsProvider>(context, listen: false)
+            .teacher_name = _emailController.text;
       });
     }
   }
