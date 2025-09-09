@@ -50,7 +50,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
     'All Subjects',
     'Mathematics',
     'English',
-    'Araic',
+    'Arabic',
     'Malayalam',
     'Urdu',
     'Hindi',
@@ -61,13 +61,21 @@ class _TeachersScreenState extends State<TeachersScreen> {
   ];
   final List<String> _Division = [
     'All Division',
-    'A',
-    'B',
-    'C',
-    'D',
-    'E',
-    'F',
-    'G'
+    'M1',
+    'M2',
+    'M3',
+    'M4',
+    'M5',
+    'M6',
+    'M7',
+    'E1',
+    'E2',
+    'E3',
+    'E4',
+    'E5',
+    'S1',
+    'S2',
+    'S3'
   ];
 
   List<dynamic> teachers = [
@@ -192,6 +200,15 @@ class _TeachersScreenState extends State<TeachersScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple[400]!, Colors.blue[400]!],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
@@ -463,7 +480,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
                       child: _filteredStudents.isEmpty
                           ? const Center(
                               child: Text(
-                                'No students found',
+                                'No Teachers found',
                                 style: TextStyle(
                                   color: Colors.grey,
                                   fontSize: 16,
@@ -805,7 +822,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Student added successfully'),
+                  content: Text('Teacher added successfully'),
                   backgroundColor: Colors.green,
                 ),
               );
@@ -1013,7 +1030,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Student updated successfully'),
+                  content: Text('Teacher updated successfully'),
                   backgroundColor: Colors.green,
                 ),
               );
@@ -1025,7 +1042,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text('Update Student'),
+            child: const Text('Update Teacher'),
           ),
         ],
       ),

@@ -16,7 +16,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedDivisions = 'All Divisions';
   String _selectedClass = 'All Classes';
-
+  String _selectedCourse = 'All Courses';
+  List courses = [];
   final List<String> _classes = [
     'All Classes',
     '12th',
@@ -52,24 +53,24 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   // Sample attendance data
   final Map<String, Map<String, dynamic>> _attendanceData = {
-    '2023-05-15': {
-      'present': 42,
-      'absent': 8,
-      'leave': 5,
-      'total': 55,
-    },
-    '2023-05-16': {
-      'present': 45,
-      'absent': 7,
-      'leave': 3,
-      'total': 55,
-    },
-    '2023-05-17': {
-      'present': 40,
-      'absent': 10,
-      'leave': 5,
-      'total': 55,
-    },
+    // '2023-05-15': {
+    //   'present': 42,
+    //   'absent': 8,
+    //   'leave': 5,
+    //   'total': 55,
+    // },
+    // '2023-05-16': {
+    //   'present': 45,
+    //   'absent': 7,
+    //   'leave': 3,
+    //   'total': 55,
+    // },
+    // '2023-05-17': {
+    //   'present': 40,
+    //   'absent': 10,
+    //   'leave': 5,
+    //   'total': 55,
+    // },
   };
 
   // Sample students data
@@ -173,7 +174,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       final matchDivision = _selectedDivisions == 'All Divisions' ||
           student['division'] == _selectedDivisions;
 
-      return matchesSearch && matchesClass && matchDivision;
+      final matchCourse = _selectedCourse == 'All Courses' ||
+          student['course'] == _selectedCourse;
+
+      return matchesSearch && matchesClass && matchDivision && matchCourse;
     }).toList();
   }
 
@@ -183,7 +187,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         {
           'present': 0,
           'absent': 0,
-          'leave': 0,
+          'late': 0,
           'total': _filteredStudents.length,
         };
   }
@@ -205,7 +209,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         _attendanceData[dateKey] = {
           'present': 0,
           'absent': 0,
-          'leave': 0,
+          'late': 0,
           'total': _filteredStudents.length,
         };
       }
@@ -213,7 +217,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       // Recalculate attendance counts
       int present = 0;
       int absent = 0;
-      int leave = 0;
+      int late = 0;
 
       for (var student in _filteredStudents) {
         switch (student['attendance']) {
@@ -223,8 +227,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           case 'absent':
             absent++;
             break;
-          case 'leave':
-            leave++;
+          case 'late':
+            late++;
             break;
         }
       }
@@ -232,7 +236,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       _attendanceData[dateKey] = {
         'present': present,
         'absent': absent,
-        'leave': leave,
+        'late': late,
         'total': _filteredStudents.length,
       };
     });
@@ -249,7 +253,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       _attendanceData[dateKey] = {
         'present': status == 'present' ? _filteredStudents.length : 0,
         'absent': status == 'absent' ? _filteredStudents.length : 0,
-        'leave': status == 'leave' ? _filteredStudents.length : 0,
+        'late': status == 'late' ? _filteredStudents.length : 0,
         'total': _filteredStudents.length,
       };
     });
@@ -259,10 +263,26 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Widget build(BuildContext context) {
     final list = Provider.of<StudentDetailsProvider>(context, listen: false);
     _students = list.studentDetails;
+
+    list.fetchStudents('Student_list_@12', context);
+    courses = list.cources_lists;
+    List<String> listedCourse = courses
+        .map((item) => item['title']?.toString() ?? '')
+        .where((title) => title.isNotEmpty)
+        .toList();
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple[400]!, Colors.blue[400]!],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        // backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
           'Attendance',
@@ -495,6 +515,36 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
+                      value: listedCourse.contains(_selectedCourse)
+                          ? _selectedCourse
+                          : null,
+                      // isExpanded: true,
+                      hint:
+                          const Text("Select a course"), // 👈 shows placeholder
+                      items: listedCourse.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedCourse = newValue!;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
                       value: _selectedDivisions,
                       hint: const Text('Division'),
                       items: _divisions.map((String value) {
@@ -692,8 +742,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                                 const SizedBox(width: 8),
                                                 _buildAttendanceButton(
                                                     index,
-                                                    'leave',
-                                                    'Leave',
+                                                    'late',
+                                                    'Late',
                                                     Colors.orange,
                                                     Icons.schedule,
                                                     student['id']),
@@ -924,7 +974,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             ),
                             Expanded(
                               child: Text(
-                                'Leave',
+                                'Late',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.grey,
@@ -1016,7 +1066,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                               ),
                                             ),
                                             const SizedBox(width: 8),
-                                            Text('${data['leave']}'),
+                                            Text('${data['late']}'),
                                           ],
                                         ),
                                       ),

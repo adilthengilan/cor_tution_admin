@@ -22,3 +22,35 @@ class ClassDetailsProvider extends ChangeNotifier {
     }
   }
 }
+
+Future<void> updateStudentsArray() async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  // Reference to your document
+  DocumentReference docRef =
+      firestore.collection('studentList').doc('Student_list_@12');
+
+  // Get the current data
+  DocumentSnapshot snapshot = await docRef.get();
+
+  if (snapshot.exists) {
+    List<dynamic> students = snapshot['studentDetails'];
+
+    // Loop and add new fields
+    List updatedStudents = students.map((student) {
+      Map<String, dynamic> s = Map<String, dynamic>.from(student);
+
+      // Add new fields only if not already present
+      s.putIfAbsent("rollNo", () => "");
+      // s.putIfAbsent("dob", () => "");
+      // s.putIfAbsent("doj", () => "");
+
+      return s;
+    }).toList();
+
+    // Write back updated array
+    await docRef.update({"studentDetails": updatedStudents});
+
+    print("✅ All students updated with image, DOB, DOJ fields");
+  }
+}

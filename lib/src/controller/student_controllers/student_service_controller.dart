@@ -5,6 +5,8 @@ class StudentService {
       FirebaseFirestore.instance.collection('studentList');
   final CollectionReference examsList =
       FirebaseFirestore.instance.collection('exams');
+  final CollectionReference courseList =
+      FirebaseFirestore.instance.collection('classes');
 
   /// CREATE a new document with empty studentDetails array
   Future<void> createStudentList(String docId) async {
@@ -21,10 +23,24 @@ class StudentService {
     });
   }
 
+  Future<void> addCourse(String course) async {
+    await courseList.doc('courses-list').update({
+      'courses': FieldValue.arrayUnion([
+        {'title': course}
+      ])
+    });
+  }
+
   Future<void> addTeacher(
       String docId, Map<String, dynamic> studentData) async {
     await studentsList.doc(docId).update({
       'TeachersList': FieldValue.arrayUnion([studentData])
+    });
+  }
+
+  Future<void> addMarks(String docId, Map<String, dynamic> studentData) async {
+    await examsList.doc(docId).update({
+      'marks': FieldValue.arrayUnion([studentData])
     });
   }
 
@@ -57,6 +73,36 @@ class StudentService {
 
     await studentsList.doc(docId).update({
       'TeachersList': currentStudents,
+    });
+  }
+
+  Future<void> updateCourse(String title, newStudentData) async {
+    final doc = await courseList.doc('courses-list').get();
+    List currentStudents = doc['courses'];
+
+    // Remove old student
+    currentStudents.removeWhere((student) => student['title'] == title);
+    // Add updated student
+    currentStudents.add(newStudentData);
+
+    await courseList.doc('courses-list').update({
+      'courses': currentStudents,
+    });
+  }
+
+  Future<void> deleteCourse(
+    String title,
+  ) async {
+    final doc = await courseList.doc('courses-list').get();
+    List currentStudents = doc['courses'];
+
+    // Remove old student
+    currentStudents.removeWhere((student) => student['title'] == title);
+    // Add updated student
+    // currentStudents.add(newStudentData);
+
+    await courseList.doc('courses-list').update({
+      'courses': currentStudents,
     });
   }
 

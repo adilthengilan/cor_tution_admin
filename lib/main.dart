@@ -9,7 +9,8 @@ import 'package:corona_lms_webapp/src/view/screens/dashboard_screen.dart';
 import 'package:corona_lms_webapp/src/view/screens/exam_screen.dart';
 import 'package:corona_lms_webapp/src/view/screens/fees_screen.dart';
 import 'package:corona_lms_webapp/src/view/screens/login_screen.dart';
-import 'package:corona_lms_webapp/src/view/screens/messages_screen.dart';
+import 'package:corona_lms_webapp/src/view/screens/mark-adding-screen.dart';
+import 'package:corona_lms_webapp/src/view/screens/mark-history.dart';
 import 'package:corona_lms_webapp/src/view/screens/notifications_screen.dart';
 import 'package:corona_lms_webapp/src/view/screens/students_screen.dart';
 import 'package:corona_lms_webapp/src/view/screens/teachers_screen.dart';
@@ -99,8 +100,21 @@ class MyApp extends StatelessWidget {
             builder: (context, state) => const ExamsScreen(),
           ),
           GoRoute(
+            path: '/markAdding',
+            builder: (context, state) => const MarkAddingPage(),
+          ),
+          GoRoute(
+            path: '/updateMarks',
+            builder: (context, state) => WebMarkHistoryScreen(),
+          ),
+          GoRoute(
             path: '/notifications',
-            builder: (context, state) => const NotificationsScreen(),
+            builder: (context, state) => const NotificationsScreen(
+              classId: 'notifications',
+              userId: 'notifications',
+              userName: 'notifications',
+              userRole: 'notifications',
+            ),
           ),
         ],
       ),
@@ -217,6 +231,12 @@ class _MainLayoutState extends State<MainLayout>
         context.go('/exam');
         break;
       case 7:
+        context.go('/markAdding');
+        break;
+      case 8:
+        context.go('/updateMarks');
+        break;
+      case 9:
         context.go('/notifications');
         break;
       // case 8:
@@ -231,91 +251,104 @@ class _MainLayoutState extends State<MainLayout>
     final isTablet = screenWidth < 1100;
 
     return Scaffold(
-      body: Row(
-        children: [
-          // Animated sidebar
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            width: _isExpanded ? (isTablet ? 70 : 250) : 70,
-            color: MyApp.primaryColor,
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                // Logo
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: _isExpanded && !isTablet
-                        ? MainAxisAlignment.start
-                        : MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: MyApp.accentColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.school, color: MyApp.darkColor),
-                      ),
-                      if (_isExpanded && !isTablet) ...[
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Academy',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 40),
-                // Navigation items
-                Expanded(
-                  child: ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
-                      _buildNavItem(0, Icons.dashboard, 'Dashboard'),
-                      _buildNavItem(1, Icons.people, 'Students'),
-                      _buildNavItem(2, Icons.people, 'Teachers'),
-
-                      _buildNavItem(3, Icons.people, 'Attendance'),
-                      _buildNavItem(4, Icons.payments, 'Fees'),
-                      // _buildNavItem(4, Icons.message, 'Messages'),
-                      _buildNavItem(5, Icons.youtube_searched_for, 'Classes'),
-                      _buildNavItem(6, Icons.edit_document, 'Exam'),
-                      _buildNavItem(7, Icons.notifications, 'Notifications'),
-                      // _buildNavItem(8, Icons.settings, 'Settings'),
-                    ],
-                  ),
-                ),
-                // Toggle sidebar button
-                if (!isTablet)
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.purple[400]!, Colors.blue[400]!],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Row(
+          children: [
+            // Animated sidebar
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              width: _isExpanded ? (isTablet ? 70 : 250) : 70,
+              child: Column(
+                children: [
+                  const SizedBox(height: 24),
+                  // Logo
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: IconButton(
-                      onPressed: () {},
-                      // onPressed: _toggleSidebar,
-                      icon: AnimatedIcon(
-                        icon: AnimatedIcons.menu_close,
-                        progress: _animationController,
-                        color: Colors.white,
-                      ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: _isExpanded && !isTablet
+                          ? MainAxisAlignment.start
+                          : MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: MyApp.accentColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child:
+                              const Icon(Icons.school, color: MyApp.darkColor),
+                        ),
+                        if (_isExpanded && !isTablet) ...[
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Academy',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-              ],
+                  const SizedBox(height: 40),
+                  // Navigation items
+                  Expanded(
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      children: [
+                        _buildNavItem(0, Icons.dashboard, 'Dashboard'),
+                        _buildNavItem(1, Icons.people, 'Students'),
+                        _buildNavItem(2, Icons.people, 'Teachers'),
+
+                        _buildNavItem(3, Icons.people, 'Attendance'),
+                        _buildNavItem(4, Icons.payments, 'Fees'),
+                        // _buildNavItem(4, Icons.message, 'Messages'),
+                        _buildNavItem(5, Icons.youtube_searched_for, 'Classes'),
+                        _buildNavItem(6, Icons.edit_document, 'Exam'),
+                        _buildNavItem(7, Icons.mark_as_unread, 'Mark Listing'),
+                        _buildNavItem(
+                            8, Icons.mark_chat_read_sharp, 'Update Mark'),
+
+                        _buildNavItem(9, Icons.notifications, 'Notifications'),
+                        // _buildNavItem(8, Icons.settings, 'Settings'),
+                      ],
+                    ),
+                  ),
+                  // Toggle sidebar button
+                  if (!isTablet)
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: IconButton(
+                        onPressed: () {},
+                        // onPressed: _toggleSidebar,
+                        icon: AnimatedIcon(
+                          icon: AnimatedIcons.menu_close,
+                          progress: _animationController,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-          // Main content
-          Expanded(
-            child: Container(
-              color: Colors.grey[100],
-              child: widget.child,
+            // Main content
+            Expanded(
+              child: Container(
+                color: Colors.grey[100],
+                child: widget.child,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

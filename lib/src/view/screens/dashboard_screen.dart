@@ -1,5 +1,6 @@
 import 'package:corona_lms_webapp/src/controller/classes_controllers/fetch_classes.dart';
 import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
+import 'package:corona_lms_webapp/src/controller/student_controllers/student_service_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -54,28 +55,44 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget build(BuildContext context) {
     Provider.of<ClassDetailsProvider>(context, listen: false)
         .fetchclass('classes_@corona', context);
-    Provider.of<StudentDetailsProvider>(context, listen: false)
-        .fetchStudents('Student_list_@12', context);
+    final fetchcontroller =
+        Provider.of<StudentDetailsProvider>(context, listen: false);
+    fetchcontroller.fetchStudents('Student_list_@12', context);
+    fetchcontroller.fetchCourses(context);
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple[400]!, Colors.blue[400]!],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
           'Dashboard',
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.black),
-            onPressed: () {},
+            icon: const Icon(Icons.logout,
+                color: Color.fromARGB(255, 255, 255, 255)),
+            onPressed: () {
+              // Navigator.pop(context);
+              context.go('/login');
+            },
           ),
           IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.black),
+            icon: const Icon(Icons.notifications_outlined,
+                color: Color.fromARGB(255, 255, 255, 255)),
             onPressed: () {},
           ),
           const SizedBox(width: 8),
@@ -106,7 +123,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     children: [
                       // New Courses
                       _buildSectionHeader('New Courses', onViewAll: () {
-                        context.go('/classes');
+                        _showAddCourseDialog();
                       }),
                       const SizedBox(height: 16),
                       _buildCourseCards(),
@@ -305,8 +322,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         ),
         TextButton(
           onPressed: onViewAll,
-          child: const Text(
-            'View All',
+          child: Text(
+            title == 'New Courses' ? 'Add Course' : 'View all',
             style: TextStyle(
               color: Color(0xFF3B82F6),
               fontWeight: FontWeight.bold,
@@ -317,132 +334,324 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildCourseCards() {
-    final courses = [
-      {
-        'title': 'Mathematics',
-        'lessons': 12,
-        'color': const Color(0xFFFFC107),
-        'icon': Icons.calculate,
-      },
-      {
-        'title': 'Physics',
-        'lessons': 10,
-        'color': const Color(0xFF3B82F6),
-        'icon': Icons.science,
-      },
-      {
-        'title': 'Chemistry',
-        'lessons': 8,
-        'color': const Color(0xFF10B981),
-        'icon': Icons.biotech,
-      },
-    ];
+  void _showAddCourseDialog() {
+    final TextEditingController CourseController = TextEditingController();
+    final controller = StudentService();
 
-    return SizedBox(
-      height: 210,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: courses.length,
-        itemBuilder: (context, index) {
-          final course = courses[index];
-          return Container(
-            width: 280,
-            margin: const EdgeInsets.only(right: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Stack(
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add New Course'),
+        content: SizedBox(
+          width: 500,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: (course['color'] as Color).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          course['icon'] as IconData,
-                          color: course['color'] as Color,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        course['title'] as String,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${course['lessons']} lessons',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 12,
-                            backgroundImage: NetworkImage(
-                                'https://i.pravatar.cc/150?img=${10 + index}'),
-                          ),
-                          // const SizedBox(width: 4),
-                          // CircleAvatar(
-                          //   radius: 12,
-                          //   backgroundImage: NetworkImage(
-                          //       'https://i.pravatar.cc/150?img=${13 + index}'),
-                          // ),
-                          // const SizedBox(width: 4),
-                          // CircleAvatar(
-                          //   radius: 12,
-                          //   backgroundImage: NetworkImage(
-                          //       'https://i.pravatar.cc/150?img=${16 + index}'),
-                          // ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: course['color'] as Color,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        bottomRight: Radius.circular(16),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.arrow_forward,
-                      color: Colors.white,
+                TextField(
+                  controller: CourseController,
+                  decoration: InputDecoration(
+                    labelText: 'Course',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+
+                const SizedBox(height: 16),
+                // DropdownButtonFormField<String>(
+                //   decoration: InputDecoration(
+                //     labelText: 'Fee Status',
+                //     border: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(12),
+                //     ),
+                //   ),
+                //   value: selectedFeeStatus,
+                //   items: const [
+                //     DropdownMenuItem(value: 'Paid', child: Text('Paid')),
+                //     DropdownMenuItem(value: 'Due', child: Text('Due')),
+                //     DropdownMenuItem(value: 'Partial', child: Text('Partial')),
+                //   ],
+                //   onChanged: (value) {
+                //     selectedFeeStatus = value!;
+                //   },
+                // ),
               ],
             ),
-          );
-        },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              controller.addCourse(CourseController.text);
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Course added successfully'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              // index.updateindex();
+              Provider.of<StudentDetailsProvider>(context, listen: false)
+                  .fetchCourses(context);
+              setState(() {});
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF3B82F6),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Add Course'),
+          ),
+        ],
       ),
     );
+  }
+
+  void _showupdateCourseDialog(course) {
+    final TextEditingController CourseController =
+        TextEditingController(text: course);
+    final controller = StudentService();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Update Course'),
+        content: SizedBox(
+          width: 500,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: CourseController,
+                  decoration: InputDecoration(
+                    labelText: 'Course',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                const SizedBox(height: 16),
+                // DropdownButtonFormField<String>(
+                //   decoration: InputDecoration(
+                //     labelText: 'Fee Status',
+                //     border: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(12),
+                //     ),
+                //   ),
+                //   value: selectedFeeStatus,
+                //   items: const [
+                //     DropdownMenuItem(value: 'Paid', child: Text('Paid')),
+                //     DropdownMenuItem(value: 'Due', child: Text('Due')),
+                //     DropdownMenuItem(value: 'Partial', child: Text('Partial')),
+                //   ],
+                //   onChanged: (value) {
+                //     selectedFeeStatus = value!;
+                //   },
+                // ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              controller.updateCourse(course, {'title': CourseController.text});
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Course updated successfully'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              // index.updateindex();
+              Provider.of<StudentDetailsProvider>(context, listen: false)
+                  .fetchCourses(context);
+              setState(() {});
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF3B82F6),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('update Course'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCourseCards() {
+    return Consumer<StudentDetailsProvider>(builder: (context, value, child) {
+      final courses = value.cources_lists;
+      return value.cources_lists.isNotEmpty
+          ? SizedBox(
+              height: 210,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: courses.length,
+                itemBuilder: (context, index) {
+                  final course = courses[index];
+                  return Container(
+                    width: 280,
+                    margin: const EdgeInsets.only(right: 16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.purple[400]!, Colors.blue[400]!],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      // color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Stack(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.purple[400]!,
+                                      Colors.blue[400]!
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.golf_course,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                course['title'] as String,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  // CircleAvatar(
+                                  //   radius: 10,
+                                  //   child: Icon(Icons.edit),
+                                  // ),
+                                  // const SizedBox(width: 4),
+                                  // CircleAvatar(
+                                  //   radius: 12,
+                                  //   backgroundImage: NetworkImage(
+                                  //       'https://i.pravatar.cc/150?img=${13 + index}'),
+                                  // ),
+                                  // const SizedBox(width: 4),
+                                  // CircleAvatar(
+                                  //   radius: 12,
+                                  //   backgroundImage: NetworkImage(
+                                  //       'https://i.pravatar.cc/150?img=${16 + index}'),
+                                  // ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: InkWell(
+                            onTap: () {
+                              _showupdateCourseDialog(course['title']);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.yellow,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(16),
+                                  bottomRight: Radius.circular(16),
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.edit,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          right: 0,
+                          bottom: 165,
+                          child: InkWell(
+                            onTap: () {
+                              final controller = StudentService();
+                              controller.deleteCourse(course['title']);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.yellow,
+                                borderRadius: const BorderRadius.only(
+                                  topRight: Radius.circular(16),
+                                  bottomLeft: Radius.circular(16),
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.delete,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            )
+          : SizedBox(
+              child: Center(
+                child: Text('No Courses Found'),
+              ),
+            );
+    });
   }
 
   Widget _buildStudentsTable() {

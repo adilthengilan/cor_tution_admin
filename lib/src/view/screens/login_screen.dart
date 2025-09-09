@@ -218,9 +218,9 @@ class _LoginScreenState extends State<LoginScreen>
 
                               // List of valid emails
                               List<String> validEmails = [
-                                'mohammedshameem015@gmail.com',
+                                // 'mohammedshameem015@gmail.com',
                                 'nuwadiyalms956@gmail.com',
-                                'coronacoachingcentre2@gmail.com',
+                                // 'coronacoachingcentre2@gmail.com',
                               ];
 
                               if (!validEmails.contains(value)) {
@@ -265,9 +265,9 @@ class _LoginScreenState extends State<LoginScreen>
 
                               // List of valid passwords
                               List<String> validPasswords = [
-                                'ShameemCorona@123',
+                                // 'ShameemCorona@123',
                                 'NuwaDiya@123',
-                                'CoachingCentre@123',
+                                // 'CoachingCentre@123',
                               ];
 
                               if (!validPasswords.contains(value)) {

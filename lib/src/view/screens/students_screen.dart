@@ -1,3 +1,4 @@
+import 'package:corona_lms_webapp/src/controller/classes_controllers/fetch_classes.dart';
 import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
 import 'package:corona_lms_webapp/src/controller/student_controllers/student_service_controller.dart';
 import 'package:flutter/material.dart';
@@ -17,8 +18,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Active', 'Inactive', 'Due Fees'];
   String _selectedClass = 'All Classes';
-  String _selectedDivision = 'All Division';
+  String _selectedCourse = 'All Course';
 
+  String _selectedDivision = 'All Division';
+  List courses = [];
   // making random passwords
   String generatePassword({
     int length = 8,
@@ -175,11 +178,17 @@ class _StudentsScreenState extends State<StudentsScreen> {
       // Filter by class
       final matchesClass =
           _selectedClass == 'All Classes' || student['class'] == _selectedClass;
+      final matchesCourse = _selectedCourse == 'All Course' ||
+          student['course'] == _selectedCourse;
 
       final matchDivision = _selectedDivision == 'All Division' ||
           student['division'] == _selectedDivision;
 
-      return matchesSearch && matchesStatus && matchesClass && matchDivision;
+      return matchesSearch &&
+          matchesStatus &&
+          matchesClass &&
+          matchDivision &&
+          matchesCourse;
     }).toList();
   }
 
@@ -196,10 +205,24 @@ class _StudentsScreenState extends State<StudentsScreen> {
     final studentDetailss =
         Provider.of<StudentDetailsProvider>(context, listen: false);
     studentDetailss.fetchStudents('Student_list_@12', context);
+    courses = studentDetailss.cources_lists;
+    List<String> listedCourse = courses
+        .map((item) => item['title']?.toString() ?? '')
+        .where((title) => title.isNotEmpty)
+        .toList();
     getingData(context);
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple[400]!, Colors.blue[400]!],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
@@ -372,6 +395,53 @@ class _StudentsScreenState extends State<StudentsScreen> {
                             onChanged: (newValue) {
                               setState(() {
                                 _selectedDivision = newValue!;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 100,
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Filter by Course:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: listedCourse.contains(_selectedCourse)
+                                ? _selectedCourse
+                                : null,
+                            isExpanded: true,
+                            hint: const Text(
+                                "Select a course"), // 👈 shows placeholder
+                            items: listedCourse.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (newValue) {
+                              setState(() {
+                                _selectedCourse = newValue!;
                               });
                             },
                           ),
@@ -701,12 +771,15 @@ class _StudentsScreenState extends State<StudentsScreen> {
     final TextEditingController emailController = TextEditingController();
     final TextEditingController phoneController = TextEditingController();
     String selectedClass = '10th';
-    String selectedDivision = 'A';
-
+    String selectedDivision = 'M1';
+    String selectCourse = '';
     String selectedCourse = 'Mathematics';
     String selectedStatus = 'Active';
     String selectedFeeStatus = 'Paid';
-
+    List<String> listedCourse = courses
+        .map((item) => item['title']?.toString() ?? '')
+        .where((title) => title.isNotEmpty)
+        .toList();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -788,16 +861,26 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                DropdownButtonFormField<String>(
                   decoration: InputDecoration(
                     labelText: 'Course',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  controller: TextEditingController(text: selectedCourse),
+                  value: listedCourse.contains(selectedCourse)
+                      ? selectedCourse
+                      : null,
+                  items: listedCourse
+                      .where((c) => c != 'Course')
+                      .map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
                   onChanged: (value) {
-                    selectedCourse = value;
+                    selectedCourse = value!;
                   },
                 ),
                 const SizedBox(height: 16),
@@ -860,7 +943,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 'email': emailController.text,
                 'status': selectedStatus,
                 'fee_status': selectedFeeStatus,
-                'password': password
+                'password': password,
+                'course': selectCourse
               });
               index.docids = 'cor@132${index.index}';
               index.createStudentDocList('cor@132${index.index}');
@@ -903,6 +987,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
         TextEditingController(text: student['dob']);
     final TextEditingController dojController =
         TextEditingController(text: student['doj']);
+    final TextEditingController rollNoController =
+        TextEditingController(text: student['rollNo']);
     String selectedClass = student['class'];
     // String selectedCourse = student['course'];
     String selectedStatus = student['status'];
@@ -976,6 +1062,16 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   controller: dojController,
                   decoration: InputDecoration(
                     labelText: 'DOJ',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: rollNoController,
+                  decoration: InputDecoration(
+                    labelText: 'Roll No',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

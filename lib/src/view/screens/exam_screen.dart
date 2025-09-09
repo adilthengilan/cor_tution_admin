@@ -18,6 +18,8 @@ class _ExamsScreenState extends State<ExamsScreen>
 
   String _selectedClass = 'All Classes';
   String _selectedSubject = 'All Subjects';
+  String _selectedDivision = 'All Divisions';
+
   List<Map<String, dynamic>> _allExams = [];
   bool _isLoading = true;
 
@@ -42,7 +44,24 @@ class _ExamsScreenState extends State<ExamsScreen>
     'History',
     'Geography'
   ];
-
+  final List<String> _divisions = [
+    'All Divisions',
+    'M1',
+    'M2',
+    'M3',
+    'M4',
+    'M5',
+    'M6',
+    'M7',
+    'E1',
+    'E2',
+    'E3',
+    'E4',
+    'E5',
+    'S1',
+    'S2',
+    'S3'
+  ];
   @override
   void initState() {
     super.initState();
@@ -101,9 +120,11 @@ class _ExamsScreenState extends State<ExamsScreen>
     required int questionCount,
     required String status,
     required List<Map<String, dynamic>> questions,
+    required String division,
   }) async {
     try {
       final examData = {
+        'division': division,
         'id': id,
         'title': title,
         'description': description,
@@ -162,6 +183,15 @@ class _ExamsScreenState extends State<ExamsScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple[400]!, Colors.blue[400]!],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         shadowColor: Colors.black.withOpacity(0.1),
@@ -184,9 +214,9 @@ class _ExamsScreenState extends State<ExamsScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: const Color(0xFF3B82F6),
-          unselectedLabelColor: const Color(0xFF64748B),
-          indicatorColor: const Color(0xFF3B82F6),
+          labelColor: const Color.fromARGB(255, 255, 255, 255),
+          unselectedLabelColor: const Color.fromARGB(255, 0, 0, 0),
+          indicatorColor: const Color.fromARGB(255, 255, 255, 255),
           indicatorWeight: 3,
           tabs: const [
             Tab(text: 'All Exams'),
@@ -207,12 +237,14 @@ class _ExamsScreenState extends State<ExamsScreen>
                 _buildExamsTab('Completed'),
               ],
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCreateExamDialog,
-        backgroundColor: const Color(0xFF3B82F6),
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Create Exam'),
+      floatingActionButton: Container(
+        child: FloatingActionButton.extended(
+          onPressed: _showCreateExamDialog,
+          backgroundColor: const Color(0xFF3B82F6),
+          foregroundColor: Colors.white,
+          icon: const Icon(Icons.add),
+          label: const Text('Create Exam'),
+        ),
       ),
     );
   }
@@ -566,6 +598,7 @@ class _ExamsScreenState extends State<ExamsScreen>
     final descriptionController = TextEditingController();
     final durationController = TextEditingController(text: '60');
     final questionCountController = TextEditingController(text: '10');
+    String selectDivision = 'M1';
     String selectedClass = '10th';
     String selectedSubject = 'Mathematics';
     String selectedStatus = 'Upcoming';
@@ -624,6 +657,14 @@ class _ExamsScreenState extends State<ExamsScreen>
                   ],
                 ),
                 const SizedBox(height: 16),
+                _buildFormDropdown(
+                  value: selectDivision,
+                  items: _divisions.where((s) => s != 'All Divisions').toList(),
+                  onChanged: (value) => selectDivision = value!,
+                  label: 'Division',
+                  icon: Icons.book,
+                ),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -666,15 +707,15 @@ class _ExamsScreenState extends State<ExamsScreen>
                         }
                         Navigator.pop(context);
                         _showAddQuestionsDialog(
-                          title: titleController.text,
-                          description: descriptionController.text,
-                          className: selectedClass,
-                          subject: selectedSubject,
-                          duration: int.parse(durationController.text),
-                          questionCount:
-                              int.parse(questionCountController.text),
-                          status: selectedStatus,
-                        );
+                            title: titleController.text,
+                            description: descriptionController.text,
+                            className: selectedClass,
+                            subject: selectedSubject,
+                            duration: int.parse(durationController.text),
+                            questionCount:
+                                int.parse(questionCountController.text),
+                            status: selectedStatus,
+                            division: selectDivision);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF3B82F6),
@@ -706,6 +747,7 @@ class _ExamsScreenState extends State<ExamsScreen>
     required int duration,
     required int questionCount,
     required String status,
+    required String division,
   }) {
     List<Map<String, dynamic>> questions = List.generate(
       questionCount,
@@ -880,16 +922,16 @@ class _ExamsScreenState extends State<ExamsScreen>
 
                                 // Save to Firestore
                                 await _addExamToFirestore(
-                                  id: examId,
-                                  title: title,
-                                  description: description,
-                                  className: className,
-                                  subject: subject,
-                                  duration: duration,
-                                  questionCount: questionCount,
-                                  status: status,
-                                  questions: questions,
-                                );
+                                    id: examId,
+                                    title: title,
+                                    description: description,
+                                    className: className,
+                                    subject: subject,
+                                    duration: duration,
+                                    questionCount: questionCount,
+                                    status: status,
+                                    questions: questions,
+                                    division: division);
 
                                 print('Exam saved successfully');
                               } catch (e, stackTrace) {

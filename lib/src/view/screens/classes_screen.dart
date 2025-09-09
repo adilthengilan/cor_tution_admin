@@ -161,6 +161,15 @@ class _ClassesScreenState extends State<ClassesScreen>
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple[400]!, Colors.blue[400]!],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
@@ -183,9 +192,9 @@ class _ClassesScreenState extends State<ClassesScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: const Color(0xFF3B82F6),
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: const Color(0xFF3B82F6),
+          labelColor: const Color.fromARGB(255, 255, 255, 255),
+          unselectedLabelColor: const Color.fromARGB(255, 0, 0, 0),
+          indicatorColor: const Color.fromARGB(255, 255, 255, 255),
           tabs: const [
             Tab(text: 'All Materials'),
             Tab(text: 'Videos'),
@@ -203,6 +212,7 @@ class _ClassesScreenState extends State<ClassesScreen>
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          // updateStudentsArray();
           _showAddMaterialDialog();
         },
         backgroundColor: const Color(0xFFFFC107),

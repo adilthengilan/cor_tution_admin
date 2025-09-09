@@ -9,9 +9,15 @@ class StudentDetailsProvider extends ChangeNotifier {
   var docids = '';
   List studentDetails = [];
   List TeacherDetails = [];
+  List mark_list = [];
+  List cources_lists = [];
   String teacher_name = '';
   final CollectionReference studentsList =
       FirebaseFirestore.instance.collection('studentList');
+  final CollectionReference markfinding =
+      FirebaseFirestore.instance.collection('exams');
+  final CollectionReference courses_list =
+      FirebaseFirestore.instance.collection('classes');
 
   /// Fetch the studentDetails array from a document
   Future<List<Map<String, dynamic>>> fetchStudents(
@@ -29,6 +35,20 @@ class StudentDetailsProvider extends ChangeNotifier {
     }
   }
 
+  Future<List<String>> fetchCourses(BuildContext context) async {
+    final doc = await courses_list.doc('courses-list').get();
+    print('=====');
+
+    if (doc.exists) {
+      List students = doc['courses'];
+      print(students);
+      cources_lists = students;
+      return List<String>.from(students);
+    } else {
+      return [];
+    }
+  }
+
   Future<List<Map<String, dynamic>>> fetchTeachers(
       String docId, BuildContext context) async {
     final doc = await studentsList.doc(docId).get();
@@ -39,6 +59,20 @@ class StudentDetailsProvider extends ChangeNotifier {
       print(students);
       TeacherDetails = students;
       return List<Map<String, dynamic>>.from(students);
+    } else {
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchMarkList(
+      String docId, BuildContext context) async {
+    final doc = await markfinding.doc('mark-list').get();
+    print('=====');
+
+    if (doc.exists) {
+      List mark_l = doc['marks'];
+      mark_list = mark_l;
+      return List<Map<String, dynamic>>.from(mark_list);
     } else {
       return [];
     }

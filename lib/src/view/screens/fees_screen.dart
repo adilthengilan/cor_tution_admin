@@ -103,6 +103,15 @@ class _FeesScreenState extends State<FeesScreen>
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple[400]!, Colors.blue[400]!],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
@@ -125,9 +134,9 @@ class _FeesScreenState extends State<FeesScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: const Color(0xFF3B82F6),
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: const Color(0xFF3B82F6),
+          labelColor: const Color.fromARGB(255, 255, 255, 255),
+          unselectedLabelColor: const Color.fromARGB(255, 0, 0, 0),
+          indicatorColor: const Color.fromARGB(255, 255, 255, 255),
           tabs: const [
             Tab(text: 'Fee Records'),
             Tab(text: 'Analytics'),
