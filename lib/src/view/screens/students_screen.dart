@@ -770,6 +770,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
     final TextEditingController phoneController = TextEditingController();
+    final TextEditingController rollNoController = TextEditingController();
+    final TextEditingController dobController = TextEditingController();
+    final TextEditingController dojNoController = TextEditingController();
+
     String selectedClass = '10th';
     String selectedDivision = 'M1';
     String selectCourse = '';
@@ -814,6 +818,36 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   controller: phoneController,
                   decoration: InputDecoration(
                     labelText: 'Phone Number',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: rollNoController,
+                  decoration: InputDecoration(
+                    labelText: 'Roll No',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: dobController,
+                  decoration: InputDecoration(
+                    labelText: 'Date Of Birth',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: dojNoController,
+                  decoration: InputDecoration(
+                    labelText: 'Date of Join',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -944,7 +978,11 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 'status': selectedStatus,
                 'fee_status': selectedFeeStatus,
                 'password': password,
-                'course': selectCourse
+                'course': selectCourse,
+                'rollNo': rollNoController.text,
+                'image': '',
+                'dob': dobController.text,
+                'doj': dojNoController.text
               });
               index.docids = 'cor@132${index.index}';
               index.createStudentDocList('cor@132${index.index}');
@@ -1191,7 +1229,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 'password': passwordController.text,
                 'dob': dobController.text,
                 'doj': dojController.text,
-                'image': student['image']
+                'image': student['image'],
+                'rollNo': rollNoController.text
               };
               final obj = StudentService();
               obj.updateStudent('Student_list_@12', student['id'], newdata);
