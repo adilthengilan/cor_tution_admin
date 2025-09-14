@@ -362,7 +362,7 @@ class _FeesScreenState extends State<FeesScreen>
                                         ),
                                         Expanded(
                                           child: Text(
-                                              '\₹${record['totalAmountPaid']}'),
+                                              '₹${record['totalAmountPaid']}'),
                                         ),
                                         Expanded(
                                           child: Container(
@@ -534,7 +534,7 @@ class _FeesScreenState extends State<FeesScreen>
                                       'Jun'
                                     ];
                                     return BarTooltipItem(
-                                      '${months[groupIndex]}\n\$${rod.toY.round()}',
+                                      '${months[groupIndex]}\n₹${rod.toY.round()}',
                                       const TextStyle(color: Colors.white),
                                     );
                                   },

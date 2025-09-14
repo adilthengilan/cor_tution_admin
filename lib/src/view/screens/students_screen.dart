@@ -159,7 +159,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
   }
 
   List<dynamic> get _filteredStudents {
-    return _students.where((student) {
+    var filteredList = _students.where((student) {
       final name = student['name'].toString().toLowerCase();
       final id = student['id'].toString().toLowerCase();
       final email = student['email'].toString().toLowerCase();
@@ -178,18 +178,35 @@ class _StudentsScreenState extends State<StudentsScreen> {
       // Filter by class
       final matchesClass =
           _selectedClass == 'All Classes' || student['class'] == _selectedClass;
+
+      // Filter by course
       final matchesCourse = _selectedCourse == 'All Course' ||
           student['course'] == _selectedCourse;
 
-      final matchDivision = _selectedDivision == 'All Division' ||
+      // Filter by division
+      final matchesDivision = _selectedDivision == 'All Division' ||
           student['division'] == _selectedDivision;
 
       return matchesSearch &&
           matchesStatus &&
           matchesClass &&
-          matchDivision &&
+          matchesDivision &&
           matchesCourse;
     }).toList();
+
+    // Sort by roll number when both class and division are specifically selected
+    if (_selectedClass != 'All Classes' &&
+        _selectedDivision != 'All Division' &&
+        _selectedClass != null &&
+        _selectedDivision != null) {
+      filteredList.sort((a, b) {
+        final rollNoA = int.tryParse(a['rollNo'].toString()) ?? 0;
+        final rollNoB = int.tryParse(b['rollNo'].toString()) ?? 0;
+        return rollNoA.compareTo(rollNoB);
+      });
+    }
+
+    return filteredList;
   }
 
   @override
@@ -280,6 +297,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                     final index = Provider.of<StudentDetailsProvider>(context,
                         listen: false);
                     index.fetchNumber();
+                    // updateStudentsArray();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFC107),
@@ -532,7 +550,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           ),
                           Expanded(
                             child: Text(
-                              'ID',
+                              'Roll No',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.grey,
@@ -643,7 +661,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                               ),
                                             ),
                                             Expanded(
-                                              child: Text(student['id']),
+                                              child:
+                                                  Text('${student['rollNo']}'),
                                             ),
                                             Expanded(
                                               child: Text(student['class']),
