@@ -57,7 +57,9 @@ class _TeachersScreenState extends State<TeachersScreen> {
     'Chemistry',
     'Physics',
     'Biology',
-    'Social Science'
+    'Social Science',
+    'History',
+    'Geography'
   ];
   final List<String> _Division = [
     'All Division',

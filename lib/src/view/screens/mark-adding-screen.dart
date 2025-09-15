@@ -149,7 +149,9 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
     'Chemistry',
     'Physics',
     'Biology',
-    'Social Science'
+    'Social Science',
+    'History',
+    'Geography'
   ];
   final List<String> _divisions = [
     'M1',

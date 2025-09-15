@@ -35,10 +35,15 @@ class _ClassesScreenState extends State<ClassesScreen>
   final List<String> _subjects = [
     'All Subjects',
     'Mathematics',
-    'Physics',
-    'Chemistry',
-    'Biology',
     'English',
+    'Arabic',
+    'Malayalam',
+    'Urdu',
+    'Hindi',
+    'Chemistry',
+    'Physics',
+    'Biology',
+    'Social Science',
     'History',
     'Geography'
   ];
