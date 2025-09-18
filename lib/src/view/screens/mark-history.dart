@@ -74,8 +74,6 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
       final tempseg =
           Provider.of<StudentDetailsProvider>(context, listen: false);
       final markList = tempseg.mark_list;
-      print('=============================================');
-      print(markList);
 
       setState(() {
         allMarksList = List.from(markList);

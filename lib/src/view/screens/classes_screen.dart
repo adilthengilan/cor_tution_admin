@@ -21,6 +21,8 @@ class _ClassesScreenState extends State<ClassesScreen>
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   String _selectedClass = 'All Classes';
+  String _selectedDivision = 'All Divisions';
+
   final List<String> _classes = [
     'All Classes',
     '12th',
@@ -48,6 +50,24 @@ class _ClassesScreenState extends State<ClassesScreen>
     'Geography'
   ];
 
+  final List<String> _Division = [
+    'All Division',
+    'M1',
+    'M2',
+    'M3',
+    'M4',
+    'M5',
+    'M6',
+    'M7',
+    'E1',
+    'E2',
+    'E3',
+    'E4',
+    'E5',
+    'S1',
+    'S2',
+    'S3'
+  ];
   List<dynamic> _classMaterials = [
     // {
     //   'id': 'CM-1001',
@@ -587,182 +607,274 @@ class _ClassesScreenState extends State<ClassesScreen>
     final TextEditingController titleController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
     TextEditingController urlController = TextEditingController();
-    String selectedClass = '10th';
+    List<String> selectedDivisions = [
+      'M1'
+    ]; // Changed to List for multiple selection
     String selectedSubject = 'Mathematics';
     String selectedType = 'Video';
+    String selectedClass = '10th';
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add New Material'),
-        content: SizedBox(
-          width: 500,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleController,
-                  decoration: InputDecoration(
-                    labelText: 'Title',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Add New Material'),
+          content: SizedBox(
+            width: 500,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    decoration: InputDecoration(
+                      labelText: 'Title',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: descriptionController,
-                  decoration: InputDecoration(
-                    labelText: 'Description',
-                    border: OutlineInputBorder(
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: descriptionController,
+                    decoration: InputDecoration(
+                      labelText: 'Description',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      labelText: 'Type',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    value: selectedType,
+                    items: const [
+                      DropdownMenuItem(value: 'Video', child: Text('Video')),
+                      DropdownMenuItem(
+                          value: 'Document', child: Text('Document')),
+                      // DropdownMenuItem(
+                      //     value: 'Interactive', child: Text('Interactive')),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        selectedType = value!;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      labelText: 'Class',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    value: selectedClass,
+                    items: _classes
+                        .where((s) => s != 'All Classes')
+                        .map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedClass = value!;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+                  // Multiple Division Selection Container
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                  ),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Type',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Text(
+                            'Divisions',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                        Container(
+                          constraints: const BoxConstraints(maxHeight: 200),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children:
+                                  _Division.where((c) => c != 'All Division')
+                                      .map((String divisionName) {
+                                return CheckboxListTile(
+                                  title: Text(divisionName),
+                                  value:
+                                      selectedDivisions.contains(divisionName),
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      if (value == true) {
+                                        selectedDivisions.add(divisionName);
+                                      } else {
+                                        selectedDivisions.remove(divisionName);
+                                      }
+                                    });
+                                  },
+                                  controlAffinity:
+                                      ListTileControlAffinity.leading,
+                                  dense: true,
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  value: selectedType,
-                  items: const [
-                    DropdownMenuItem(value: 'Video', child: Text('Video')),
-                    DropdownMenuItem(
-                        value: 'Document', child: Text('Document')),
-                    // DropdownMenuItem(
-                    //     value: 'Interactive', child: Text('Interactive')),
-                  ],
-                  onChanged: (value) {
-                    selectedType = value!;
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Class',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 8),
+                  // Display selected divisions
+                  if (selectedDivisions.isNotEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Selected: ${selectedDivisions.join(', ')}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      labelText: 'Subject',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    value: selectedSubject,
+                    items: _subjects
+                        .where((s) => s != 'All Subjects')
+                        .map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedSubject = value!;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: urlController,
+                    decoration: InputDecoration(
+                      labelText: 'URL',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
-                  value: selectedClass,
-                  items: _classes
-                      .where((c) => c != 'All Classes')
-                      .map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    selectedClass = value!;
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Subject',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      uploadFileCrossPlatform();
+                      // // FilePickerResult? result =
+                      // //     await FilePicker.platform.pickFiles();
+                      // if (result != null) {
+                      //   // Handle file upload
+                      //   ScaffoldMessenger.of(context).showSnackBar(
+                      //     const SnackBar(
+                      //       content: Text('File selected successfully'),
+                      //       backgroundColor: Colors.green,
+                      //     ),
+                      //   );
+                      // }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[200],
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
+                    icon: const Icon(Icons.upload_file),
+                    label: const Text('Upload File'),
                   ),
-                  value: selectedSubject,
-                  items: _subjects
-                      .where((s) => s != 'All Subjects')
-                      .map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    selectedSubject = value!;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: urlController,
-                  decoration: InputDecoration(
-                    labelText: 'URL',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    uploadFileCrossPlatform();
-                    // // FilePickerResult? result =
-                    // //     await FilePicker.platform.pickFiles();
-                    // if (result != null) {
-                    //   // Handle file upload
-                    //   ScaffoldMessenger.of(context).showSnackBar(
-                    //     const SnackBar(
-                    //       content: Text('File selected successfully'),
-                    //       backgroundColor: Colors.green,
-                    //     ),
-                    //   );
-                    // }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[200],
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: const Icon(Icons.upload_file),
-                  label: const Text('Upload File'),
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              DateTime now = DateTime.now();
-              String formattedDate = DateFormat('dd-MM-yyyy').format(now);
-              classmodel.addClasses('classes_@corona', {
-                'title': titleController.text,
-                'description': descriptionController.text,
-                'type': selectedType,
-                'class': selectedClass,
-                'subject': selectedSubject,
-                'uploadDate': formattedDate,
-                'url': selectedType == 'Video' ? urlController.text : url,
-              });
-              // Provider.of<ClassDetailsProvider>(context, listen: false)
-              //     .fetchclass('classes_@corona', context);
-              // Add material logic here
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Material added successfully'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-              setState(() {});
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                ],
               ),
             ),
-            child: const Text('Add Material'),
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: selectedDivisions.isEmpty
+                  ? null
+                  : () {
+                      DateTime now = DateTime.now();
+                      String formattedDate =
+                          DateFormat('dd-MM-yyyy').format(now);
+
+                      // Add material for each selected division
+                      classmodel.addClasses('classes_@corona', {
+                        'title': titleController.text,
+                        'description': descriptionController.text,
+                        'type': selectedType,
+                        'class': selectedClass,
+                        'division': selectedDivisions,
+                        'subject': selectedSubject,
+                        'uploadDate': formattedDate,
+                        'url':
+                            selectedType == 'Video' ? urlController.text : url,
+                      });
+
+                      // Provider.of<ClassDetailsProvider>(context, listen: false)
+                      //     .fetchclass('classes_@corona', context);
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'Material added successfully to ${selectedDivisions.length} division(s)'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                      setState(() {});
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3B82F6),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Add Material'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -963,7 +1075,7 @@ class _ClassesScreenState extends State<ClassesScreen>
       setState(() {
         url = downloadUrl;
       });
-      print("Upload successful: $downloadUrl");
+      // print("Upload successful: $downloadUrl");
       return downloadUrl;
     } catch (e) {
       print("Error uploading file: $e");

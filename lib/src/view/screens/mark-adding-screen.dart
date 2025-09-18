@@ -140,6 +140,7 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
   ];
 
   final List<String> _subject = [
+    'All Subjects',
     'Mathematics',
     'English',
     'Arabic',

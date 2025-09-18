@@ -152,7 +152,7 @@ class _ExamsScreenState extends State<ExamsScreen>
 
       final service = StudentService();
       service.addexams('exam-list', examData);
-      print(examData);
+      // print(examData);
       // await _firestore.collection('exams').doc('exams_mcq').set([]);
       _showSuccessSnackBar('Exam created successfully');
       _loadExams(); // Reload exams
@@ -603,138 +603,185 @@ class _ExamsScreenState extends State<ExamsScreen>
     final descriptionController = TextEditingController();
     final durationController = TextEditingController(text: '60');
     final questionCountController = TextEditingController(text: '10');
-    String selectDivision = 'M1';
+    List<String> selectedDivisions = ['M1'];
     String selectedClass = '10th';
     String selectedSubject = 'Mathematics';
     String selectedStatus = 'Upcoming';
 
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          width: 600,
-          padding: const EdgeInsets.all(24),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Create New MCQ Exam',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1E293B),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          content: Container(
+            width: 600,
+            padding: const EdgeInsets.all(24),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Create New MCQ Exam',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1E293B),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                _buildTextField(titleController, 'Exam Title', Icons.title),
-                const SizedBox(height: 16),
-                _buildTextField(
-                    descriptionController, 'Description', Icons.description,
-                    maxLines: 3),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildFormDropdown(
-                        value: selectedClass,
-                        items:
-                            _classes.where((c) => c != 'All Classes').toList(),
-                        onChanged: (value) => selectedClass = value!,
-                        label: 'Class',
-                        icon: Icons.school,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildFormDropdown(
-                        value: selectedSubject,
-                        items: _subjects
-                            .where((s) => s != 'All Subjects')
-                            .toList(),
-                        onChanged: (value) => selectedSubject = value!,
-                        label: 'Subject',
-                        icon: Icons.book,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildFormDropdown(
-                  value: selectDivision,
-                  items: _divisions.where((s) => s != 'All Divisions').toList(),
-                  onChanged: (value) => selectDivision = value!,
-                  label: 'Division',
-                  icon: Icons.book,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                          durationController, 'Duration (minutes)', Icons.timer,
-                          keyboardType: TextInputType.number),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField(
-                          questionCountController, 'Question Count', Icons.quiz,
-                          keyboardType: TextInputType.number),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildFormDropdown(
-                  value: selectedStatus,
-                  items: const ['Upcoming', 'Active'],
-                  onChanged: (value) => selectedStatus = value!,
-                  label: 'Status',
-                  icon: Icons.flag,
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        if (titleController.text.isEmpty ||
-                            questionCountController.text.isEmpty) {
-                          _showErrorSnackBar(
-                              'Please fill in all required fields');
-                          return;
-                        }
-                        Navigator.pop(context);
-                        _showAddQuestionsDialog(
-                            title: titleController.text,
-                            description: descriptionController.text,
-                            className: selectedClass,
-                            subject: selectedSubject,
-                            duration: int.parse(durationController.text),
-                            questionCount:
-                                int.parse(questionCountController.text),
-                            status: selectedStatus,
-                            division: selectDivision);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3B82F6),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                  const SizedBox(height: 24),
+                  _buildTextField(titleController, 'Exam Title', Icons.title),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                      descriptionController, 'Description', Icons.description,
+                      maxLines: 3),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildFormDropdown(
+                          value: selectedClass,
+                          items: _classes
+                              .where((c) => c != 'All Classes')
+                              .toList(),
+                          onChanged: (value) => selectedClass = value!,
+                          label: 'Class',
+                          icon: Icons.school,
                         ),
                       ),
-                      icon: const Icon(Icons.arrow_forward),
-                      label: const Text('Add Questions'),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildFormDropdown(
+                          value: selectedSubject,
+                          items: _subjects
+                              .where((s) => s != 'All Subjects')
+                              .toList(),
+                          onChanged: (value) => selectedSubject = value!,
+                          label: 'Subject',
+                          icon: Icons.book,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
-                ),
-              ],
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Text(
+                            'Divisions',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                        Container(
+                          constraints: const BoxConstraints(maxHeight: 200),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: _divisions
+                                  .where((c) => c != 'All Division')
+                                  .map((String divisionName) {
+                                return CheckboxListTile(
+                                  title: Text(divisionName),
+                                  value:
+                                      selectedDivisions.contains(divisionName),
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      if (value == true) {
+                                        selectedDivisions.add(divisionName);
+                                      } else {
+                                        selectedDivisions.remove(divisionName);
+                                      }
+                                    });
+                                  },
+                                  controlAffinity:
+                                      ListTileControlAffinity.leading,
+                                  dense: true,
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(durationController,
+                            'Duration (minutes)', Icons.timer,
+                            keyboardType: TextInputType.number),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildTextField(questionCountController,
+                            'Question Count', Icons.quiz,
+                            keyboardType: TextInputType.number),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildFormDropdown(
+                    value: selectedStatus,
+                    items: const ['Upcoming', 'Active'],
+                    onChanged: (value) => selectedStatus = value!,
+                    label: 'Status',
+                    icon: Icons.flag,
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      const SizedBox(width: 16),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          if (titleController.text.isEmpty ||
+                              questionCountController.text.isEmpty) {
+                            _showErrorSnackBar(
+                                'Please fill in all required fields');
+                            return;
+                          }
+                          Navigator.pop(context);
+                          _showAddQuestionsDialog(
+                              title: titleController.text,
+                              description: descriptionController.text,
+                              className: selectedClass,
+                              subject: selectedSubject,
+                              duration: int.parse(durationController.text),
+                              questionCount:
+                                  int.parse(questionCountController.text),
+                              status: selectedStatus,
+                              division: selectedDivisions);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3B82F6),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        icon: const Icon(Icons.arrow_forward),
+                        label: const Text('Add Questions'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -752,7 +799,7 @@ class _ExamsScreenState extends State<ExamsScreen>
     required int duration,
     required int questionCount,
     required String status,
-    required String division,
+    required division,
   }) {
     List<Map<String, dynamic>> questions = List.generate(
       questionCount,
@@ -837,8 +884,6 @@ class _ExamsScreenState extends State<ExamsScreen>
                               });
 
                               try {
-                                print('hi');
-
                                 // Debug: Check if questions is null
                                 if (questions == null) {
                                   print('ERROR: questions is null');
@@ -847,14 +892,14 @@ class _ExamsScreenState extends State<ExamsScreen>
                                   return;
                                 }
 
-                                print('Questions length: ${questions.length}');
+                                // print('Questions length: ${questions.length}');
 
                                 // Safe validation with null checks
                                 bool allValid = true;
 
                                 for (int i = 0; i < questions.length; i++) {
                                   final question = questions[i];
-                                  print('Checking question $i: $question');
+                                  // print('Checking question $i: $question');
 
                                   // Check if question exists and has required fields
                                   if (question == null) {
@@ -918,7 +963,7 @@ class _ExamsScreenState extends State<ExamsScreen>
                                 int randomNumber = random.nextInt(9999999);
                                 String examId = "cor@$randomNumber";
 
-                                print('Generated exam ID: $examId');
+                                // print('Generated exam ID: $examId');
 
                                 // Close dialog first
                                 if (Navigator.canPop(context)) {
@@ -938,7 +983,7 @@ class _ExamsScreenState extends State<ExamsScreen>
                                     questions: questions,
                                     division: division);
 
-                                print('Exam saved successfully');
+                                // print('Exam saved successfully');
                               } catch (e, stackTrace) {
                                 print('ERROR in save exam: $e');
                                 print('Stack trace: $stackTrace');

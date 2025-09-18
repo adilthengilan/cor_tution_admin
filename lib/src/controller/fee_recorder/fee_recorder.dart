@@ -18,7 +18,7 @@ class FeeRecorder with ChangeNotifier {
   Future<List<Map<String, dynamic>>> fetchStudents(
       String docId, BuildContext context) async {
     final doc = await feelist.doc('student_fees').get();
-    print('=====');
+    // print('=====');
 
     if (doc.exists) {
       List students = doc['studentfees'];
@@ -105,7 +105,7 @@ Future<void> addOrUpdateStudentByName({
         'status': status,
       };
 
-      print("Updated existing student: $studentName");
+      // print("Updated existing student: $studentName");
     } else {
       // Add new student
       // String status = getStatus(amount, fullFee);
@@ -123,11 +123,11 @@ Future<void> addOrUpdateStudentByName({
         ]
       });
 
-      print("Added new student: $studentName");
+      // print("Added new student: $studentName");
     }
 
     await docRef.set({'studentfees': studentFees}, SetOptions(merge: true));
-    print('Student fee record updated with status.');
+    // print('Student fee record updated with status.');
   } catch (e) {
     print('Error: $e');
   }
@@ -148,7 +148,7 @@ Future<void> addToTotalAmount(String docId, int amountToAdd) async {
     await docRef.update({
       'amount': FieldValue.increment(amountToAdd),
     });
-    print('Added $amountToAdd to total amount.');
+    // print('Added $amountToAdd to total amount.');
   } catch (e) {
     print('Failed to add amount: $e');
   }

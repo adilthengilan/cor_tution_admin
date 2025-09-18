@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:corona_lms_webapp/src/controller/fee_recorder/fee_recorder.dart';
 import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
 import 'package:flutter/material.dart';
@@ -978,105 +979,744 @@ class _FeesScreenState extends State<FeesScreen>
   }
 
   void _showEditFeeRecordDialog(Map<String, dynamic> record) {
-    final TextEditingController namecontroller =
-        TextEditingController(text: record['name']);
-    final TextEditingController amountcontroller =
-        TextEditingController(text: record['totalAmountPaid'].toString());
-    String selectedstatus = record['status'];
+    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    List<Map<String, dynamic>> payments =
+        List<Map<String, dynamic>>.from(record['payment'] ?? []);
+    bool isLoading = false;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Fee Record'),
-        content: SizedBox(
-          width: 500,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Student',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  controller: namecontroller,
-                  enabled: false,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Amount',
-                    prefixText: '\₹',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  controller: amountcontroller,
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Status',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  value: selectedstatus,
-                  items: const [
-                    DropdownMenuItem(value: 'Paid', child: Text('Paid')),
-                    DropdownMenuItem(value: 'Due', child: Text('Due')),
-                    DropdownMenuItem(value: 'Partial', child: Text('Partial')),
-                  ],
-                  onChanged: (value) {
-                    selectedstatus = value!;
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              DateTime _selectedDate = DateTime.now();
-              final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate);
-              final provider = Provider.of<FeeRecorder>(context, listen: false);
-              final newFeeData = {
-                'id': record['id'],
-                'studentName': record['name'],
-                'amount': int.parse(amountcontroller.text),
-                'dueDate': dateKey,
-                'status': selectedstatus,
-              };
-              provider.updatefees(newFeeData, record['id']);
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            // Calculate total amount from remaining payments
+            int totalAmount = payments.fold<int>(0, (sum, payment) {
+              return sum + ((payment['amount'] ?? 0) as int);
+            });
 
-              Navigator.pop(context);
-              setState(() {});
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Fee record updated successfully'),
-                  backgroundColor: Colors.green,
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(16),
+              child: Container(
+                width: double.infinity,
+                constraints: const BoxConstraints(
+                  maxWidth: 500,
+                  maxHeight: 700,
                 ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header Section
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(24, 24, 16, 20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.indigo.shade600,
+                              Colors.indigo.shade700,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.payment_rounded,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Edit Fee Payments',
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    record['name'] ?? 'Unknown Student',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: isLoading
+                                  ? null
+                                  : () => Navigator.pop(dialogContext),
+                              icon: const Icon(
+                                Icons.close_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.white.withOpacity(0.2),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Content Section
+                      Flexible(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(24),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Student Info Card
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.person_rounded,
+                                            color: Colors.grey.shade600,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Student: ${record['name'] ?? 'Unknown'}',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.grey.shade800,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.class_rounded,
+                                            color: Colors.grey.shade600,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Class: ${record['id'] ?? 'Not specified'}',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey.shade700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                const SizedBox(height: 24),
+
+                                // Total Amount Display
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.green.shade50,
+                                        Colors.green.shade100,
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.green.shade300,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons
+                                                .account_balance_wallet_rounded,
+                                            color: Colors.green.shade700,
+                                            size: 24,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            'Total Amount',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.green.shade800,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Text(
+                                        '₹${totalAmount.toString()}',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green.shade800,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                const SizedBox(height: 24),
+
+                                // Payments List Header
+                                Text(
+                                  'Payment History',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey.shade800,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+
+                                // Payments List
+                                payments.isEmpty
+                                    ? Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(32),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade50,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Icon(
+                                              Icons.payment_outlined,
+                                              size: 48,
+                                              color: Colors.grey.shade400,
+                                            ),
+                                            const SizedBox(height: 12),
+                                            Text(
+                                              'No payments found',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.grey.shade600,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'All payments have been removed or none exist',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey.shade500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : ListView.separated(
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemCount: payments.length,
+                                        separatorBuilder: (context, index) =>
+                                            const SizedBox(height: 8),
+                                        itemBuilder: (context, index) {
+                                          final payment = payments[index];
+                                          return Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: Colors.grey.shade300,
+                                                width: 1,
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(0.05),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: ListTile(
+                                              contentPadding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 8,
+                                              ),
+                                              leading: Container(
+                                                padding:
+                                                    const EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blue.shade50,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: Icon(
+                                                  Icons.receipt_rounded,
+                                                  color: Colors.blue.shade600,
+                                                  size: 20,
+                                                ),
+                                              ),
+                                              title: Text(
+                                                '₹${payment['amount'] ?? 0}',
+                                                style: const TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                              subtitle: Text(
+                                                'Date: ${payment['date'] ?? 'Unknown date'}',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey.shade600,
+                                                ),
+                                              ),
+                                              trailing: IconButton(
+                                                onPressed: isLoading
+                                                    ? null
+                                                    : () {
+                                                        _showDeleteConfirmation(
+                                                          dialogContext,
+                                                          payment,
+                                                          () {
+                                                            setDialogState(() {
+                                                              payments.removeAt(
+                                                                  index);
+                                                            });
+                                                          },
+                                                        );
+                                                      },
+                                                icon: Icon(
+                                                  Icons.delete_rounded,
+                                                  color: isLoading
+                                                      ? Colors.grey.shade400
+                                                      : Colors.red.shade600,
+                                                ),
+                                                style: IconButton.styleFrom(
+                                                  backgroundColor: isLoading
+                                                      ? Colors.grey.shade100
+                                                      : Colors.red.shade50,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+
+                                const SizedBox(height: 32),
+
+                                // Action Buttons
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton(
+                                        onPressed: isLoading
+                                            ? null
+                                            : () =>
+                                                Navigator.pop(dialogContext),
+                                        style: OutlinedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 16),
+                                          side: BorderSide(
+                                            color: isLoading
+                                                ? Colors.grey.shade300
+                                                : Colors.grey.shade400,
+                                            width: 1.5,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'Cancel',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: isLoading
+                                                ? Colors.grey.shade400
+                                                : Colors.grey.shade700,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: isLoading
+                                            ? null
+                                            : () async {
+                                                setDialogState(() {
+                                                  isLoading = true;
+                                                });
+
+                                                try {
+                                                  // Calculate old and new total amounts
+                                                  int oldTotalAmount =
+                                                      record['totalAmount'] ??
+                                                          0;
+                                                  int newTotalAmount =
+                                                      totalAmount;
+
+                                                  // Create updated fee data
+                                                  Map<String, dynamic>
+                                                      updatedFeeData = {
+                                                    'id': record['id'],
+                                                    'name': record['name'],
+                                                    // 'class': record['class'],
+                                                    // 'date': record['date'],
+                                                    'payment': payments,
+                                                    'totalAmountPaid':
+                                                        newTotalAmount,
+                                                    'updatedAt': DateTime.now()
+                                                        .toIso8601String(),
+                                                    'status': record['status']
+                                                  };
+
+                                                  // Update the fee record
+                                                  // final provider = Provider.of<FeeRecorder>(context, listen: false);
+                                                  await updateFeePayments(
+                                                      updatedFeeData,
+                                                      record['id'],
+                                                      oldTotalAmount,
+                                                      newTotalAmount);
+
+                                                  // Close dialog
+                                                  Navigator.pop(dialogContext);
+
+                                                  // Refresh parent widget
+                                                  setState(() {});
+
+                                                  // Show success message
+                                                  _showSuccessSnackBar();
+                                                } catch (e) {
+                                                  setDialogState(() {
+                                                    isLoading = false;
+                                                  });
+
+                                                  _showErrorSnackBar(
+                                                      e.toString());
+                                                }
+                                              },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: isLoading
+                                              ? Colors.grey.shade400
+                                              : Colors.indigo.shade600,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 16),
+                                          elevation: isLoading ? 0 : 3,
+                                          shadowColor:
+                                              Colors.indigo.withOpacity(0.3),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          ),
+                                        ),
+                                        child: isLoading
+                                            ? const SizedBox(
+                                                height: 20,
+                                                width: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(Colors.white),
+                                                ),
+                                              )
+                                            : const Text(
+                                                'Update Payments',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+// Delete Confirmation Dialog
+  void _showDeleteConfirmation(BuildContext context,
+      Map<String, dynamic> payment, VoidCallback onConfirm) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_rounded,
+                color: Colors.orange.shade600,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Delete Payment',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to delete this payment?',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.red.shade200,
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Amount: ₹${payment['amount'] ?? 0}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Date: ${payment['date'] ?? 'Unknown date'}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'This action cannot be undone.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.red.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade700,
+                ),
               ),
             ),
-            child: const Text('Update Record'),
-          ),
-        ],
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                onConfirm();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade600,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Delete',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+// Success and Error SnackBars
+  void _showSuccessSnackBar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_rounded,
+                color: Colors.green,
+                size: 16,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Fee payments updated successfully!',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 3),
       ),
     );
+  }
+
+// Provider Method for updating fee payments
+  Future<void> updateFeePayments(Map<String, dynamic> updatedFeeData,
+      String recordId, int oldTotalAmount, int newTotalAmount) async {
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+    try {
+      // Get current data
+      DocumentReference docRef =
+          _firestore.collection('studentList').doc('student_fees');
+      DocumentSnapshot docSnapshot = await docRef.get();
+
+      if (docSnapshot.exists) {
+        Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
+
+        List<dynamic> studentFees = List.from(data['studentfees'] ?? []);
+        int currentTotalAmount = data['totalAmountPaid'] ?? 0;
+
+        // Find and update the specific record
+        int recordIndex =
+            studentFees.indexWhere((fee) => fee['id'] == recordId);
+
+        if (recordIndex != -1) {
+          studentFees[recordIndex] = updatedFeeData;
+
+          int updatedGlobalTotal =
+              currentTotalAmount - oldTotalAmount + newTotalAmount;
+
+          await docRef.update({
+            'studentfees': studentFees,
+            // 'totalamount': updatedGlobalTotal,
+            // 'lastUpdated': FieldValue.serverTimestamp(),
+          });
+
+          print('Fee payments updated successfully');
+        } else {
+          throw Exception('Fee record not found');
+        }
+      } else {
+        throw Exception('student_fees document does not exist');
+      }
+    } catch (e) {
+      print('Error updating fee payments: $e');
+      throw Exception('Failed to update fee payments: ${e.toString()}');
+    }
   }
 
   void _showDeleteConfirmationDialog(Map<String, dynamic> record) {

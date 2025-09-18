@@ -137,7 +137,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           });
         }
       } catch (e) {
-        print('Error fetching user $userId: $e');
+        // print('Error fetching user $userId: $e');
         users.add({
           'id': userId,
           'name': 'User $userId',
