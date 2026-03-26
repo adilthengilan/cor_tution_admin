@@ -10,11 +10,11 @@ class ClassDetailsProvider extends ChangeNotifier {
   Future<List<Map<String, dynamic>>> fetchclass(
       String docId, BuildContext context) async {
     final doc = await studentsList.doc(docId).get();
-    print('=====');
+    // print('=====');
 
     if (doc.exists) {
       List classes = doc['classes'];
-      print(classes);
+      // print(classes);
       classDetails = classes;
       return List<Map<String, dynamic>>.from(classes);
     } else {

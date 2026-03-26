@@ -99,10 +99,10 @@ class MyApp extends StatelessWidget {
             path: '/exam',
             builder: (context, state) => const ExamsScreen(),
           ),
-          GoRoute(
-            path: '/markAdding',
-            builder: (context, state) => const MarkAddingPage(),
-          ),
+          // GoRoute(
+          //   path: '/markAdding',
+          //   builder: (context, state) => const MarkAddingPage(),
+          // ),
           GoRoute(
             path: '/updateMarks',
             builder: (context, state) => WebMarkHistoryScreen(),

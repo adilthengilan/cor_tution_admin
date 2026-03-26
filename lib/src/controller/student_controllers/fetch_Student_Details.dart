@@ -52,11 +52,11 @@ class StudentDetailsProvider extends ChangeNotifier {
   Future<List<Map<String, dynamic>>> fetchTeachers(
       String docId, BuildContext context) async {
     final doc = await studentsList.doc(docId).get();
-    print('=====');
+    // print('=====');
 
     if (doc.exists) {
       List students = doc['TeachersList'];
-      print(students);
+      // print(students);
       TeacherDetails = students;
       return List<Map<String, dynamic>>.from(students);
     } else {
@@ -67,7 +67,7 @@ class StudentDetailsProvider extends ChangeNotifier {
   Future<List<Map<String, dynamic>>> fetchMarkList(
       String docId, BuildContext context) async {
     final doc = await markfinding.doc('mark-list').get();
-    print('=====');
+    // print('=====');
 
     if (doc.exists) {
       List mark_l = doc['marks'];
@@ -97,7 +97,7 @@ class StudentDetailsProvider extends ChangeNotifier {
 
       if (doc.exists) {
         index = doc.get('number');
-        print(doc.get('number'));
+        // print(doc.get('number'));
         return doc.get('number');
       } else {
         print('Document does not exist');

@@ -1,8 +1,6 @@
-import 'package:corona_lms_webapp/src/controller/classes_controllers/fetch_classes.dart';
-import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
-import 'package:corona_lms_webapp/src/controller/student_controllers/student_service_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
 
 class StudentsScreen extends StatefulWidget {
@@ -13,42 +11,18 @@ class StudentsScreen extends StatefulWidget {
 }
 
 class _StudentsScreenState extends State<StudentsScreen> {
-  final studentService = StudentService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   final TextEditingController _searchController = TextEditingController();
+
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Active', 'Inactive', 'Due Fees'];
+
   String _selectedClass = 'All Classes';
+  String _selectedDivision = 'All Division';
   String _selectedCourse = 'All Course';
 
-  String _selectedDivision = 'All Division';
-  List courses = [];
-  // making random passwords
-  String generatePassword({
-    int length = 8,
-    bool includeUppercase = true,
-    bool includeLowercase = true,
-    bool includeNumbers = true,
-    bool includeSymbols = true,
-  }) {
-    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-    const numbers = '0123456789';
-    const symbols = '!@#\$%^&*()_-+=<>?/|';
-
-    String chars = '';
-    if (includeUppercase) chars += uppercase;
-    if (includeLowercase) chars += lowercase;
-    if (includeNumbers) chars += numbers;
-    if (includeSymbols) chars += symbols;
-
-    if (chars.isEmpty) return '';
-
-    final rand = Random.secure();
-    return List.generate(length, (index) => chars[rand.nextInt(chars.length)])
-        .join();
-  }
-
-//----------------
   final List<String> _classes = [
     'All Classes',
     '12th',
@@ -59,7 +33,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
     '7th',
     '6th'
   ];
-  final List<String> _Division = [
+
+  final List<String> _divisions = [
     'All Division',
     'M1',
     'M2',
@@ -78,114 +53,41 @@ class _StudentsScreenState extends State<StudentsScreen> {
     'S3'
   ];
 
-  List<dynamic> _students = [
-    // {
-    //   'id': 'ST-1001',
-    //   'name': 'John Smith',
-    //   'email': 'john.smith@example.com',
-    //   'phone': '+1 234 567 890',
-    //   'course': 'Mathematics',
-    //   'class': '10th',
-    //   'joinDate': '12 Jan 2023',
-    //   'status': 'Active',
-    //   'feeStatus': 'Paid',
-    //   'avatar': 'https://i.pravatar.cc/150?img=1',
-    // },
-    // {
-    //   'id': 'ST-1002',
-    //   'name': 'Emily Johnson',
-    //   'email': 'emily.johnson@example.com',
-    //   'phone': '+1 234 567 891',
-    //   'course': 'Physics',
-    //   'class': '12th',
-    //   'joinDate': '15 Feb 2023',
-    //   'status': 'Active',
-    //   'feeStatus': 'Due',
-    //   'avatar': 'https://i.pravatar.cc/150?img=5',
-    // },
-    // {
-    //   'id': 'ST-1003',
-    //   'name': 'Michael Brown',
-    //   'email': 'michael.brown@example.com',
-    //   'phone': '+1 234 567 892',
-    //   'course': 'Chemistry',
-    //   'class': '11th',
-    //   'joinDate': '20 Mar 2023',
-    //   'status': 'Inactive',
-    //   'feeStatus': 'Paid',
-    //   'avatar': 'https://i.pravatar.cc/150?img=3',
-    // },
-    // {
-    //   'id': 'ST-1004',
-    //   'name': 'Sarah Davis',
-    //   'email': 'sarah.davis@example.com',
-    //   'phone': '+1 234 567 893',
-    //   'course': 'Biology',
-    //   'class': '10th',
-    //   'joinDate': '05 Apr 2023',
-    //   'status': 'Active',
-    //   'feeStatus': 'Partial',
-    //   'avatar': 'https://i.pravatar.cc/150?img=4',
-    // },
-    // {
-    //   'id': 'ST-1005',
-    //   'name': 'David Wilson',
-    //   'email': 'david.wilson@example.com',
-    //   'phone': '+1 234 567 894',
-    //   'course': 'English',
-    //   'class': '9th',
-    //   'joinDate': '10 May 2023',
-    //   'status': 'Active',
-    //   'feeStatus': 'Paid',
-    //   'avatar': 'https://i.pravatar.cc/150?img=6',
-    // },
-    // {
-    //   'id': 'ST-1006',
-    //   'name': 'Jessica Taylor',
-    //   'email': 'jessica.taylor@example.com',
-    //   'phone': '+1 234 567 895',
-    //   'course': 'History',
-    //   'class': '8th',
-    //   'joinDate': '15 Jun 2023',
-    //   'status': 'Inactive',
-    //   'feeStatus': 'Due',
-    //   'avatar': 'https://i.pravatar.cc/150?img=7',
-    // },
-  ];
-
-  void getingData(BuildContext context) {
-    final Students = Provider.of<StudentDetailsProvider>(context);
-    _students = Students.studentDetails;
+  // ─── Password generator ───────────────────────────────────────────────────
+  String _generatePassword({int length = 10}) {
+    const chars =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#\$%^&*';
+    final rand = Random.secure();
+    return List.generate(length, (_) => chars[rand.nextInt(chars.length)])
+        .join();
   }
 
-  List<dynamic> get _filteredStudents {
-    var filteredList = _students.where((student) {
-      final name = student['name'].toString().toLowerCase();
-      final id = student['id'].toString().toLowerCase();
-      final email = student['email'].toString().toLowerCase();
-      final query = _searchController.text.toLowerCase();
+  // ─── Filtering ────────────────────────────────────────────────────────────
+  List<QueryDocumentSnapshot> _applyFilters(List<QueryDocumentSnapshot> docs) {
+    final query = _searchController.text.toLowerCase();
 
-      // Filter by search query
+    var list = docs.where((doc) {
+      final d = doc.data() as Map<String, dynamic>;
+      final name = (d['student_name'] ?? '').toString().toLowerCase();
+      final id = (d['id'] ?? '').toString().toLowerCase();
+      final email = (d['email'] ?? '').toString().toLowerCase();
+
       final matchesSearch =
           name.contains(query) || id.contains(query) || email.contains(query);
 
-      // Filter by status
       final matchesStatus = _selectedFilter == 'All' ||
           (_selectedFilter == 'Due Fees'
-              ? student['feeStatus'] == 'Due'
-              : student['status'] == _selectedFilter);
+              ? d['fee_status'] == 'Due'
+              : d['status'] == _selectedFilter);
 
-      // Filter by class
       final matchesClass =
-          _selectedClass == 'All Classes' || student['class'] == _selectedClass;
+          _selectedClass == 'All Classes' || d['class'] == _selectedClass;
 
-      // Filter by course
-      final matchesCourse = _selectedCourse == 'All Course' ||
-          student['course'] == _selectedCourse;
-
-      // Filter by division
       final matchesDivision = _selectedDivision == 'All Division' ||
-          student['division'] == _selectedDivision;
+          d['division'] == _selectedDivision;
+
+      final matchesCourse =
+          _selectedCourse == 'All Course' || d['course'] == _selectedCourse;
 
       return matchesSearch &&
           matchesStatus &&
@@ -194,40 +96,534 @@ class _StudentsScreenState extends State<StudentsScreen> {
           matchesCourse;
     }).toList();
 
-    // Sort by roll number when both class and division are specifically selected
+    // Sort by roll number when a specific class + division is chosen
     if (_selectedClass != 'All Classes' &&
-        _selectedDivision != 'All Division' &&
-        _selectedClass != null &&
-        _selectedDivision != null) {
-      filteredList.sort((a, b) {
-        final rollNoA = int.tryParse(a['rollNo'].toString()) ?? 0;
-        final rollNoB = int.tryParse(b['rollNo'].toString()) ?? 0;
-        return rollNoA.compareTo(rollNoB);
+        _selectedDivision != 'All Division') {
+      list.sort((a, b) {
+        final da = a.data() as Map<String, dynamic>;
+        final db = b.data() as Map<String, dynamic>;
+        final ra = int.tryParse(da['rollNo']?.toString() ?? '') ?? 0;
+        final rb = int.tryParse(db['rollNo']?.toString() ?? '') ?? 0;
+        return ra.compareTo(rb);
       });
     }
 
-    return filteredList;
+    return list;
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  // ─── Dialogs ──────────────────────────────────────────────────────────────
+
+  /// Add / Register student via Firebase Auth + Firestore
+  void _showAddStudentDialog() {
+    final nameCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final rollNoCtrl = TextEditingController();
+    final dobCtrl = TextEditingController();
+    final dojCtrl = TextEditingController();
+
+    String selClass = '10th';
+    String selDivision = 'M1';
+    String selCourse = '';
+    String selStatus = 'Active';
+    String selFeeStatus = 'Paid';
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Register New Student'),
+          content: SizedBox(
+            width: 500,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _field(nameCtrl, 'Full Name'),
+                  _field(emailCtrl, 'Email', type: TextInputType.emailAddress),
+                  _field(phoneCtrl, 'Phone Number', type: TextInputType.phone),
+                  _field(rollNoCtrl, 'Roll No', type: TextInputType.number),
+                  _field(dobCtrl, 'Date of Birth'),
+                  _field(dojCtrl, 'Date of Joining'),
+                  const SizedBox(height: 16),
+                  _dropdownField(
+                    label: 'Class',
+                    value: selClass,
+                    items: _classes.where((c) => c != 'All Classes').toList(),
+                    onChanged: (v) => setDialogState(() => selClass = v!),
+                  ),
+                  const SizedBox(height: 16),
+                  _dropdownField(
+                    label: 'Division',
+                    value: selDivision,
+                    items:
+                        _divisions.where((c) => c != 'All Division').toList(),
+                    onChanged: (v) => setDialogState(() => selDivision = v!),
+                  ),
+                  const SizedBox(height: 16),
+                  _field(TextEditingController()..addListener(() {}), 'Course',
+                      onChanged: (v) => selCourse = v),
+                  _dropdownField(
+                    label: 'Status',
+                    value: selStatus,
+                    items: const ['Active', 'Inactive'],
+                    onChanged: (v) => setDialogState(() => selStatus = v!),
+                  ),
+                  const SizedBox(height: 16),
+                  _dropdownField(
+                    label: 'Fee Status',
+                    value: selFeeStatus,
+                    items: const ['Paid', 'Due', 'Partial'],
+                    onChanged: (v) => setDialogState(() => selFeeStatus = v!),
+                  ),
+                  if (isLoading) ...[
+                    const SizedBox(height: 16),
+                    const LinearProgressIndicator(),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: isLoading
+                  ? null
+                  : () async {
+                      if (nameCtrl.text.trim().isEmpty ||
+                          emailCtrl.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Name and Email are required'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+                      setDialogState(() => isLoading = true);
+
+                      try {
+                        // final password = _generatePassword();
+
+                        // 1. Create Firebase Auth account
+                        final credential =
+                            await _auth.createUserWithEmailAndPassword(
+                          email: emailCtrl.text.trim(),
+                          password: 'lmsSupport@123',
+                        );
+
+                        final uid = credential.user!.uid;
+
+                        // 2. Save to Firestore users/{uid}
+                        await _firestore.collection('users').doc(uid).set({
+                          'uid': uid,
+                          'student_name': nameCtrl.text.trim(),
+                          'role': 'student',
+                          'email': emailCtrl.text.trim(),
+                          'contact': phoneCtrl.text.trim(),
+                          'rollNo': rollNoCtrl.text.trim(),
+                          'dob': dobCtrl.text.trim(),
+                          'doj': dojCtrl.text.trim(),
+                          'class': selClass,
+                          'division': selDivision,
+                          'course': selCourse,
+                          'status': selStatus,
+                          'fee_status': selFeeStatus,
+                          'password': 'lmsSupport@123',
+                          'image': '',
+                          'createdAt': FieldValue.serverTimestamp(),
+                        });
+
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                'Student registered! Temp password: lmsSupport@123'),
+                            backgroundColor: Colors.green,
+                            duration: const Duration(seconds: 6),
+                          ),
+                        );
+                      } on FirebaseAuthException catch (e) {
+                        setDialogState(() => isLoading = false);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(e.message ?? 'Auth error'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      } catch (e) {
+                        setDialogState(() => isLoading = false);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3B82F6),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Register Student'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
+
+  /// Edit student — updates Firestore only (Auth email/password untouched here)
+  void _showEditStudentDialog(Map<String, dynamic> student, String docId) {
+    final nameCtrl = TextEditingController(text: student['student_name']);
+    final emailCtrl = TextEditingController(text: student['email']);
+    final phoneCtrl = TextEditingController(text: student['contact']);
+    final passwordCtrl = TextEditingController(text: student['password']);
+    final dobCtrl = TextEditingController(text: student['dob']);
+    final dojCtrl = TextEditingController(text: student['doj']);
+    final rollNoCtrl = TextEditingController(text: student['rollNo']);
+    final courseCtrl = TextEditingController(text: student['course']);
+
+    String selClass = student['class'] ?? '10th';
+    String selDivision = student['division'] ?? 'M1';
+    String selStatus = student['status'] ?? 'Active';
+    String selFeeStatus = student['fee_status'] ?? 'Paid';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Edit Student'),
+          content: SizedBox(
+            width: 500,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _field(nameCtrl, 'Full Name'),
+                  _field(emailCtrl, 'Email', type: TextInputType.emailAddress),
+                  _field(phoneCtrl, 'Phone Number', type: TextInputType.phone),
+                  _field(passwordCtrl, 'Password'),
+                  _field(dobCtrl, 'Date of Birth'),
+                  _field(dojCtrl, 'Date of Joining'),
+                  _field(rollNoCtrl, 'Roll No', type: TextInputType.number),
+                  _field(courseCtrl, 'Course'),
+                  const SizedBox(height: 16),
+                  _dropdownField(
+                    label: 'Class',
+                    value: selClass,
+                    items: _classes.where((c) => c != 'All Classes').toList(),
+                    onChanged: (v) => setDialogState(() => selClass = v!),
+                  ),
+                  const SizedBox(height: 16),
+                  _dropdownField(
+                    label: 'Division',
+                    value: selDivision,
+                    items:
+                        _divisions.where((c) => c != 'All Division').toList(),
+                    onChanged: (v) => setDialogState(() => selDivision = v!),
+                  ),
+                  const SizedBox(height: 16),
+                  _dropdownField(
+                    label: 'Status',
+                    value: selStatus,
+                    items: const ['Active', 'Inactive'],
+                    onChanged: (v) => setDialogState(() => selStatus = v!),
+                  ),
+                  const SizedBox(height: 16),
+                  _dropdownField(
+                    label: 'Fee Status',
+                    value: selFeeStatus,
+                    items: const ['Paid', 'Due', 'Partial'],
+                    onChanged: (v) => setDialogState(() => selFeeStatus = v!),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await _firestore.collection('users').doc(docId).update({
+                  'student_name': nameCtrl.text.trim(),
+                  'email': emailCtrl.text.trim(),
+                  'role': 'student',
+                  'contact': phoneCtrl.text.trim(),
+                  'password': passwordCtrl.text.trim(),
+                  'dob': dobCtrl.text.trim(),
+                  'doj': dojCtrl.text.trim(),
+                  'rollNo': rollNoCtrl.text.trim(),
+                  'course': courseCtrl.text.trim(),
+                  'class': selClass,
+                  'division': selDivision,
+                  'status': selStatus,
+                  'fee_status': selFeeStatus,
+                });
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Student updated successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3B82F6),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Update Student'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteDialog(Map<String, dynamic> student, String docId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Student'),
+        content:
+            Text('Are you sure you want to delete ${student['student_name']}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await _firestore.collection('users').doc(docId).delete();
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Student deleted'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showStudentDetailsDialog(Map<String, dynamic> student, String docId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 8,
+        child: SingleChildScrollView(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.5,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Header ──
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Student Details',
+                        style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800])),
+                    IconButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      icon: Icon(Icons.close, color: Colors.grey[600]),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // ── Name banner ──
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.blue[100]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Student Name',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.blue[700])),
+                      const SizedBox(height: 4),
+                      Text(
+                        student['student_name'] ?? 'N/A',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800]),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                _detailRow('Class', student['class']),
+                _detailRow('Division', student['division']),
+                _detailRow('Course', student['course']),
+                _detailRow('Roll No', student['rollNo']),
+                _detailRow('Status', student['status']),
+                _detailRow('Fee Status', student['fee_status']),
+                _detailRow('Contact', student['contact']),
+                _detailRow('Email', student['email']),
+                _detailRow('Student UID', docId),
+                _detailRow('Date of Birth', student['dob']),
+                _detailRow('Date of Joining', student['doj']),
+                const SizedBox(height: 24),
+
+                // ── Action row ──
+                Row(
+                  children: [
+                    // Toggle Active/Inactive
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final newStatus = student['status'] == 'Active'
+                              ? 'Inactive'
+                              : 'Active';
+                          await _firestore
+                              .collection('users')
+                              .doc(docId)
+                              .update({'status': newStatus});
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Status changed to $newStatus'),
+                              backgroundColor: newStatus == 'Active'
+                                  ? Colors.green
+                                  : Colors.orange,
+                            ),
+                          );
+                        },
+                        icon: Icon(
+                          student['status'] == 'Active'
+                              ? Icons.person_off
+                              : Icons.person,
+                        ),
+                        label: Text(
+                          student['status'] == 'Active'
+                              ? 'Set Inactive'
+                              : 'Set Active',
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: student['status'] == 'Active'
+                              ? Colors.orange
+                              : Colors.green,
+                          side: BorderSide(
+                            color: student['status'] == 'Active'
+                                ? Colors.orange
+                                : Colors.green,
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Edit
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _showEditStudentDialog(student, docId);
+                        },
+                        icon: const Icon(Icons.edit),
+                        label: const Text('Edit'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3B82F6),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Delete
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _showDeleteDialog(student, docId);
+                        },
+                        icon: const Icon(Icons.delete),
+                        label: const Text('Delete'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Close
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[200],
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      elevation: 0,
+                    ),
+                    child: const Text('Close',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── Build ────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    getingData(context);
-
-    final studentDetailss =
-        Provider.of<StudentDetailsProvider>(context, listen: false);
-    studentDetailss.fetchStudents('Student_list_@12', context);
-    courses = studentDetailss.cources_lists;
-    List<String> listedCourse = courses
-        .map((item) => item['title']?.toString() ?? '')
-        .where((title) => title.isNotEmpty)
-        .toList();
-    getingData(context);
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -240,18 +636,15 @@ class _StudentsScreenState extends State<StudentsScreen> {
             ),
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text(
           'Students',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.black),
+            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
             onPressed: () {},
           ),
           const SizedBox(width: 8),
@@ -266,7 +659,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with search and add button
+            // ── Search + Add ──
             Row(
               children: [
                 Expanded(
@@ -279,9 +672,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                     ),
                     child: TextField(
                       controller: _searchController,
-                      onChanged: (value) {
-                        setState(() {});
-                      },
+                      onChanged: (_) => setState(() {}),
                       decoration: const InputDecoration(
                         hintText: 'Search students...',
                         prefixIcon: Icon(Icons.search),
@@ -292,231 +683,94 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    _showAddStudentDialog();
-                    final index = Provider.of<StudentDetailsProvider>(context,
-                        listen: false);
-                    index.fetchNumber();
-                    // updateStudentsArray();
-                  },
+                  onPressed: _showAddStudentDialog,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFC107),
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 12),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                        borderRadius: BorderRadius.circular(12)),
                   ),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Student'),
+                  icon: const Icon(Icons.person_add),
+                  label: const Text('Register Student'),
                 ),
               ],
             ),
             const SizedBox(height: 24),
 
-            // Filter section
-            Row(
-              children: [
-                // Status filter
-                Expanded(
-                  child: Column(
+            // ── Filters ──
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Status chips
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Filter by Status:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
+                      const Text('Status',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13)),
                       const SizedBox(height: 8),
-                      SizedBox(
-                        height: 40,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _filters.length,
-                          itemBuilder: (context, index) {
-                            final filter = _filters[index];
-                            final isSelected = _selectedFilter == filter;
-
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 12),
-                              child: FilterChip(
-                                selected: isSelected,
-                                label: Text(filter),
-                                onSelected: (selected) {
-                                  setState(() {
-                                    _selectedFilter = filter;
-                                  });
-                                },
-                                backgroundColor: Colors.white,
-                                selectedColor:
-                                    const Color(0xFF3B82F6).withOpacity(0.1),
-                                checkmarkColor: const Color(0xFF3B82F6),
-                                labelStyle: TextStyle(
-                                  color: isSelected
+                      Row(
+                        children: _filters.map((f) {
+                          final sel = _selectedFilter == f;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: FilterChip(
+                              selected: sel,
+                              label: Text(f),
+                              onSelected: (_) =>
+                                  setState(() => _selectedFilter = f),
+                              backgroundColor: Colors.white,
+                              selectedColor:
+                                  const Color(0xFF3B82F6).withOpacity(0.1),
+                              checkmarkColor: const Color(0xFF3B82F6),
+                              labelStyle: TextStyle(
+                                  color: sel
                                       ? const Color(0xFF3B82F6)
                                       : Colors.black,
-                                  fontWeight: isSelected
+                                  fontWeight: sel
                                       ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  side: BorderSide(
-                                    color: isSelected
+                                      : FontWeight.normal),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(
+                                    color: sel
                                         ? const Color(0xFF3B82F6)
-                                        : Colors.grey.shade300,
-                                  ),
-                                ),
+                                        : Colors.grey.shade300),
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ],
                   ),
-                ),
-                SizedBox(
-                  width: 100,
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Filter by Division:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: _selectedDivision,
-                            isExpanded: true,
-                            items: _Division.map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            onChanged: (newValue) {
-                              setState(() {
-                                _selectedDivision = newValue!;
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 24),
+
+                  // Division dropdown
+                  _filterDropdown(
+                    label: 'Division',
+                    value: _selectedDivision,
+                    items: _divisions,
+                    onChanged: (v) => setState(() => _selectedDivision = v!),
                   ),
-                ),
-                SizedBox(
-                  width: 100,
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Filter by Course:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: listedCourse.contains(_selectedCourse)
-                                ? _selectedCourse
-                                : null,
-                            isExpanded: true,
-                            hint: const Text(
-                                "Select a course"), // 👈 shows placeholder
-                            items: listedCourse.map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            onChanged: (newValue) {
-                              setState(() {
-                                _selectedCourse = newValue!;
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 24),
+
+                  // Class dropdown
+                  _filterDropdown(
+                    label: 'Class',
+                    value: _selectedClass,
+                    items: _classes,
+                    onChanged: (v) => setState(() => _selectedClass = v!),
                   ),
-                ),
-                SizedBox(
-                  width: 100,
-                ),
-                // Class filter
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Filter by Class:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: _selectedClass,
-                            isExpanded: true,
-                            items: _classes.map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            onChanged: (newValue) {
-                              setState(() {
-                                _selectedClass = newValue!;
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 24),
 
-            // Students table
+            // ── Table ──
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -532,247 +786,188 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 ),
                 child: Column(
                   children: [
-                    // Table header
-                    Padding(
-                      padding: const EdgeInsets.all(16),
+                    // Header row
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(32, 16, 16, 8),
                       child: Row(
-                        children: const [
-                          SizedBox(width: 16),
+                        children: [
                           Expanded(
-                            flex: 2,
-                            child: Text(
-                              'Name',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
+                              flex: 3,
+                              child: Text('Name',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey))),
                           Expanded(
-                            child: Text(
-                              'Roll No',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
+                              child: Text('Roll No',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey))),
                           Expanded(
-                            child: Text(
-                              'Class',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
-                          // Expanded(
-                          //   child: Text(
-                          //     'Course',
-                          //     style: TextStyle(
-                          //       fontWeight: FontWeight.bold,
-                          //       color: Colors.grey,
-                          //     ),
-                          //   ),
-                          // ),
+                              child: Text('Class',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey))),
                           Expanded(
-                            child: Text(
-                              'Status',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
+                              child: Text('Division',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey))),
                           Expanded(
-                            child: Text(
-                              'Fee Status',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
+                              child: Text('Status',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey))),
+                          Expanded(
+                              child: Text('Fee Status',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey))),
                           SizedBox(width: 80),
                         ],
                       ),
                     ),
-                    const Divider(),
+                    const Divider(height: 1),
 
-                    // Table body
+                    // Live Firestore stream
                     Expanded(
-                      child: _filteredStudents.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'No students found',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            )
-                          : ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: _filteredStudents.length,
-                              itemBuilder: (context, index) {
-                                final student = _filteredStudents[index];
-                                return InkWell(
-                                  onTap: () => showStudentDetailsDialog(
-                                      context, student),
-                                  child: Column(
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream: _firestore
+                            .collection('users')
+                            .orderBy('createdAt', descending: true)
+                            .snapshots(),
+                        builder: (ctx, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          if (snapshot.hasError) {
+                            return Center(
+                                child: Text('Error: ${snapshot.error}'));
+                          }
+
+                          final docs = snapshot.data?.docs ?? [];
+                          final filtered = _applyFilters(docs);
+
+                          if (filtered.isEmpty) {
+                            return const Center(
+                              child: Text('No students found',
+                                  style: TextStyle(
+                                      color: Colors.grey, fontSize: 16)),
+                            );
+                          }
+
+                          return ListView.separated(
+                            itemCount: filtered.length,
+                            separatorBuilder: (_, __) =>
+                                const Divider(height: 1),
+                            itemBuilder: (ctx, i) {
+                              final doc = filtered[i];
+                              final s = doc.data() as Map<String, dynamic>;
+                              final docId = doc.id;
+
+                              return InkWell(
+                                onTap: () =>
+                                    _showStudentDetailsDialog(s, docId),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 14),
+                                  child: Row(
                                     children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(16),
+                                      const SizedBox(width: 16),
+                                      // Name + email
+                                      Expanded(
+                                        flex: 3,
                                         child: Row(
                                           children: [
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              flex: 2,
-                                              child: Row(
-                                                children: [
-                                                  CircleAvatar(
-                                                    backgroundImage: NetworkImage(
-                                                        " student['avatar']"),
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        student['student_name'],
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        student['email'],
-                                                        style: TextStyle(
-                                                          color:
-                                                              Colors.grey[600],
-                                                          fontSize: 12,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
+                                            CircleAvatar(
+                                              radius: 18,
+                                              backgroundColor: Colors.blue[100],
+                                              child: Text(
+                                                (s['student_name'] ?? 'S')
+                                                    .toString()
+                                                    .substring(0, 1)
+                                                    .toUpperCase(),
+                                                style: TextStyle(
+                                                    color: Colors.blue[700],
+                                                    fontWeight:
+                                                        FontWeight.bold),
                                               ),
                                             ),
-                                            Expanded(
-                                              child:
-                                                  Text('${student['rollNo']}'),
-                                            ),
-                                            Expanded(
-                                              child: Text(student['class']),
-                                            ),
-                                            // Expanded(
-                                            //   child: Text(student['Division']),
-                                            // ),
-                                            // Expanded(
-                                            //   child: Text(student['course']),
-                                            // ),
-                                            Expanded(
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 12,
-                                                        vertical: 6),
-                                                decoration: BoxDecoration(
-                                                  color: student['status'] ==
-                                                          'Active'
-                                                      ? Colors.green
-                                                          .withOpacity(0.1)
-                                                      : Colors.red
-                                                          .withOpacity(0.1),
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
+                                            const SizedBox(width: 12),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  s['student_name'] ?? '',
+                                                  style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold),
                                                 ),
-                                                child: Text(
-                                                  student['status'],
+                                                Text(
+                                                  s['email'] ?? '',
                                                   style: TextStyle(
-                                                    color: student['status'] ==
-                                                            'Active'
-                                                        ? Colors.green
-                                                        : Colors.red,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
+                                                      color: Colors.grey[600],
+                                                      fontSize: 12),
                                                 ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 12,
-                                                        vertical: 6),
-                                                decoration: BoxDecoration(
-                                                  color: student[
-                                                              'fee_status'] ==
-                                                          'Paid'
-                                                      ? Colors.green
-                                                          .withOpacity(0.1)
-                                                      : student['fee_status'] ==
-                                                              'Due'
-                                                          ? Colors.red
-                                                              .withOpacity(0.1)
-                                                          : Colors.orange
-                                                              .withOpacity(0.1),
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                ),
-                                                child: Text(
-                                                  student['fee_status'],
-                                                  style: TextStyle(
-                                                    color: student[
-                                                                'fee_status'] ==
-                                                            'Paid'
-                                                        ? Colors.green
-                                                        : student['fee_status'] ==
-                                                                'Due'
-                                                            ? Colors.red
-                                                            : Colors.orange,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              width: 80,
-                                              child: Row(
-                                                children: [
-                                                  IconButton(
-                                                    icon: const Icon(Icons.edit,
-                                                        color:
-                                                            Color(0xFF3B82F6)),
-                                                    onPressed: () {
-                                                      _showEditStudentDialog(
-                                                          student);
-                                                    },
-                                                  ),
-                                                  IconButton(
-                                                    icon: const Icon(
-                                                        Icons.delete,
-                                                        color: Colors.red),
-                                                    onPressed: () {
-                                                      _showDeleteConfirmationDialog(
-                                                          student);
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
+                                              ],
                                             ),
                                           ],
                                         ),
                                       ),
-                                      if (index < _filteredStudents.length - 1)
-                                        const Divider(),
+                                      Expanded(
+                                          child: Text(
+                                              s['rollNo']?.toString() ?? '-')),
+                                      Expanded(
+                                          child: Text(
+                                              s['class']?.toString() ?? '-')),
+                                      Expanded(
+                                          child: Text(
+                                              s['division']?.toString() ??
+                                                  '-')),
+                                      // Status badge
+                                      Expanded(
+                                        child: _statusBadge(
+                                          s['status'],
+                                          activeColor: Colors.green,
+                                          inactiveColor: Colors.red,
+                                        ),
+                                      ),
+                                      // Fee badge
+                                      Expanded(
+                                        child: _feeBadge(s['fee_status']),
+                                      ),
+                                      // Actions
+                                      SizedBox(
+                                        width: 80,
+                                        child: Row(
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(Icons.edit,
+                                                  color: Color(0xFF3B82F6),
+                                                  size: 20),
+                                              onPressed: () =>
+                                                  _showEditStudentDialog(
+                                                      s, docId),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.delete,
+                                                  color: Colors.red, size: 20),
+                                              onPressed: () =>
+                                                  _showDeleteDialog(s, docId),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ],
                                   ),
-                                );
-                              },
-                            ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -784,702 +979,167 @@ class _StudentsScreenState extends State<StudentsScreen> {
     );
   }
 
-  void _showAddStudentDialog() {
-    final studentService = StudentService();
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController phoneController = TextEditingController();
-    final TextEditingController rollNoController = TextEditingController();
-    final TextEditingController dobController = TextEditingController();
-    final TextEditingController dojNoController = TextEditingController();
+  // ─── Helpers ──────────────────────────────────────────────────────────────
 
-    String selectedClass = '10th';
-    String selectedDivision = 'M1';
-    String selectCourse = '';
-    String selectedCourse = 'Mathematics';
-    String selectedStatus = 'Active';
-    String selectedFeeStatus = 'Paid';
-    List<String> listedCourse = courses
-        .map((item) => item['title']?.toString() ?? '')
-        .where((title) => title.isNotEmpty)
-        .toList();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add New Student'),
-        content: SizedBox(
-          width: 500,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Full Name',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: phoneController,
-                  decoration: InputDecoration(
-                    labelText: 'Phone Number',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: rollNoController,
-                  decoration: InputDecoration(
-                    labelText: 'Roll No',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: dobController,
-                  decoration: InputDecoration(
-                    labelText: 'Date Of Birth',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: dojNoController,
-                  decoration: InputDecoration(
-                    labelText: 'Date of Join',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Class',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  value: selectedClass,
-                  items: _classes
-                      .where((c) => c != 'All Classes')
-                      .map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    selectedClass = value!;
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Division',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  value: selectedDivision,
-                  items: _Division.where((c) => c != 'Division')
-                      .map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    selectedDivision = value!;
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Course',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  value: listedCourse.contains(selectedCourse)
-                      ? selectedCourse
-                      : null,
-                  items: listedCourse
-                      .where((c) => c != 'Course')
-                      .map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    selectedCourse = value!;
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Status',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  value: selectedStatus,
-                  items: const [
-                    DropdownMenuItem(value: 'Active', child: Text('Active')),
-                    DropdownMenuItem(
-                        value: 'Inactive', child: Text('Inactive')),
-                  ],
-                  onChanged: (value) {
-                    selectedStatus = value!;
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Fee Status',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  value: selectedFeeStatus,
-                  items: const [
-                    DropdownMenuItem(value: 'Paid', child: Text('Paid')),
-                    DropdownMenuItem(value: 'Due', child: Text('Due')),
-                    DropdownMenuItem(value: 'Partial', child: Text('Partial')),
-                  ],
-                  onChanged: (value) {
-                    selectedFeeStatus = value!;
-                  },
-                ),
-              ],
-            ),
-          ),
+  Widget _field(
+    TextEditingController ctrl,
+    String label, {
+    TextInputType type = TextInputType.text,
+    Function(String)? onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextField(
+        controller: ctrl,
+        keyboardType: type,
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final password = generatePassword();
-              final index =
-                  Provider.of<StudentDetailsProvider>(context, listen: false);
-              index.fetchNumber();
-              studentService.addStudent('Student_list_@12', {
-                'division': selectedDivision,
-                'id': 'cor@132${index.index}',
-                'student_name': nameController.text,
-                'class': selectedClass,
-                'contact': phoneController.text,
-                'email': emailController.text,
-                'status': selectedStatus,
-                'fee_status': selectedFeeStatus,
-                'password': password,
-                'course': selectCourse,
-                'rollNo': rollNoController.text,
-                'image': '',
-                'dob': dobController.text,
-                'doj': dojNoController.text
-              });
-              index.docids = 'cor@132${index.index}';
-              index.createStudentDocList('cor@132${index.index}');
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Student added successfully'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-              index.updateindex();
-              // Provider.of<StudentDetailsProvider>(context, listen: false)
-              //     .fetchStudents('Student_list_@12', context);
-              setState(() {});
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Add Student'),
-          ),
-        ],
       ),
     );
   }
 
-  void _showEditStudentDialog(student) {
-    final TextEditingController nameController =
-        TextEditingController(text: student['student_name']);
-    final TextEditingController emailController =
-        TextEditingController(text: student['email']);
-    final TextEditingController phoneController =
-        TextEditingController(text: student['contact']);
-    final TextEditingController passwordController =
-        TextEditingController(text: student['password']);
-    final TextEditingController dobController =
-        TextEditingController(text: student['dob']);
-    final TextEditingController dojController =
-        TextEditingController(text: student['doj']);
-    final TextEditingController rollNoController =
-        TextEditingController(text: student['rollNo']);
-    String selectedClass = student['class'];
-    // String selectedCourse = student['course'];
-    String selectedStatus = student['status'];
-    String selectedFeeStatus = student['fee_status'];
-    String selectedDivision = student['division'];
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Student'),
-        content: SizedBox(
-          width: 500,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Full Name',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: phoneController,
-                  decoration: InputDecoration(
-                    labelText: 'Phone Number',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                TextField(
-                  controller: passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                TextField(
-                  controller: dobController,
-                  decoration: InputDecoration(
-                    labelText: 'DOB',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                TextField(
-                  controller: dojController,
-                  decoration: InputDecoration(
-                    labelText: 'DOJ',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: rollNoController,
-                  decoration: InputDecoration(
-                    labelText: 'Roll No',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Class',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  value: selectedClass,
-                  items: _classes
-                      .where((c) => c != 'All Classes')
-                      .map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    selectedClass = value!;
-                  },
-                ),
-                const SizedBox(height: 16),
-                // TextField(
-                //   decoration: InputDecoration(
-                //     labelText: 'Course',
-                //     border: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(12),
-                //     ),
-                //   ),
-                //   controller: TextEditingController(text: selectedCourse),
-                //   onChanged: (value) {
-                //     selectedCourse = value;
-                //   },
-                // ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Division',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  value: selectedDivision,
-                  items: _Division.where((c) => c != 'Division')
-                      .map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    selectedDivision = value!;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Status',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  value: selectedStatus,
-                  items: const [
-                    DropdownMenuItem(value: 'Active', child: Text('Active')),
-                    DropdownMenuItem(
-                        value: 'Inactive', child: Text('Inactive')),
-                  ],
-                  onChanged: (value) {
-                    selectedStatus = value!;
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Fee Status',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  value: selectedFeeStatus,
-                  items: const [
-                    DropdownMenuItem(value: 'Paid', child: Text('Paid')),
-                    DropdownMenuItem(value: 'Due', child: Text('Due')),
-                    DropdownMenuItem(value: 'Partial', child: Text('Partial')),
-                  ],
-                  onChanged: (value) {
-                    selectedFeeStatus = value!;
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final newdata = {
-                'class': selectedClass,
-                'student_name': nameController.text,
-                'status': selectedStatus,
-                'fee_status': selectedFeeStatus,
-                'contact': phoneController.text,
-                'email': emailController.text,
-                'division': selectedDivision,
-                'id': student['id'],
-                'password': passwordController.text,
-                'dob': dobController.text,
-                'doj': dojController.text,
-                'image': student['image'],
-                'rollNo': rollNoController.text
-              };
-              final obj = StudentService();
-              obj.updateStudent('Student_list_@12', student['id'], newdata);
-
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Student updated successfully'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Update Student'),
-          ),
-        ],
+  Widget _dropdownField({
+    required String label,
+    required String value,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
+      value: items.contains(value) ? value : null,
+      items: items
+          .map((v) => DropdownMenuItem<String>(value: v, child: Text(v)))
+          .toList(),
+      onChanged: onChanged,
     );
   }
 
-  void _showDeleteConfirmationDialog(student) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Student'),
-        content:
-            Text('Are you sure you want to delete ${student['student_name']}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final deleteValue = StudentService();
-              deleteValue.deleteStudent('Student_list_@12', student['id']);
-              setState(() {});
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Student deleted successfully'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-void showStudentDetailsDialog(
-    BuildContext context, Map<String, dynamic> studentData) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        elevation: 8,
-        child: SingleChildScrollView(
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.9,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Student Details',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(Icons.close, color: Colors.grey[600]),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // Student Name (Prominent)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue[100]!),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Student Name',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.blue[700],
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        studentData['student_name'] ?? 'N/A',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[800],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Details Grid
-                _buildDetailRow('Class', studentData['class']),
-                _buildDetailRow('Division', studentData['division']),
-                _buildDetailRow('Status', studentData['status']),
-                _buildDetailRow('Fee Status', studentData['fee_status']),
-                _buildDetailRow('Contact', studentData['contact']),
-                _buildDetailRow('Password', studentData['password']),
-
-                _buildDetailRow('Email', studentData['email']),
-                _buildDetailRow('Student ID', studentData['id']),
-                _buildDetailRow('Date of Birth', studentData['dob']),
-                _buildDetailRow('Date of Joining', studentData['doj']),
-
-                const SizedBox(height: 24),
-
-                // Close Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[600],
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      elevation: 2,
-                    ),
-                    child: const Text(
-                      'Close',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    },
-  );
-}
-
-Widget _buildDetailRow(String label, dynamic value) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 16),
-    child: Row(
+  Widget _filterDropdown({
+    required String label,
+    required String value,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 100,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
+        Text(label,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        const SizedBox(height: 8),
+        Container(
+          width: 180,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade300),
           ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: Colors.grey[200]!),
-            ),
-            child: Text(
-              value?.toString() ?? 'N/A',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[800],
-                fontWeight: FontWeight.w500,
-              ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              isExpanded: true,
+              items: items
+                  .map(
+                      (v) => DropdownMenuItem<String>(value: v, child: Text(v)))
+                  .toList(),
+              onChanged: onChanged,
             ),
           ),
         ),
       ],
-    ),
-  );
+    );
+  }
+
+  Widget _statusBadge(
+    String? status, {
+    required Color activeColor,
+    required Color inactiveColor,
+  }) {
+    final isActive = status == 'Active';
+    final color = isActive ? activeColor : inactiveColor;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        status ?? '-',
+        style:
+            TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13),
+      ),
+    );
+  }
+
+  Widget _feeBadge(String? fee) {
+    Color color;
+    if (fee == 'Paid') {
+      color = Colors.green;
+    } else if (fee == 'Due') {
+      color = Colors.red;
+    } else {
+      color = Colors.orange;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        fee ?? '-',
+        style:
+            TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13),
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, dynamic value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(label,
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[600])),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Text(
+                value?.toString() ?? 'N/A',
+                style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[800],
+                    fontWeight: FontWeight.w500),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 }
