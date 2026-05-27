@@ -121,6 +121,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
     final rollNoCtrl = TextEditingController();
     final dobCtrl = TextEditingController();
     final dojCtrl = TextEditingController();
+    final admissionCtrl = TextEditingController();
 
     String selClass = '10th';
     String selDivision = 'M1';
@@ -223,6 +224,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           'uid': uid,
                           'student_name': nameCtrl.text.trim(),
                           'role': 'student',
+                          'admissionNumber': admissionCtrl.text.trim(),
                           'email': emailCtrl.text.trim(),
                           'contact': phoneCtrl.text.trim(),
                           'rollNo': rollNoCtrl.text.trim(),
@@ -233,7 +235,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           'course': selCourse,
                           'status': selStatus,
                           'fee_status': selFeeStatus,
-                          'password': 'lmsSupport@123',
+                          'password': 'lms@student.com',
                           'image': '',
                           'createdAt': FieldValue.serverTimestamp(),
                         });
@@ -282,6 +284,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
   /// Edit student — updates Firestore only (Auth email/password untouched here)
   void _showEditStudentDialog(Map<String, dynamic> student, String docId) {
     final nameCtrl = TextEditingController(text: student['student_name']);
+    final admctrl = TextEditingController(text: student['admissionNumber']);
     final emailCtrl = TextEditingController(text: student['email']);
     final phoneCtrl = TextEditingController(text: student['contact']);
     final passwordCtrl = TextEditingController(text: student['password']);
@@ -310,6 +313,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   _field(emailCtrl, 'Email', type: TextInputType.emailAddress),
                   _field(phoneCtrl, 'Phone Number', type: TextInputType.phone),
                   _field(passwordCtrl, 'Password'),
+                  _field(admctrl, 'Admission Number'),
                   _field(dobCtrl, 'Date of Birth'),
                   _field(dojCtrl, 'Date of Joining'),
                   _field(rollNoCtrl, 'Roll No', type: TextInputType.number),
@@ -358,6 +362,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   'student_name': nameCtrl.text.trim(),
                   'email': emailCtrl.text.trim(),
                   'role': 'student',
+                  'admissionNumber': admctrl.text.trim(),
                   'contact': phoneCtrl.text.trim(),
                   'password': passwordCtrl.text.trim(),
                   'dob': dobCtrl.text.trim(),
@@ -833,7 +838,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                       child: StreamBuilder<QuerySnapshot>(
                         stream: _firestore
                             .collection('users')
-                            .orderBy('createdAt', descending: true)
+                            .where('role', isEqualTo: 'student')
                             .snapshots(),
                         builder: (ctx, snapshot) {
                           if (snapshot.connectionState ==
