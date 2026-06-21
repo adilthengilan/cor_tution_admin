@@ -134,7 +134,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         context.go('/students');
                       }),
                       const SizedBox(height: 16),
-                      _buildStudentsTable(),
+                      // _buildStudentsTable(),
                       const SizedBox(height: 24),
 
                       // Fee Collection
