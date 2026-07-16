@@ -6,6 +6,7 @@ import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Stude
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:corona_lms_webapp/main.dart';
 
 class WebMarkHistoryScreen extends StatefulWidget {
   @override
@@ -158,7 +159,9 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Mark', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Edit Mark', style: TextStyle(fontWeight: FontWeight.bold, color: MyApp.textPrimaryColor)),
         content: Container(
           width: 400,
           child: Column(
@@ -166,25 +169,70 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
             children: [
               TextField(
                 controller: examNameController,
+                style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
                 decoration: InputDecoration(
                   labelText: 'Exam Name',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: MyApp.borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: MyApp.borderColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: MyApp.primaryColor),
+                  ),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 controller: subjectController,
+                style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
                 decoration: InputDecoration(
                   labelText: 'Subject',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: MyApp.borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: MyApp.borderColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: MyApp.primaryColor),
+                  ),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 controller: markController,
+                style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
                 decoration: InputDecoration(
                   labelText: 'Mark',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: MyApp.borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: MyApp.borderColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: MyApp.primaryColor),
+                  ),
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -194,7 +242,7 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            child: Text('Cancel', style: TextStyle(color: MyApp.textSecondaryColor)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -206,7 +254,12 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
               });
               Navigator.pop(context);
             },
-            child: Text('Update'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: MyApp.primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Update'),
           ),
         ],
       ),
@@ -237,11 +290,21 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Mark updated successfully!')),
+        SnackBar(
+          content: const Text('Mark updated successfully!', style: TextStyle(color: Colors.white)),
+          backgroundColor: MyApp.successColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating mark: $e')),
+        SnackBar(
+          content: Text('Error updating mark: $e', style: const TextStyle(color: Colors.white)),
+          backgroundColor: MyApp.errorColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
     }
   }
@@ -250,21 +313,28 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Mark'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Delete Mark', style: TextStyle(fontWeight: FontWeight.bold, color: MyApp.textPrimaryColor)),
         content: Text(
-            'Are you sure you want to delete this mark? This action cannot be undone.'),
+            'Are you sure you want to delete this mark? This action cannot be undone.',
+            style: TextStyle(color: MyApp.textSecondaryColor)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            child: Text('Cancel', style: TextStyle(color: MyApp.textSecondaryColor)),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
               await _performDelete(index);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text('Delete'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: MyApp.errorColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -288,11 +358,21 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Mark deleted successfully!')),
+        SnackBar(
+          content: const Text('Mark deleted successfully!', style: TextStyle(color: Colors.white)),
+          backgroundColor: MyApp.successColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting mark: $e')),
+        SnackBar(
+          content: Text('Error deleting mark: $e', style: const TextStyle(color: Colors.white)),
+          backgroundColor: MyApp.errorColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
     }
   }
@@ -300,40 +380,33 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: MyApp.backgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue[400]!, Colors.purple[400]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        backgroundColor: Colors.white,
+        shape: Border(bottom: BorderSide(color: MyApp.borderColor)),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('📊 Mark History',
+            Text('Mark History',
                 style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white)),
+                    color: MyApp.textPrimaryColor)),
             Text('Manage student marks and performance',
-                style: TextStyle(fontSize: 14, color: Colors.white70)),
+                style: TextStyle(fontSize: 12, color: MyApp.textSecondaryColor)),
           ],
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: Colors.white),
+            icon: Icon(Icons.refresh, color: MyApp.textSecondaryColor),
             onPressed: loadMarksList,
           ),
           IconButton(
-            icon: Icon(Icons.filter_list_off, color: Colors.white),
+            icon: Icon(Icons.filter_list_off, color: MyApp.textSecondaryColor),
             onPressed: _resetFilters,
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: isLoading
@@ -353,11 +426,11 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            valueColor: AlwaysStoppedAnimation<Color>(MyApp.primaryColor),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Text('Loading marks... 📖',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600])),
+              style: TextStyle(fontSize: 14, color: MyApp.textSecondaryColor)),
         ],
       ),
     );
@@ -365,37 +438,52 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
 
   Widget _buildFilterSection() {
     return Container(
-      padding: EdgeInsets.all(16),
-      margin: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.01),
             blurRadius: 10,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('🔍 Filters',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          SizedBox(height: 16),
+          Text('Filters',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: MyApp.textPrimaryColor)),
+          const SizedBox(height: 16),
 
           // Search bar
           TextField(
             controller: searchController,
+            style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
             decoration: InputDecoration(
               labelText: 'Search by name, subject, or exam',
-              prefixIcon: Icon(Icons.search),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+              prefixIcon: Icon(Icons.search, color: MyApp.textSecondaryColor),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: MyApp.borderColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: MyApp.borderColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: MyApp.primaryColor),
+              ),
               suffixIcon: searchController.text.isNotEmpty
                   ? IconButton(
-                      icon: Icon(Icons.clear),
+                      icon: Icon(Icons.clear, color: MyApp.textSecondaryColor),
                       onPressed: () {
                         searchController.clear();
                         _applyFilters();
@@ -406,7 +494,7 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
             onChanged: (value) => _applyFilters(),
           ),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Filter dropdowns
           Wrap(
@@ -423,20 +511,15 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
                 setState(() => selectedDivision = value!);
                 _applyFilters();
               }),
-              // _buildFilterDropdown(
-              //     'Student', selectedStudent, availableStudents, (value) {
-              //   setState(() => selectedStudent = value!);
-              //   _applyFilters();
-              // }),
             ],
           ),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Results count
           Text(
               'Showing ${filteredMarksList.length} of ${allMarksList.length} records',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+              style: TextStyle(fontSize: 13, color: MyApp.textSecondaryColor)),
         ],
       ),
     );
@@ -448,10 +531,26 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
       width: 200,
       child: DropdownButtonFormField<String>(
         value: value,
+        dropdownColor: Colors.white,
+        style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: MyApp.borderColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: MyApp.borderColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: MyApp.primaryColor),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
         items: options
             .map((option) => DropdownMenuItem(
@@ -472,7 +571,7 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
     return RefreshIndicator(
       onRefresh: loadMarksList,
       child: ListView.builder(
-        padding: EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
         itemCount: filteredMarksList.length,
         itemBuilder: (context, index) {
           final mark = filteredMarksList[index];
@@ -488,12 +587,12 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.assignment_outlined, size: 80, color: Colors.grey[400]),
-          SizedBox(height: 20),
+          Icon(Icons.assignment_outlined, size: 80, color: MyApp.textSecondaryColor.withOpacity(0.3)),
+          const SizedBox(height: 20),
           Text('No marks found',
-              style: TextStyle(fontSize: 18, color: Colors.grey[600])),
+              style: TextStyle(fontSize: 16, color: MyApp.textPrimaryColor, fontWeight: FontWeight.bold)),
           Text('Try adjusting your filters',
-              style: TextStyle(fontSize: 14, color: Colors.grey[500])),
+              style: TextStyle(fontSize: 14, color: MyApp.textSecondaryColor)),
         ],
       ),
     );
@@ -501,20 +600,21 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
 
   Widget _buildMarkCard(Map<String, dynamic> mark, int originalIndex) {
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.01),
             blurRadius: 10,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -528,15 +628,15 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
                       Text(
                         mark['student_name'] ?? 'Unknown Student',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.grey[800],
+                          color: MyApp.textPrimaryColor,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         '${mark['class'] ?? 'N/A'} - ${mark['division'] ?? 'N/A'}',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 13, color: MyApp.textSecondaryColor),
                       ),
                     ],
                   ),
@@ -544,12 +644,12 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
                 Row(
                   children: [
                     IconButton(
-                      icon: Icon(Icons.edit, color: Colors.blue),
+                      icon: Icon(Icons.edit, color: MyApp.primaryColor),
                       onPressed: () => _showEditMarkDialog(mark, originalIndex),
                       tooltip: 'Edit Mark',
                     ),
                     IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
+                      icon: Icon(Icons.delete, color: MyApp.errorColor),
                       onPressed: () => _deleteMark(originalIndex),
                       tooltip: 'Delete Mark',
                     ),
@@ -557,38 +657,35 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Row(
               children: [
                 _buildInfoChip(
-                    '📚 ${mark['examName'] ?? 'N/A'}', Colors.blue[100]!),
-                SizedBox(width: 10),
+                    '📚 ${mark['examName'] ?? 'N/A'}', MyApp.primaryColor),
+                const SizedBox(width: 10),
                 _buildInfoChip(
-                    '📖 ${mark['subject'] ?? 'N/A'}', Colors.green[100]!),
+                    '📖 ${mark['subject'] ?? 'N/A'}', MyApp.successColor),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.purple[400]!, Colors.blue[400]!],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(10),
+                color: MyApp.primaryColor.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: MyApp.primaryColor.withOpacity(0.1)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.grade, color: Colors.white),
-                  SizedBox(width: 8),
+                  Icon(Icons.grade, color: MyApp.primaryColor),
+                  const SizedBox(width: 8),
                   Text(
                     'MARK: ${mark['mark'] ?? 'N/A'}',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: MyApp.primaryColor,
                     ),
                   ),
                 ],
@@ -600,19 +697,19 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
     );
   }
 
-  Widget _buildInfoChip(String text, Color backgroundColor) {
+  Widget _buildInfoChip(String text, Color baseColor) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: baseColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Text(
         text,
         style: TextStyle(
           fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: Colors.grey[700],
+          fontWeight: FontWeight.bold,
+          color: baseColor,
         ),
       ),
     );
@@ -621,9 +718,6 @@ class _WebMarkHistoryScreenState extends State<WebMarkHistoryScreen> {
 
 // Helper function to fetch marks (implement based on your provider)
 Future<void> fetchMarkList(BuildContext context) async {
-  // Implementation depends on your existing provider structure
-
   final tempseg = Provider.of<StudentDetailsProvider>(context, listen: false);
   tempseg.fetchMarkList('', context);
-  // Add your fetch logic here
 }

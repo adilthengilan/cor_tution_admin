@@ -1,3 +1,4 @@
+import 'package:corona_lms_webapp/main.dart';
 import 'package:corona_lms_webapp/src/controller/classes_controllers/fetch_classes.dart';
 import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
 import 'package:corona_lms_webapp/src/controller/student_controllers/student_service_controller.dart';
@@ -59,44 +60,50 @@ class _DashboardScreenState extends State<DashboardScreen>
         Provider.of<StudentDetailsProvider>(context, listen: false);
     fetchcontroller.fetchStudents('Student_list_@12', context);
     fetchcontroller.fetchCourses(context);
-
+ 
+    final userEmail = fetchcontroller.teacher_name ?? '';
+    final displayName = userEmail.isNotEmpty
+        ? (userEmail.contains('@') ? userEmail.split('@')[0] : userEmail)
+        : 'Administrator';
+    final capitalizedName = displayName.isNotEmpty
+        ? (displayName[0].toUpperCase() + displayName.substring(1))
+        : 'Admin';
+ 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: MyApp.backgroundColor,
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.purple[400]!, Colors.blue[400]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
+        shape: Border(
+          bottom: BorderSide(color: MyApp.borderColor, width: 1),
+        ),
+        title: Text(
           'Dashboard',
           style: TextStyle(
-            color: Colors.white,
+            color: MyApp.textPrimaryColor,
             fontWeight: FontWeight.bold,
+            fontSize: 20,
+            letterSpacing: -0.5,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout,
-                color: Color.fromARGB(255, 255, 255, 255)),
+            icon: Icon(Icons.notifications_outlined,
+                color: MyApp.textSecondaryColor),
             onPressed: () {
-              // Navigator.pop(context);
-              context.go('/login');
+              context.go('/notifications');
             },
           ),
           IconButton(
-            icon: const Icon(Icons.notifications_outlined,
-                color: Color.fromARGB(255, 255, 255, 255)),
-            onPressed: () {},
+            icon: Icon(Icons.logout_outlined,
+                color: MyApp.textSecondaryColor),
+            onPressed: () {
+              context.go('/login');
+            },
           ),
           const SizedBox(width: 8),
           const CircleAvatar(
+            radius: 16,
             backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=13'),
           ),
           const SizedBox(width: 16),
@@ -107,10 +114,18 @@ class _DashboardScreenState extends State<DashboardScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Welcome Banner
+            _buildWelcomeBanner(capitalizedName),
+            const SizedBox(height: 24),
+ 
+            // Admin Quick Operations Toolbar
+            _buildAdminQuickActions(),
+            const SizedBox(height: 24),
+ 
             // Stats cards
             _buildStatsCards(),
             const SizedBox(height: 24),
-
+ 
             // Main content
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +143,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       const SizedBox(height: 16),
                       _buildCourseCards(),
                       const SizedBox(height: 24),
-
+ 
                       // My Students
                       _buildSectionHeader('My Students', onViewAll: () {
                         context.go('/students');
@@ -136,7 +151,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       const SizedBox(height: 16),
                       // _buildStudentsTable(),
                       const SizedBox(height: 24),
-
+ 
                       // Fee Collection
                       _buildSectionHeader('Fee Collection', onViewAll: () {}),
                       const SizedBox(height: 16),
@@ -144,9 +159,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ],
                   ),
                 ),
-
+ 
                 const SizedBox(width: 24),
-
+ 
                 // Right column - 1/3 width
                 Expanded(
                   child: Column(
@@ -154,13 +169,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                       // Profile card
                       _buildProfileCard(),
                       const SizedBox(height: 24),
-
+ 
                       // Calendar
                       _buildCalendar(),
                       const SizedBox(height: 24),
-
-                      // Homework progress
-                      _buildHomeworkProgress(),
+ 
+                      // System Audit Activities Logs
+                      _buildRecentActivityLog(),
                     ],
                   ),
                 ),
@@ -168,6 +183,287 @@ class _DashboardScreenState extends State<DashboardScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+ 
+  Widget _buildAdminQuickActions() {
+    return Row(
+      children: [
+        _buildQuickActionCard(
+          title: 'Register Student',
+          subtitle: 'Add new profile to system',
+          icon: Icons.person_add_outlined,
+          color: MyApp.primaryColor,
+          onTap: () => context.go('/students'),
+        ),
+        const SizedBox(width: 16),
+        _buildQuickActionCard(
+          title: 'Appoint Teacher',
+          subtitle: 'Configure faculty access',
+          icon: Icons.supervisor_account_outlined,
+          color: MyApp.warningColor,
+          onTap: () => context.go('/teachers'),
+        ),
+        const SizedBox(width: 16),
+        _buildQuickActionCard(
+          title: 'Post Announcement',
+          subtitle: 'Broad notification alerts',
+          icon: Icons.campaign_outlined,
+          color: MyApp.successColor,
+          onTap: () => context.go('/notifications'),
+        ),
+      ],
+    );
+  }
+ 
+  Widget _buildQuickActionCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: MyApp.borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.01),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: color, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          color: MyApp.textPrimaryColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: MyApp.textSecondaryColor,
+                          fontSize: 11,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+ 
+  Widget _buildRecentActivityLog() {
+    final activities = [
+      {
+        'message': 'Esther Howard updated marks for PHYS-102',
+        'time': '10 mins ago',
+        'icon': Icons.edit_note_outlined,
+        'color': MyApp.primaryColor,
+      },
+      {
+        'message': 'New MCQ Exam published to all divisions',
+        'time': '1 hour ago',
+        'icon': Icons.quiz_outlined,
+        'color': MyApp.warningColor,
+      },
+      {
+        'message': 'S. Kumar uploaded CS-101 course material',
+        'time': '3 hours ago',
+        'icon': Icons.video_collection_outlined,
+        'color': MyApp.successColor,
+      },
+      {
+        'message': 'New student account created for ST-1092',
+        'time': 'Yesterday',
+        'icon': Icons.person_add_outlined,
+        'color': MyApp.primaryColor,
+      },
+    ];
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.01),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'System Activities & Logs',
+            style: TextStyle(
+              color: MyApp.textPrimaryColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...activities.map((activity) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: (activity['color'] as Color).withOpacity(0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(activity['icon'] as IconData,
+                          size: 16, color: activity['color'] as Color),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            activity['message'] as String,
+                            style: TextStyle(
+                                color: MyApp.textPrimaryColor,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            activity['time'] as String,
+                            style: TextStyle(
+                                color: MyApp.textSecondaryColor, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+ 
+  Widget _buildWelcomeBanner(String userName) {
+    return Container(
+      width: double.maxFinite,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.01),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: MyApp.primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'FALL 2026 SEMESTER',
+                        style: TextStyle(
+                          color: MyApp.primaryColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: MyApp.successColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'MIDTERM PERIOD',
+                        style: TextStyle(
+                          color: MyApp.successColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Welcome Back, $userName 👋',
+                  style: TextStyle(
+                    color: MyApp.textPrimaryColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Manage your courses, view students, grade exams, and inspect tuition reports on your unified college portal.',
+                  style: TextStyle(
+                    color: MyApp.textSecondaryColor,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 24),
+          Icon(Icons.school, size: 64, color: MyApp.primaryColor.withOpacity(0.15)),
+        ],
       ),
     );
   }
@@ -185,8 +481,8 @@ class _DashboardScreenState extends State<DashboardScreen>
           value: controller.studentDetails.isEmpty
               ? '0'
               : '${controller.studentDetails.length}',
-          icon: Icons.people,
-          color: const Color(0xFF3B82F6),
+          icon: Icons.people_outline,
+          color: MyApp.primaryColor,
           increase: '+0%',
         ),
         const SizedBox(width: 16),
@@ -195,8 +491,8 @@ class _DashboardScreenState extends State<DashboardScreen>
           value: controller1.classDetails.isEmpty
               ? '0'
               : '${controller1.classDetails.length}',
-          icon: Icons.book,
-          color: const Color(0xFFFFC107),
+          icon: Icons.book_outlined,
+          color: MyApp.warningColor,
           increase: '+0%',
         ),
         const SizedBox(width: 16),
@@ -205,16 +501,16 @@ class _DashboardScreenState extends State<DashboardScreen>
           value: controller.TeacherDetails.isEmpty
               ? '0'
               : '${controller.TeacherDetails.length}',
-          icon: Icons.people,
-          color: const Color(0xFF3B82F6),
+          icon: Icons.supervisor_account_outlined,
+          color: MyApp.primaryColor,
           increase: '+0',
         ),
         const SizedBox(width: 16),
         _buildStatCard(
           title: 'Total Exams',
-          value: '\$0',
-          icon: Icons.note,
-          color: const Color(0xFFEF4444),
+          value: '0',
+          icon: Icons.assignment_outlined,
+          color: MyApp.errorColor,
           increase: '+0%',
           isPositive: true,
         ),
@@ -236,9 +532,10 @@ class _DashboardScreenState extends State<DashboardScreen>
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: MyApp.borderColor),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withOpacity(0.01),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -249,10 +546,10 @@ class _DashboardScreenState extends State<DashboardScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: color),
+              child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -262,16 +559,19 @@ class _DashboardScreenState extends State<DashboardScreen>
                   Text(
                     title,
                     style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
+                      color: MyApp.textSecondaryColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
+                      color: MyApp.textPrimaryColor,
                       fontWeight: FontWeight.bold,
                       fontSize: 24,
+                      letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -279,25 +579,18 @@ class _DashboardScreenState extends State<DashboardScreen>
                     children: [
                       Icon(
                         isPositive ? Icons.arrow_upward : Icons.arrow_downward,
-                        color: isPositive ? Colors.green : Colors.red,
-                        size: 16,
+                        color: isPositive ? MyApp.successColor : MyApp.errorColor,
+                        size: 14,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         increase,
                         style: TextStyle(
-                          color: isPositive ? Colors.green : Colors.red,
+                          color: isPositive ? MyApp.successColor : MyApp.errorColor,
                           fontWeight: FontWeight.bold,
+                          fontSize: 12,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      // Text(
-                      //   'from last month',
-                      //   style: TextStyle(
-                      //     color: Colors.grey[600],
-                      //     fontSize: MediaQuery.of(context).size.width / 130,
-                      //   ),
-                      // ),
                     ],
                   ),
                 ],
@@ -502,153 +795,173 @@ class _DashboardScreenState extends State<DashboardScreen>
       final courses = value.cources_lists;
       return value.cources_lists.isNotEmpty
           ? SizedBox(
-              height: 210,
+              height: 220,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: courses.length,
                 itemBuilder: (context, index) {
                   final course = courses[index];
+                  final String title = course['title'] as String;
+                  
+                  // Dynamically infer code & dept for college look
+                  String code = 'CSE-301';
+                  String dept = 'Computer Science';
+                  IconData unitIcon = Icons.computer;
+                  
+                  if (title.toLowerCase().contains('math')) {
+                    code = 'MATH-201';
+                    dept = 'Mathematics & Stats';
+                    unitIcon = Icons.calculate_outlined;
+                  } else if (title.toLowerCase().contains('phys')) {
+                    code = 'PHYS-102';
+                    dept = 'Physics & Astronomy';
+                    unitIcon = Icons.science_outlined;
+                  } else if (title.toLowerCase().contains('chem')) {
+                    code = 'CHEM-204';
+                    dept = 'Chemical Engineering';
+                    unitIcon = Icons.biotech_outlined;
+                  } else if (title.toLowerCase().contains('biol')) {
+                    code = 'BIOL-101';
+                    dept = 'Biological Sciences';
+                    unitIcon = Icons.bubble_chart_outlined;
+                  } else if (title.toLowerCase().contains('eng')) {
+                    code = 'ENGL-110';
+                    dept = 'English Literature';
+                    unitIcon = Icons.menu_book_outlined;
+                  } else {
+                    code = 'UNIV-${100 + index}';
+                    dept = 'General Academics';
+                    unitIcon = Icons.menu_book_outlined;
+                  }
+ 
                   return Container(
-                    width: 280,
+                    width: 290,
                     margin: const EdgeInsets.only(right: 16),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.purple[400]!, Colors.blue[400]!],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      // color: Colors.white,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: MyApp.borderColor),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withOpacity(0.02),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                    child: Stack(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(12),
+                                padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.purple[400]!,
-                                      Colors.blue[400]!
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
+                                  color: MyApp.primaryColor.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(
-                                  Icons.golf_course,
-                                  color: Colors.white,
-                                  size: 28,
+                                  unitIcon,
+                                  color: MyApp.primaryColor,
+                                  size: 20,
                                 ),
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                course['title'] as String,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: MyApp.backgroundColor,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: MyApp.borderColor),
+                                ),
+                                child: Text(
+                                  code,
+                                  style: TextStyle(
+                                    color: MyApp.textPrimaryColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
+                              const Spacer(),
+                              InkWell(
+                                onTap: () {
+                                  _showupdateCourseDialog(course['title']);
+                                },
+                                child: Icon(
+                                  Icons.edit_outlined,
+                                  color: MyApp.textSecondaryColor,
+                                  size: 16,
                                 ),
                               ),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  // CircleAvatar(
-                                  //   radius: 10,
-                                  //   child: Icon(Icons.edit),
-                                  // ),
-                                  // const SizedBox(width: 4),
-                                  // CircleAvatar(
-                                  //   radius: 12,
-                                  //   backgroundImage: NetworkImage(
-                                  //       'https://i.pravatar.cc/150?img=${13 + index}'),
-                                  // ),
-                                  // const SizedBox(width: 4),
-                                  // CircleAvatar(
-                                  //   radius: 12,
-                                  //   backgroundImage: NetworkImage(
-                                  //       'https://i.pravatar.cc/150?img=${16 + index}'),
-                                  // ),
-                                ],
+                              const SizedBox(width: 8),
+                              InkWell(
+                                onTap: () {
+                                  final controller = StudentService();
+                                  controller.deleteCourse(course['title']);
+                                },
+                                child: Icon(
+                                  Icons.delete_outline,
+                                  color: MyApp.errorColor,
+                                  size: 16,
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: InkWell(
-                            onTap: () {
-                              _showupdateCourseDialog(course['title']);
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.yellow,
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(16),
-                                  bottomRight: Radius.circular(16),
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.edit,
-                                color: Colors.black,
-                              ),
+                          const Spacer(),
+                          Text(
+                            title,
+                            style: TextStyle(
+                              color: MyApp.textPrimaryColor,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: -0.3,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            dept,
+                            style: TextStyle(
+                              color: MyApp.textSecondaryColor,
+                              fontSize: 12,
                             ),
                           ),
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 165,
-                          child: InkWell(
-                            onTap: () {
-                              final controller = StudentService();
-                              controller.deleteCourse(course['title']);
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.yellow,
-                                borderRadius: const BorderRadius.only(
-                                  topRight: Radius.circular(16),
-                                  bottomLeft: Radius.circular(16),
-                                ),
+                          const SizedBox(height: 14),
+                          const Divider(height: 1),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Icon(Icons.person_outline, size: 14, color: MyApp.textSecondaryColor),
+                              const SizedBox(width: 4),
+                              Text(
+                                '32 Enrolled',
+                                style: TextStyle(color: MyApp.textSecondaryColor, fontSize: 11, fontWeight: FontWeight.w500),
                               ),
-                              child: const Icon(
-                                Icons.delete,
-                                color: Colors.black,
+                              const Spacer(),
+                              Text(
+                                'Credits: 3.0',
+                                style: TextStyle(color: MyApp.textSecondaryColor, fontSize: 11, fontWeight: FontWeight.bold),
                               ),
-                            ),
+                            ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },
               ),
             )
           : SizedBox(
+              height: 220,
               child: Center(
-                child: Text('No Courses Found'),
+                child: Text(
+                  'No Courses Found',
+                  style: TextStyle(color: MyApp.textSecondaryColor),
+                ),
               ),
             );
     });
@@ -1062,9 +1375,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.01),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1080,15 +1394,18 @@ class _DashboardScreenState extends State<DashboardScreen>
           Text(
             '${controller.teacher_name}',
             style: TextStyle(
+              color: MyApp.textPrimaryColor,
               fontSize: 18,
               fontWeight: FontWeight.bold,
+              letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'Administrator',
             style: TextStyle(
-              color: Colors.grey[600],
+              color: MyApp.textSecondaryColor,
+              fontSize: 13,
             ),
           ),
           const SizedBox(height: 16),
@@ -1097,24 +1414,6 @@ class _DashboardScreenState extends State<DashboardScreen>
           _buildProfileStat('Students', '${controller.studentDetails.length}'),
           const SizedBox(height: 12),
           _buildProfileStat('Courses', '${controller1.classDetails.length}'),
-          const SizedBox(height: 12),
-          // _buildProfileStat('Attendance', '92%'),
-          const SizedBox(height: 16),
-          // SizedBox(
-          //   width: double.infinity,
-          //   child: ElevatedButton(
-          //     onPressed: () {},
-          //     style: ElevatedButton.styleFrom(
-          //       backgroundColor: const Color(0xFF3B82F6),
-          //       foregroundColor: Colors.white,
-          //       padding: const EdgeInsets.symmetric(vertical: 12),
-          //       shape: RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.circular(12),
-          //       ),
-          //     ),
-          //     child: const Text('View Profile'),
-          //   ),
-          // ),
         ],
       ),
     );
@@ -1127,13 +1426,16 @@ class _DashboardScreenState extends State<DashboardScreen>
         Text(
           label,
           style: TextStyle(
-            color: Colors.grey[600],
+            color: MyApp.textSecondaryColor,
+            fontSize: 14,
           ),
         ),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
+            color: MyApp.textPrimaryColor,
             fontWeight: FontWeight.bold,
+            fontSize: 14,
           ),
         ),
       ],
@@ -1146,9 +1448,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.01),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1162,19 +1465,20 @@ class _DashboardScreenState extends State<DashboardScreen>
             children: [
               Text(
                 DateFormat('MMMM yyyy').format(_selectedDate),
-                style: const TextStyle(
+                style: TextStyle(
+                  color: MyApp.textPrimaryColor,
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: 15,
                 ),
               ),
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.chevron_left),
+                    icon: Icon(Icons.chevron_left, color: MyApp.textSecondaryColor),
                     onPressed: () {},
                   ),
                   IconButton(
-                    icon: const Icon(Icons.chevron_right),
+                    icon: Icon(Icons.chevron_right, color: MyApp.textSecondaryColor),
                     onPressed: () {},
                   ),
                 ],
@@ -1184,14 +1488,14 @@ class _DashboardScreenState extends State<DashboardScreen>
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: const [
-              Text('Sun', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('Mon', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('Tue', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('Wed', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('Thu', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('Fri', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('Sat', style: TextStyle(fontWeight: FontWeight.bold)),
+            children: [
+              Text('Sun', style: TextStyle(fontWeight: FontWeight.bold, color: MyApp.textSecondaryColor, fontSize: 12)),
+              Text('Mon', style: TextStyle(fontWeight: FontWeight.bold, color: MyApp.textSecondaryColor, fontSize: 12)),
+              Text('Tue', style: TextStyle(fontWeight: FontWeight.bold, color: MyApp.textSecondaryColor, fontSize: 12)),
+              Text('Wed', style: TextStyle(fontWeight: FontWeight.bold, color: MyApp.textSecondaryColor, fontSize: 12)),
+              Text('Thu', style: TextStyle(fontWeight: FontWeight.bold, color: MyApp.textSecondaryColor, fontSize: 12)),
+              Text('Fri', style: TextStyle(fontWeight: FontWeight.bold, color: MyApp.textSecondaryColor, fontSize: 12)),
+              Text('Sat', style: TextStyle(fontWeight: FontWeight.bold, color: MyApp.textSecondaryColor, fontSize: 12)),
             ],
           ),
           const SizedBox(height: 8),
@@ -1221,9 +1525,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                   margin: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
                     color: isToday
-                        ? const Color(0xFF3B82F6)
+                        ? MyApp.primaryColor
                         : day == _selectedDate
-                            ? const Color(0xFFFFC107)
+                            ? MyApp.primaryColor.withOpacity(0.12)
                             : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -1236,18 +1540,19 @@ class _DashboardScreenState extends State<DashboardScreen>
                           color: isToday
                               ? Colors.white
                               : day == _selectedDate
-                                  ? Colors.black
+                                  ? MyApp.primaryColor
                                   : isCurrentMonth
-                                      ? Colors.black
+                                      ? MyApp.textPrimaryColor
                                       : Colors.grey[400],
                           fontWeight: isToday || day == _selectedDate
                               ? FontWeight.bold
                               : FontWeight.normal,
+                          fontSize: 13,
                         ),
                       ),
                       if (hasEvent && isCurrentMonth)
                         Positioned(
-                          bottom: 2,
+                          bottom: 4,
                           child: Container(
                             width: 4,
                             height: 4,
@@ -1255,8 +1560,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                               color: isToday
                                   ? Colors.white
                                   : day == _selectedDate
-                                      ? Colors.black
-                                      : const Color(0xFF3B82F6),
+                                      ? MyApp.primaryColor
+                                      : MyApp.primaryColor,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -1277,17 +1582,17 @@ class _DashboardScreenState extends State<DashboardScreen>
       {
         'title': 'Mathematics Assignment',
         'progress': 75,
-        'color': const Color(0xFF3B82F6),
+        'color': MyApp.primaryColor,
       },
       {
         'title': 'Physics Lab Report',
         'progress': 45,
-        'color': const Color(0xFFFFC107),
+        'color': MyApp.warningColor,
       },
       {
         'title': 'Chemistry Quiz Prep',
         'progress': 90,
-        'color': const Color(0xFF10B981),
+        'color': MyApp.successColor,
       },
     ];
 
@@ -1296,9 +1601,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.01),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1307,11 +1613,12 @@ class _DashboardScreenState extends State<DashboardScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Homework Progress',
             style: TextStyle(
+              color: MyApp.textPrimaryColor,
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 15,
             ),
           ),
           const SizedBox(height: 16),
@@ -1325,8 +1632,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                       children: [
                         Text(
                           homework['title'] as String,
-                          style: const TextStyle(
+                          style: TextStyle(
+                            color: MyApp.textPrimaryColor,
                             fontWeight: FontWeight.bold,
+                            fontSize: 13,
                           ),
                         ),
                         Text(
@@ -1334,6 +1643,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           style: TextStyle(
                             color: homework['color'] as Color,
                             fontWeight: FontWeight.bold,
+                            fontSize: 13,
                           ),
                         ),
                       ],
@@ -1341,12 +1651,12 @@ class _DashboardScreenState extends State<DashboardScreen>
                     const SizedBox(height: 8),
                     LinearProgressIndicator(
                       value: (homework['progress'] as int) / 100,
-                      backgroundColor: Colors.grey[200],
+                      backgroundColor: Colors.grey[100],
                       valueColor: AlwaysStoppedAnimation<Color>(
                         homework['color'] as Color,
                       ),
-                      minHeight: 8,
-                      borderRadius: BorderRadius.circular(4),
+                      minHeight: 6,
+                      borderRadius: BorderRadius.circular(3),
                     ),
                   ],
                 ),

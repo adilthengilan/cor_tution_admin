@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
+import 'package:corona_lms_webapp/main.dart';
 
 class StudentsScreen extends StatefulWidget {
   const StudentsScreen({Key? key}) : super(key: key);
@@ -134,20 +135,30 @@ class _StudentsScreenState extends State<StudentsScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('Register New Student'),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: MyApp.borderColor),
+          ),
+          title: const Text(
+            'Register New Student',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           content: SizedBox(
             width: 500,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  const SizedBox(height: 8),
                   _field(nameCtrl, 'Full Name'),
                   _field(emailCtrl, 'Email', type: TextInputType.emailAddress),
                   _field(phoneCtrl, 'Phone Number', type: TextInputType.phone),
                   _field(rollNoCtrl, 'Roll No', type: TextInputType.number),
+                  _field(admissionCtrl, 'Admission Number'),
                   _field(dobCtrl, 'Date of Birth'),
                   _field(dojCtrl, 'Date of Joining'),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   _dropdownField(
                     label: 'Class',
                     value: selClass,
@@ -180,7 +191,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   ),
                   if (isLoading) ...[
                     const SizedBox(height: 16),
-                    const LinearProgressIndicator(),
+                    LinearProgressIndicator(
+                      color: MyApp.primaryColor,
+                      backgroundColor: MyApp.primaryColor.withOpacity(0.1),
+                    ),
                   ],
                 ],
               ),
@@ -189,7 +203,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
           actions: [
             TextButton(
               onPressed: isLoading ? null : () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text('Cancel', style: TextStyle(color: MyApp.textSecondaryColor)),
             ),
             ElevatedButton(
               onPressed: isLoading
@@ -198,9 +212,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
                       if (nameCtrl.text.trim().isEmpty ||
                           emailCtrl.text.trim().isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Name and Email are required'),
-                            backgroundColor: Colors.red,
+                          SnackBar(
+                            content: const Text('Name and Email are required'),
+                            backgroundColor: MyApp.errorColor,
                           ),
                         );
                         return;
@@ -208,8 +222,6 @@ class _StudentsScreenState extends State<StudentsScreen> {
                       setDialogState(() => isLoading = true);
 
                       try {
-                        // final password = _generatePassword();
-
                         // 1. Create Firebase Auth account
                         final credential =
                             await _auth.createUserWithEmailAndPassword(
@@ -243,9 +255,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(
+                            content: const Text(
                                 'Student registered! Temp password: lmsSupport@123'),
-                            backgroundColor: Colors.green,
+                            backgroundColor: MyApp.successColor,
                             duration: const Duration(seconds: 6),
                           ),
                         );
@@ -254,7 +266,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(e.message ?? 'Auth error'),
-                            backgroundColor: Colors.red,
+                            backgroundColor: MyApp.errorColor,
                           ),
                         );
                       } catch (e) {
@@ -262,13 +274,13 @@ class _StudentsScreenState extends State<StudentsScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Error: $e'),
-                            backgroundColor: Colors.red,
+                            backgroundColor: MyApp.errorColor,
                           ),
                         );
                       }
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B82F6),
+                backgroundColor: MyApp.primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
@@ -302,13 +314,19 @@ class _StudentsScreenState extends State<StudentsScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('Edit Student'),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: MyApp.borderColor),
+          ),
+          title: const Text('Edit Student', style: TextStyle(fontWeight: FontWeight.bold)),
           content: SizedBox(
             width: 500,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  const SizedBox(height: 8),
                   _field(nameCtrl, 'Full Name'),
                   _field(emailCtrl, 'Email', type: TextInputType.emailAddress),
                   _field(phoneCtrl, 'Phone Number', type: TextInputType.phone),
@@ -318,7 +336,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   _field(dojCtrl, 'Date of Joining'),
                   _field(rollNoCtrl, 'Roll No', type: TextInputType.number),
                   _field(courseCtrl, 'Course'),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   _dropdownField(
                     label: 'Class',
                     value: selClass,
@@ -354,7 +372,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text('Cancel', style: TextStyle(color: MyApp.textSecondaryColor)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -376,14 +394,14 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 });
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Student updated successfully'),
-                    backgroundColor: Colors.green,
+                  SnackBar(
+                    content: const Text('Student updated successfully'),
+                    backgroundColor: MyApp.successColor,
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B82F6),
+                backgroundColor: MyApp.primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
@@ -400,27 +418,32 @@ class _StudentsScreenState extends State<StudentsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Student'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: MyApp.borderColor),
+        ),
+        title: const Text('Delete Student', style: TextStyle(fontWeight: FontWeight.bold)),
         content:
             Text('Are you sure you want to delete ${student['student_name']}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text('Cancel', style: TextStyle(color: MyApp.textSecondaryColor)),
           ),
           ElevatedButton(
             onPressed: () async {
               await _firestore.collection('users').doc(docId).delete();
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Student deleted'),
-                  backgroundColor: Colors.red,
+                SnackBar(
+                  content: const Text('Student deleted'),
+                  backgroundColor: MyApp.errorColor,
                 ),
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: MyApp.errorColor,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
@@ -437,7 +460,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
       context: context,
       builder: (ctx) => Dialog(
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: MyApp.borderColor),
+        ),
         elevation: 8,
         child: SingleChildScrollView(
           child: Container(
@@ -455,10 +481,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
                         style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey[800])),
+                            color: MyApp.textPrimaryColor)),
                     IconButton(
                       onPressed: () => Navigator.pop(ctx),
-                      icon: Icon(Icons.close, color: Colors.grey[600]),
+                      icon: Icon(Icons.close, color: MyApp.textSecondaryColor),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -471,9 +497,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
+                    color: MyApp.primaryColor.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue[100]!),
+                    border: Border.all(color: MyApp.primaryColor.withOpacity(0.1)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -482,14 +508,14 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              color: Colors.blue[700])),
+                              color: MyApp.primaryColor)),
                       const SizedBox(height: 4),
                       Text(
                         student['student_name'] ?? 'N/A',
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey[800]),
+                            color: MyApp.textPrimaryColor),
                       ),
                     ],
                   ),
@@ -528,8 +554,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
                             SnackBar(
                               content: Text('Status changed to $newStatus'),
                               backgroundColor: newStatus == 'Active'
-                                  ? Colors.green
-                                  : Colors.orange,
+                                  ? MyApp.successColor
+                                  : MyApp.warningColor,
                             ),
                           );
                         },
@@ -545,12 +571,12 @@ class _StudentsScreenState extends State<StudentsScreen> {
                         ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: student['status'] == 'Active'
-                              ? Colors.orange
-                              : Colors.green,
+                              ? MyApp.warningColor
+                              : MyApp.successColor,
                           side: BorderSide(
                             color: student['status'] == 'Active'
-                                ? Colors.orange
-                                : Colors.green,
+                                ? MyApp.warningColor
+                                : MyApp.successColor,
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -569,7 +595,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                         icon: const Icon(Icons.edit),
                         label: const Text('Edit'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3B82F6),
+                          backgroundColor: MyApp.primaryColor,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -588,7 +614,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                         icon: const Icon(Icons.delete),
                         label: const Text('Delete'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
+                          backgroundColor: MyApp.errorColor,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -605,16 +631,16 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(ctx),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[200],
-                      foregroundColor: Colors.black,
+                      backgroundColor: MyApp.borderColor,
+                      foregroundColor: MyApp.textPrimaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
                       elevation: 0,
                     ),
-                    child: const Text('Close',
+                    child: Text('Close',
                         style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600)),
+                            fontSize: 16, fontWeight: FontWeight.w600, color: MyApp.textPrimaryColor)),
                   ),
                 ),
               ],
@@ -630,26 +656,18 @@ class _StudentsScreenState extends State<StudentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: MyApp.backgroundColor,
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.purple[400]!, Colors.blue[400]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
+        shape: Border(bottom: BorderSide(color: MyApp.borderColor)),
+        title: Text(
           'Students',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: MyApp.textPrimaryColor, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+            icon: Icon(Icons.notifications_outlined, color: MyApp.textSecondaryColor),
             onPressed: () {},
           ),
           const SizedBox(width: 8),
@@ -673,14 +691,15 @@ class _StudentsScreenState extends State<StudentsScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(color: MyApp.borderColor),
                     ),
                     child: TextField(
                       controller: _searchController,
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
+                      decoration: InputDecoration(
                         hintText: 'Search students...',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: Icon(Icons.search, color: MyApp.textSecondaryColor),
                         border: InputBorder.none,
                       ),
                     ),
@@ -690,15 +709,15 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 ElevatedButton.icon(
                   onPressed: _showAddStudentDialog,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFC107),
-                    foregroundColor: Colors.black,
+                    backgroundColor: MyApp.primaryColor,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
+                        horizontal: 20, vertical: 16),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   icon: const Icon(Icons.person_add),
-                  label: const Text('Register Student'),
+                  label: const Text('Register Student', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -714,9 +733,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Status',
+                      Text('Status',
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 13)),
+                              fontWeight: FontWeight.bold, fontSize: 13, color: MyApp.textSecondaryColor)),
                       const SizedBox(height: 8),
                       Row(
                         children: _filters.map((f) {
@@ -730,12 +749,12 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                   setState(() => _selectedFilter = f),
                               backgroundColor: Colors.white,
                               selectedColor:
-                                  const Color(0xFF3B82F6).withOpacity(0.1),
-                              checkmarkColor: const Color(0xFF3B82F6),
+                                  MyApp.primaryColor.withOpacity(0.1),
+                              checkmarkColor: MyApp.primaryColor,
                               labelStyle: TextStyle(
                                   color: sel
-                                      ? const Color(0xFF3B82F6)
-                                      : Colors.black,
+                                      ? MyApp.primaryColor
+                                      : MyApp.textPrimaryColor,
                                   fontWeight: sel
                                       ? FontWeight.bold
                                       : FontWeight.normal),
@@ -743,8 +762,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                 borderRadius: BorderRadius.circular(8),
                                 side: BorderSide(
                                     color: sel
-                                        ? const Color(0xFF3B82F6)
-                                        : Colors.grey.shade300),
+                                        ? MyApp.primaryColor
+                                        : MyApp.borderColor),
                               ),
                             ),
                           );
@@ -781,9 +800,10 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: MyApp.borderColor),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withOpacity(0.01),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -792,8 +812,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 child: Column(
                   children: [
                     // Header row
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(32, 16, 16, 8),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(32, 16, 16, 16),
                       child: Row(
                         children: [
                           Expanded(
@@ -801,37 +821,37 @@ class _StudentsScreenState extends State<StudentsScreen> {
                               child: Text('Name',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.grey))),
+                                      color: MyApp.textSecondaryColor))),
                           Expanded(
                               child: Text('Roll No',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.grey))),
+                                      color: MyApp.textSecondaryColor))),
                           Expanded(
                               child: Text('Class',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.grey))),
+                                      color: MyApp.textSecondaryColor))),
                           Expanded(
                               child: Text('Division',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.grey))),
+                                      color: MyApp.textSecondaryColor))),
                           Expanded(
                               child: Text('Status',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.grey))),
+                                      color: MyApp.textSecondaryColor))),
                           Expanded(
                               child: Text('Fee Status',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.grey))),
-                          SizedBox(width: 80),
+                                      color: MyApp.textSecondaryColor))),
+                          const SizedBox(width: 80),
                         ],
                       ),
                     ),
-                    const Divider(height: 1),
+                    Divider(height: 1, color: MyApp.borderColor),
 
                     // Live Firestore stream
                     Expanded(
@@ -855,17 +875,17 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           final filtered = _applyFilters(docs);
 
                           if (filtered.isEmpty) {
-                            return const Center(
+                            return Center(
                               child: Text('No students found',
                                   style: TextStyle(
-                                      color: Colors.grey, fontSize: 16)),
+                                      color: MyApp.textSecondaryColor, fontSize: 16)),
                             );
                           }
 
                           return ListView.separated(
                             itemCount: filtered.length,
                             separatorBuilder: (_, __) =>
-                                const Divider(height: 1),
+                                Divider(height: 1, color: MyApp.borderColor),
                             itemBuilder: (ctx, i) {
                               final doc = filtered[i];
                               final s = doc.data() as Map<String, dynamic>;
@@ -887,14 +907,14 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                           children: [
                                             CircleAvatar(
                                               radius: 18,
-                                              backgroundColor: Colors.blue[100],
+                                              backgroundColor: MyApp.primaryColor.withOpacity(0.1),
                                               child: Text(
                                                 (s['student_name'] ?? 'S')
                                                     .toString()
                                                     .substring(0, 1)
                                                     .toUpperCase(),
                                                 style: TextStyle(
-                                                    color: Colors.blue[700],
+                                                    color: MyApp.primaryColor,
                                                     fontWeight:
                                                         FontWeight.bold),
                                               ),
@@ -906,14 +926,15 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                               children: [
                                                 Text(
                                                   s['student_name'] ?? '',
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                       fontWeight:
-                                                          FontWeight.bold),
+                                                          FontWeight.bold,
+                                                      color: MyApp.textPrimaryColor),
                                                 ),
                                                 Text(
                                                   s['email'] ?? '',
                                                   style: TextStyle(
-                                                      color: Colors.grey[600],
+                                                      color: MyApp.textSecondaryColor,
                                                       fontSize: 12),
                                                 ),
                                               ],
@@ -923,25 +944,34 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                       ),
                                       Expanded(
                                           child: Text(
-                                              s['rollNo']?.toString() ?? '-')),
+                                              s['rollNo']?.toString() ?? '-',
+                                              style: TextStyle(color: MyApp.textPrimaryColor))),
                                       Expanded(
                                           child: Text(
-                                              s['class']?.toString() ?? '-')),
+                                              s['class']?.toString() ?? '-',
+                                              style: TextStyle(color: MyApp.textPrimaryColor))),
                                       Expanded(
                                           child: Text(
                                               s['division']?.toString() ??
-                                                  '-')),
+                                                  '-',
+                                              style: TextStyle(color: MyApp.textPrimaryColor))),
                                       // Status badge
                                       Expanded(
-                                        child: _statusBadge(
-                                          s['status'],
-                                          activeColor: Colors.green,
-                                          inactiveColor: Colors.red,
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: _statusBadge(
+                                            s['status'],
+                                            activeColor: MyApp.successColor,
+                                            inactiveColor: MyApp.errorColor,
+                                          ),
                                         ),
                                       ),
                                       // Fee badge
                                       Expanded(
-                                        child: _feeBadge(s['fee_status']),
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: _feeBadge(s['fee_status']),
+                                        ),
                                       ),
                                       // Actions
                                       SizedBox(
@@ -949,16 +979,16 @@ class _StudentsScreenState extends State<StudentsScreen> {
                                         child: Row(
                                           children: [
                                             IconButton(
-                                              icon: const Icon(Icons.edit,
-                                                  color: Color(0xFF3B82F6),
+                                              icon: Icon(Icons.edit_outlined,
+                                                  color: MyApp.primaryColor,
                                                   size: 20),
                                               onPressed: () =>
                                                   _showEditStudentDialog(
                                                       s, docId),
                                             ),
                                             IconButton(
-                                              icon: const Icon(Icons.delete,
-                                                  color: Colors.red, size: 20),
+                                              icon: Icon(Icons.delete_outline,
+                                                  color: MyApp.errorColor, size: 20),
                                               onPressed: () =>
                                                   _showDeleteDialog(s, docId),
                                             ),
@@ -998,9 +1028,25 @@ class _StudentsScreenState extends State<StudentsScreen> {
         controller: ctrl,
         keyboardType: type,
         onChanged: onChanged,
+        style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 14),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: MyApp.borderColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: MyApp.primaryColor, width: 2),
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: MyApp.borderColor),
+          ),
         ),
       ),
     );
@@ -1015,11 +1061,28 @@ class _StudentsScreenState extends State<StudentsScreen> {
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 14),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.borderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.primaryColor, width: 2),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.borderColor),
+        ),
       ),
       value: items.contains(value) ? value : null,
+      dropdownColor: Colors.white,
+      style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
       items: items
-          .map((v) => DropdownMenuItem<String>(value: v, child: Text(v)))
+          .map((v) => DropdownMenuItem<String>(value: v, child: Text(v, style: TextStyle(color: MyApp.textPrimaryColor))))
           .toList(),
       onChanged: onChanged,
     );
@@ -1035,7 +1098,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: MyApp.textSecondaryColor)),
         const SizedBox(height: 8),
         Container(
           width: 180,
@@ -1043,12 +1106,15 @@ class _StudentsScreenState extends State<StudentsScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
+            border: Border.all(color: MyApp.borderColor),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: value,
               isExpanded: true,
+              dropdownColor: Colors.white,
+              icon: Icon(Icons.keyboard_arrow_down, color: MyApp.textSecondaryColor),
+              style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
               items: items
                   .map(
                       (v) => DropdownMenuItem<String>(value: v, child: Text(v)))
@@ -1077,7 +1143,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
       child: Text(
         status ?? '-',
         style:
-            TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13),
+            TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
       ),
     );
   }
@@ -1085,11 +1151,11 @@ class _StudentsScreenState extends State<StudentsScreen> {
   Widget _feeBadge(String? fee) {
     Color color;
     if (fee == 'Paid') {
-      color = Colors.green;
+      color = MyApp.successColor;
     } else if (fee == 'Due') {
-      color = Colors.red;
+      color = MyApp.errorColor;
     } else {
-      color = Colors.orange;
+      color = MyApp.warningColor;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -1100,7 +1166,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
       child: Text(
         fee ?? '-',
         style:
-            TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13),
+            TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
       ),
     );
   }
@@ -1117,22 +1183,22 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: Colors.grey[600])),
+                    color: MyApp.textSecondaryColor)),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.grey[200]!),
+                color: MyApp.backgroundColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: MyApp.borderColor),
               ),
               child: Text(
                 value?.toString() ?? 'N/A',
                 style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey[800],
+                    color: MyApp.textPrimaryColor,
                     fontWeight: FontWeight.w500),
               ),
             ),

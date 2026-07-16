@@ -2,6 +2,7 @@ import 'package:corona_lms_webapp/src/controller/student_controllers/student_ser
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
+import 'package:corona_lms_webapp/main.dart';
 
 class ExamsScreen extends StatefulWidget {
   const ExamsScreen({Key? key}) : super(key: key);
@@ -186,43 +187,32 @@ class _ExamsScreenState extends State<ExamsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: MyApp.backgroundColor,
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.purple[400]!, Colors.blue[400]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
         backgroundColor: Colors.white,
         elevation: 0,
-        shadowColor: Colors.black.withOpacity(0.1),
-        title: const Text(
-          'MCQ Exam Manager',
+        shape: Border(bottom: BorderSide(color: MyApp.borderColor)),
+        title: Text(
+          'Academic Examinations',
           style: TextStyle(
-            color: Color(0xFF1E293B),
-            fontWeight: FontWeight.w700,
-            fontSize: 24,
+            color: MyApp.textPrimaryColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            child: IconButton(
-              icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
-              onPressed: _loadExams,
-            ),
+          IconButton(
+            icon: Icon(Icons.refresh, color: MyApp.textSecondaryColor),
+            onPressed: _loadExams,
           ),
+          const SizedBox(width: 8),
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: const Color.fromARGB(255, 255, 255, 255),
-          unselectedLabelColor: const Color.fromARGB(255, 0, 0, 0),
-          indicatorColor: const Color.fromARGB(255, 255, 255, 255),
-          indicatorWeight: 3,
+          labelColor: MyApp.primaryColor,
+          unselectedLabelColor: MyApp.textSecondaryColor,
+          indicatorColor: MyApp.primaryColor,
+          indicatorWeight: 2,
           tabs: const [
             Tab(text: 'All Exams'),
             Tab(text: 'Upcoming'),
@@ -242,14 +232,12 @@ class _ExamsScreenState extends State<ExamsScreen>
                 _buildExamsTab('Completed'),
               ],
             ),
-      floatingActionButton: Container(
-        child: FloatingActionButton.extended(
-          onPressed: _showCreateExamDialog,
-          backgroundColor: const Color(0xFF3B82F6),
-          foregroundColor: Colors.white,
-          icon: const Icon(Icons.add),
-          label: const Text('Create Exam'),
-        ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showCreateExamDialog,
+        backgroundColor: MyApp.primaryColor,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add),
+        label: const Text('Create Exam'),
       ),
     );
   }
@@ -283,23 +271,24 @@ class _ExamsScreenState extends State<ExamsScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.01),
             blurRadius: 10,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Filter Exams',
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF1E293B),
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: MyApp.textPrimaryColor,
             ),
           ),
           const SizedBox(height: 16),
@@ -309,18 +298,26 @@ class _ExamsScreenState extends State<ExamsScreen>
                 flex: 2,
                 child: TextField(
                   controller: _searchController,
+                  style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
                   onChanged: (value) => setState(() {}),
                   decoration: InputDecoration(
                     hintText: 'Search exams...',
-                    prefixIcon:
-                        const Icon(Icons.search, color: Color(0xFF64748B)),
+                    hintStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 13),
+                    prefixIcon: Icon(Icons.search, color: MyApp.textSecondaryColor, size: 18),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+                    filled: true,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: MyApp.borderColor),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: MyApp.borderColor),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF3B82F6)),
+                      borderSide: BorderSide(color: MyApp.primaryColor),
                     ),
                   ),
                 ),
@@ -359,14 +356,17 @@ class _ExamsScreenState extends State<ExamsScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
+        color: Colors.white,
+        border: Border.all(color: MyApp.borderColor),
         borderRadius: BorderRadius.circular(12),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
-          hint: Text(hint),
+          hint: Text(hint, style: TextStyle(color: MyApp.textSecondaryColor, fontSize: 13)),
           isExpanded: true,
+          dropdownColor: Colors.white,
+          style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
           padding: const EdgeInsets.symmetric(horizontal: 12),
           items: items
               .map((item) => DropdownMenuItem(
@@ -388,23 +388,23 @@ class _ExamsScreenState extends State<ExamsScreen>
           Icon(
             Icons.quiz_outlined,
             size: 80,
-            color: Colors.grey[400],
+            color: MyApp.textSecondaryColor.withOpacity(0.3),
           ),
           const SizedBox(height: 16),
           Text(
             status == 'All' ? 'No exams created yet' : 'No $status exams',
             style: TextStyle(
-              fontSize: 20,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
+              fontSize: 18,
+              color: MyApp.textPrimaryColor,
+              fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Create your first MCQ exam to get started',
             style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[500],
+              fontSize: 14,
+              color: MyApp.textSecondaryColor,
             ),
           ),
         ],
@@ -414,20 +414,21 @@ class _ExamsScreenState extends State<ExamsScreen>
 
   Widget _buildExamCard(Map<String, dynamic> exam) {
     final statusColors = {
-      'Upcoming': Colors.orange,
-      'Active': Colors.green,
-      'Completed': Colors.blue,
+      'Upcoming': MyApp.warningColor,
+      'Active': MyApp.successColor,
+      'Completed': MyApp.primaryColor,
     };
-    final statusColor = statusColors[exam['status']] ?? Colors.grey;
+    final statusColor = statusColors[exam['status']] ?? MyApp.textSecondaryColor;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.01),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -439,12 +440,8 @@ class _ExamsScreenState extends State<ExamsScreen>
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF3B82F6).withOpacity(0.1),
-                  const Color(0xFF1E40AF).withOpacity(0.05),
-                ],
-              ),
+              color: Colors.white,
+              border: Border(bottom: BorderSide(color: MyApp.borderColor)),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -458,18 +455,18 @@ class _ExamsScreenState extends State<ExamsScreen>
                     children: [
                       Text(
                         exam['title'] ?? 'Untitled Exam',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 20,
-                          color: Color(0xFF1E293B),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: MyApp.textPrimaryColor,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         exam['description'] ?? 'No description',
-                        style: const TextStyle(
-                          color: Color(0xFF64748B),
-                          fontSize: 14,
+                        style: TextStyle(
+                          color: MyApp.textSecondaryColor,
+                          fontSize: 13,
                         ),
                       ),
                     ],
@@ -479,14 +476,14 @@ class _ExamsScreenState extends State<ExamsScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.2),
+                    color: statusColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     exam['status'] ?? 'Unknown',
                     style: TextStyle(
                       color: statusColor,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
                   ),
@@ -517,21 +514,21 @@ class _ExamsScreenState extends State<ExamsScreen>
                     _buildActionButton(
                       icon: Icons.visibility,
                       label: 'View',
-                      color: Colors.grey,
+                      color: MyApp.textSecondaryColor,
                       onPressed: () => _showViewExamDialog(exam),
                     ),
                     const SizedBox(width: 12),
                     _buildActionButton(
                       icon: Icons.edit,
                       label: 'Edit',
-                      color: const Color(0xFF3B82F6),
+                      color: MyApp.primaryColor,
                       onPressed: () => _showEditExamDialog(exam),
                     ),
                     const SizedBox(width: 12),
                     _buildActionButton(
                       icon: Icons.delete,
                       label: 'Delete',
-                      color: Colors.red,
+                      color: MyApp.errorColor,
                       onPressed: () => _showDeleteDialog(exam),
                     ),
                   ],
@@ -548,25 +545,26 @@ class _ExamsScreenState extends State<ExamsScreen>
     return Expanded(
       child: Row(
         children: [
-          Icon(icon, size: 16, color: const Color(0xFF64748B)),
+          Icon(icon, size: 16, color: MyApp.textSecondaryColor),
           const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 12,
+                style: TextStyle(
+                  color: MyApp.textSecondaryColor,
+                  fontSize: 11,
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(
-                  color: Color(0xFF1E293B),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                style: TextStyle(
+                  color: MyApp.textPrimaryColor,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
@@ -585,7 +583,7 @@ class _ExamsScreenState extends State<ExamsScreen>
     return ElevatedButton.icon(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: color.withOpacity(0.1),
+        backgroundColor: color.withOpacity(0.08),
         foregroundColor: color,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -594,7 +592,7 @@ class _ExamsScreenState extends State<ExamsScreen>
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
       icon: Icon(icon, size: 16),
-      label: Text(label, style: const TextStyle(fontSize: 12)),
+      label: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -612,8 +610,8 @@ class _ExamsScreenState extends State<ExamsScreen>
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           content: Container(
             width: 600,
             padding: const EdgeInsets.all(24),
@@ -622,12 +620,12 @@ class _ExamsScreenState extends State<ExamsScreen>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Create New MCQ Exam',
                     style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1E293B),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: MyApp.textPrimaryColor,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -668,7 +666,7 @@ class _ExamsScreenState extends State<ExamsScreen>
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
+                      border: Border.all(color: MyApp.borderColor),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -679,8 +677,9 @@ class _ExamsScreenState extends State<ExamsScreen>
                           child: Text(
                             'Divisions',
                             style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: MyApp.textSecondaryColor,
                             ),
                           ),
                         ),
@@ -689,12 +688,13 @@ class _ExamsScreenState extends State<ExamsScreen>
                           child: SingleChildScrollView(
                             child: Column(
                               children: _divisions
-                                  .where((c) => c != 'All Division')
+                                  .where((c) => c != 'All Divisions')
                                   .map((String divisionName) {
                                 return CheckboxListTile(
-                                  title: Text(divisionName),
+                                  title: Text(divisionName, style: TextStyle(color: MyApp.textPrimaryColor)),
                                   value:
                                       selectedDivisions.contains(divisionName),
+                                  activeColor: MyApp.primaryColor,
                                   onChanged: (bool? value) {
                                     setState(() {
                                       if (value == true) {
@@ -745,7 +745,7 @@ class _ExamsScreenState extends State<ExamsScreen>
                     children: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
+                        child: Text('Cancel', style: TextStyle(color: MyApp.textSecondaryColor)),
                       ),
                       const SizedBox(width: 16),
                       ElevatedButton.icon(
@@ -769,7 +769,7 @@ class _ExamsScreenState extends State<ExamsScreen>
                               division: selectedDivisions);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3B82F6),
+                          backgroundColor: MyApp.primaryColor,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -815,8 +815,8 @@ class _ExamsScreenState extends State<ExamsScreen>
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.white,
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             height: MediaQuery.of(context).size.height * 0.9,
@@ -832,17 +832,18 @@ class _ExamsScreenState extends State<ExamsScreen>
                         children: [
                           Text(
                             'Add Questions - $title',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1E293B),
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: MyApp.textPrimaryColor,
                             ),
                           ),
+                          const SizedBox(height: 4),
                           Text(
                             '$className • $subject • $questionCount Questions',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: Color(0xFF64748B),
+                              color: MyApp.textSecondaryColor,
                             ),
                           ),
                         ],
@@ -869,12 +870,9 @@ class _ExamsScreenState extends State<ExamsScreen>
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
+                      child: Text('Cancel', style: TextStyle(color: MyApp.textSecondaryColor)),
                     ),
                     const SizedBox(width: 16),
-                    // Add this as a class variable
-
-// Debugged Save Exam Button
                     ElevatedButton.icon(
                       onPressed: _isSavingExam
                           ? null
@@ -884,26 +882,17 @@ class _ExamsScreenState extends State<ExamsScreen>
                               });
 
                               try {
-                                // Debug: Check if questions is null
                                 if (questions == null) {
-                                  print('ERROR: questions is null');
                                   _showErrorSnackBar(
                                       'Questions data is not available');
                                   return;
                                 }
 
-                                // print('Questions length: ${questions.length}');
-
-                                // Safe validation with null checks
                                 bool allValid = true;
 
                                 for (int i = 0; i < questions.length; i++) {
                                   final question = questions[i];
-                                  // print('Checking question $i: $question');
-
-                                  // Check if question exists and has required fields
                                   if (question == null) {
-                                    print('ERROR: Question $i is null');
                                     allValid = false;
                                     break;
                                   }
@@ -913,33 +902,24 @@ class _ExamsScreenState extends State<ExamsScreen>
                                           .toString()
                                           .trim()
                                           .isEmpty) {
-                                    print(
-                                        'ERROR: Question $i has empty question text');
                                     allValid = false;
                                     break;
                                   }
 
                                   if (question['options'] == null) {
-                                    print(
-                                        'ERROR: Question $i has null options');
                                     allValid = false;
                                     break;
                                   }
 
                                   final options = question['options'] as List?;
                                   if (options == null || options.isEmpty) {
-                                    print(
-                                        'ERROR: Question $i has empty options list');
                                     allValid = false;
                                     break;
                                   }
 
-                                  // Check each option
                                   for (int j = 0; j < options.length; j++) {
                                     if (options[j] == null ||
                                         options[j].toString().trim().isEmpty) {
-                                      print(
-                                          'ERROR: Question $i, option $j is empty');
                                       allValid = false;
                                       break;
                                     }
@@ -948,29 +928,20 @@ class _ExamsScreenState extends State<ExamsScreen>
                                   if (!allValid) break;
                                 }
 
-                                print('Validation result: $allValid');
-
                                 if (!allValid) {
                                   _showErrorSnackBar(
                                       'Please complete all questions and options');
                                   return;
                                 }
 
-                                print('demo - validation passed');
-
-                                // Generate random ID
                                 Random random = Random();
                                 int randomNumber = random.nextInt(9999999);
                                 String examId = "cor@$randomNumber";
 
-                                // print('Generated exam ID: $examId');
-
-                                // Close dialog first
                                 if (Navigator.canPop(context)) {
                                   Navigator.pop(context);
                                 }
 
-                                // Save to Firestore
                                 await _addExamToFirestore(
                                     id: examId,
                                     title: title,
@@ -982,11 +953,7 @@ class _ExamsScreenState extends State<ExamsScreen>
                                     status: status,
                                     questions: questions,
                                     division: division);
-
-                                // print('Exam saved successfully');
-                              } catch (e, stackTrace) {
-                                print('ERROR in save exam: $e');
-                                print('Stack trace: $stackTrace');
+                              } catch (e) {
                                 _showErrorSnackBar(
                                     'Failed to save exam: ${e.toString()}');
                               } finally {
@@ -1000,7 +967,7 @@ class _ExamsScreenState extends State<ExamsScreen>
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _isSavingExam
                             ? Colors.grey
-                            : const Color(0xFF10B981),
+                            : MyApp.successColor,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -1042,11 +1009,11 @@ class _ExamsScreenState extends State<ExamsScreen>
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.01),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1061,25 +1028,27 @@ class _ExamsScreenState extends State<ExamsScreen>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withOpacity(0.1),
+                  color: MyApp.primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   'Question $questionNumber',
-                  style: const TextStyle(
-                    color: Color(0xFF3B82F6),
-                    fontWeight: FontWeight.w600,
+                  style: TextStyle(
+                    color: MyApp.primaryColor,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               const Spacer(),
               SizedBox(
-                width: 80,
+                width: 100,
                 child: TextField(
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
+                  decoration: InputDecoration(
                     labelText: 'Marks',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.all(8),
+                    labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    contentPadding: const EdgeInsets.all(8),
                   ),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
@@ -1092,11 +1061,23 @@ class _ExamsScreenState extends State<ExamsScreen>
           ),
           const SizedBox(height: 16),
           TextField(
+            style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
             decoration: InputDecoration(
               labelText: 'Question Text',
+              labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
               hintText: 'Enter your question here...',
+              hintStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 13),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: MyApp.borderColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: MyApp.borderColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: MyApp.primaryColor),
               ),
             ),
             maxLines: 2,
@@ -1106,16 +1087,18 @@ class _ExamsScreenState extends State<ExamsScreen>
             },
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Answer Options:',
             style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: MyApp.textPrimaryColor,
             ),
           ),
           const SizedBox(height: 12),
           ...List.generate(4, (index) {
             final labels = ['A', 'B', 'C', 'D'];
+            final isCorrect = question['correctAnswer'] == index;
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Row(
@@ -1127,25 +1110,26 @@ class _ExamsScreenState extends State<ExamsScreen>
                       question['correctAnswer'] = value!;
                       onChanged();
                     },
-                    activeColor: const Color(0xFF10B981),
+                    activeColor: MyApp.successColor,
                   ),
                   Container(
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: question['correctAnswer'] == index
-                          ? const Color(0xFF10B981).withOpacity(0.2)
-                          : Colors.grey.shade100,
+                      color: isCorrect
+                          ? MyApp.successColor.withOpacity(0.1)
+                          : MyApp.backgroundColor,
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: isCorrect ? MyApp.successColor : MyApp.borderColor),
                     ),
                     child: Center(
                       child: Text(
                         labels[index],
                         style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: question['correctAnswer'] == index
-                              ? const Color(0xFF10B981)
-                              : Colors.grey.shade600,
+                          fontWeight: FontWeight.bold,
+                          color: isCorrect
+                              ? MyApp.successColor
+                              : MyApp.textSecondaryColor,
                         ),
                       ),
                     ),
@@ -1153,10 +1137,21 @@ class _ExamsScreenState extends State<ExamsScreen>
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextField(
+                      style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Option ${labels[index]}',
+                        hintStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 13),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: MyApp.borderColor),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: MyApp.borderColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: MyApp.primaryColor),
                         ),
                         contentPadding: const EdgeInsets.all(12),
                       ),
@@ -1186,11 +1181,24 @@ class _ExamsScreenState extends State<ExamsScreen>
       controller: controller,
       maxLines: maxLines,
       keyboardType: keyboardType,
+      style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon),
+        labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+        prefixIcon: Icon(icon, color: MyApp.textSecondaryColor, size: 18),
+        filled: true,
+        fillColor: Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.borderColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.borderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.primaryColor),
         ),
       ),
     );
@@ -1205,11 +1213,25 @@ class _ExamsScreenState extends State<ExamsScreen>
   }) {
     return DropdownButtonFormField<String>(
       value: value,
+      dropdownColor: Colors.white,
+      style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon),
+        labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+        prefixIcon: Icon(icon, color: MyApp.textSecondaryColor, size: 18),
+        filled: true,
+        fillColor: Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.borderColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.borderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.primaryColor),
         ),
       ),
       items: items
@@ -1229,6 +1251,7 @@ class _ExamsScreenState extends State<ExamsScreen>
       context: context,
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
         child: Container(
           width: MediaQuery.of(context).size.width * 0.8,
           height: MediaQuery.of(context).size.height * 0.8,
@@ -1238,18 +1261,19 @@ class _ExamsScreenState extends State<ExamsScreen>
             children: [
               Text(
                 'View Exam: ${exam['title']}',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1E293B),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: MyApp.textPrimaryColor,
                 ),
               ),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withOpacity(0.1),
+                  color: MyApp.primaryColor.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: MyApp.primaryColor.withOpacity(0.1)),
                 ),
                 child: Row(
                   children: [
@@ -1264,11 +1288,10 @@ class _ExamsScreenState extends State<ExamsScreen>
               const SizedBox(height: 16),
               Expanded(
                 child: questions.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
                           'No questions found',
-                          style:
-                              TextStyle(fontSize: 16, color: Color(0xFF64748B)),
+                          style: TextStyle(fontSize: 16, color: MyApp.textSecondaryColor),
                         ),
                       )
                     : ListView.builder(
@@ -1279,25 +1302,25 @@ class _ExamsScreenState extends State<ExamsScreen>
                             margin: const EdgeInsets.only(bottom: 16),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade50,
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.shade200),
+                              border: Border.all(color: MyApp.borderColor),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   'Question ${index + 1} (${question['marks']} marks)',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                    color: Color(0xFF1E293B),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                    color: MyApp.textPrimaryColor,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   question['question'] ?? 'No question text',
-                                  style: const TextStyle(fontSize: 14),
+                                  style: TextStyle(fontSize: 14, color: MyApp.textPrimaryColor),
                                 ),
                                 const SizedBox(height: 12),
                                 ...List.generate(4, (optIndex) {
@@ -1319,8 +1342,8 @@ class _ExamsScreenState extends State<ExamsScreen>
                                           height: 24,
                                           decoration: BoxDecoration(
                                             color: isCorrect
-                                                ? const Color(0xFF10B981)
-                                                : Colors.grey.shade300,
+                                                ? MyApp.successColor
+                                                : MyApp.borderColor,
                                             shape: BoxShape.circle,
                                           ),
                                           child: Center(
@@ -1329,9 +1352,9 @@ class _ExamsScreenState extends State<ExamsScreen>
                                               style: TextStyle(
                                                 color: isCorrect
                                                     ? Colors.white
-                                                    : Colors.black,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 12,
+                                                    : MyApp.textSecondaryColor,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 11,
                                               ),
                                             ),
                                           ),
@@ -1342,8 +1365,9 @@ class _ExamsScreenState extends State<ExamsScreen>
                                             options[optIndex],
                                             style: TextStyle(
                                               fontSize: 14,
+                                              color: MyApp.textPrimaryColor,
                                               fontWeight: isCorrect
-                                                  ? FontWeight.w600
+                                                  ? FontWeight.bold
                                                   : FontWeight.normal,
                                             ),
                                           ),
@@ -1363,7 +1387,7 @@ class _ExamsScreenState extends State<ExamsScreen>
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Close'),
+                    child: Text('Close', style: TextStyle(color: MyApp.textSecondaryColor)),
                   ),
                 ],
               ),
@@ -1381,18 +1405,19 @@ class _ExamsScreenState extends State<ExamsScreen>
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: Color(0xFF64748B),
+              color: MyApp.textSecondaryColor,
               fontWeight: FontWeight.w500,
             ),
           ),
+          const SizedBox(height: 2),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: Color(0xFF1E293B),
-              fontWeight: FontWeight.w600,
+              color: MyApp.textPrimaryColor,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
@@ -1414,6 +1439,7 @@ class _ExamsScreenState extends State<ExamsScreen>
       context: context,
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
         child: Container(
           width: 600,
           padding: const EdgeInsets.all(24),
@@ -1422,12 +1448,12 @@ class _ExamsScreenState extends State<ExamsScreen>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Edit Exam',
                   style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1E293B),
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: MyApp.textPrimaryColor,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -1489,32 +1515,9 @@ class _ExamsScreenState extends State<ExamsScreen>
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
+                      child: Text('Cancel', style: TextStyle(color: MyApp.textSecondaryColor)),
                     ),
                     const SizedBox(width: 16),
-                    // ElevatedButton.icon(
-                    //   onPressed: () async {
-                    //     final service = StudentService();
-
-                    //     try {
-
-                    //       Navigator.pop(context);
-                    //       _showSuccessSnackBar('Exam updated successfully');
-                    //       _loadExams();
-                    //     } catch (e) {
-                    //       _showErrorSnackBar('Error updating exam: $e');
-                    //     }
-                    //   },
-                    //   style: ElevatedButton.styleFrom(
-                    //     backgroundColor: const Color(0xFF3B82F6),
-                    //     foregroundColor: Colors.white,
-                    //     shape: RoundedRectangleBorder(
-                    //       borderRadius: BorderRadius.circular(8),
-                    //     ),
-                    //   ),
-                    //   icon: const Icon(Icons.save),
-                    //   label: const Text('Update Exam'),
-                    // ),
                   ],
                 ),
               ],
@@ -1529,17 +1532,19 @@ class _ExamsScreenState extends State<ExamsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'Delete Exam',
-          style: TextStyle(fontWeight: FontWeight.w700),
+          style: TextStyle(fontWeight: FontWeight.bold, color: MyApp.textPrimaryColor),
         ),
         content: Text(
-            'Are you sure you want to delete "${exam['title']}"? This action cannot be undone.'),
+            'Are you sure you want to delete "${exam['title']}"? This action cannot be undone.',
+            style: TextStyle(color: MyApp.textSecondaryColor)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('Cancel', style: TextStyle(color: MyApp.textSecondaryColor)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -1554,7 +1559,7 @@ class _ExamsScreenState extends State<ExamsScreen>
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: MyApp.errorColor,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -1570,10 +1575,10 @@ class _ExamsScreenState extends State<ExamsScreen>
   void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: const Color(0xFF10B981),
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: MyApp.successColor,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -1581,10 +1586,10 @@ class _ExamsScreenState extends State<ExamsScreen>
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: MyApp.errorColor,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

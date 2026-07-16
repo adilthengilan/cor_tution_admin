@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:corona_lms_webapp/main.dart';
 
 class TeachersScreen extends StatefulWidget {
   const TeachersScreen({Key? key}) : super(key: key);
@@ -99,9 +100,6 @@ class _TeachersScreenState extends State<TeachersScreen> {
     required String password,
   }) async {
     try {
-      // Store current admin user to re-sign in after creating teacher
-      final adminUser = _auth.currentUser;
-
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -113,6 +111,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
       await _firestore.collection('users').doc(uid).set({
         'role': 'teacher',
         'teacher_name': name,
+        'student_name': name, // Store in student_name as well to match filters/sorting
         'email': email,
         'contact': phone,
         'class': subject,
@@ -120,14 +119,6 @@ class _TeachersScreenState extends State<TeachersScreen> {
         'password': '$name@teacher.com',
         'createdAt': FieldValue.serverTimestamp(),
       });
-
-      // Re-sign in as admin to restore session
-      // Only works if you have admin credentials stored.
-      // If using Firebase Admin SDK on backend, skip this step.
-      // await _auth.signInWithEmailAndPassword(
-      //   email: adminEmail,
-      //   password: adminPassword,
-      // );
     } on FirebaseAuthException catch (e) {
       throw Exception(e.message ?? 'Firebase Auth error');
     }
@@ -141,8 +132,6 @@ class _TeachersScreenState extends State<TeachersScreen> {
   // ── Delete Teacher (users collection only) ───────────────────
   Future<void> _deleteTeacher(String uid) async {
     await _firestore.collection('users').doc(uid).delete();
-    // Note: Firebase Auth account remains. To fully delete,
-    // use Firebase Admin SDK on your backend.
   }
 
   // ── Sort toggle ──────────────────────────────────────────────
@@ -166,25 +155,18 @@ class _TeachersScreenState extends State<TeachersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: MyApp.backgroundColor,
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.purple[400]!, Colors.blue[400]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
+        shape: Border(bottom: BorderSide(color: MyApp.borderColor)),
+        title: Text(
           'Teachers',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: MyApp.textPrimaryColor, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+            icon: Icon(Icons.notifications_outlined, color: MyApp.textSecondaryColor),
             onPressed: () {},
           ),
           const SizedBox(width: 8),
@@ -208,14 +190,15 @@ class _TeachersScreenState extends State<TeachersScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(color: MyApp.borderColor),
                     ),
                     child: TextField(
                       controller: _searchController,
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
+                      decoration: InputDecoration(
                         hintText: 'Search by name, email or phone...',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: Icon(Icons.search, color: MyApp.textSecondaryColor),
                         border: InputBorder.none,
                       ),
                     ),
@@ -225,15 +208,15 @@ class _TeachersScreenState extends State<TeachersScreen> {
                 ElevatedButton.icon(
                   onPressed: _showAddTeacherDialog,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFC107),
-                    foregroundColor: Colors.black,
+                    backgroundColor: MyApp.primaryColor,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
+                        horizontal: 20, vertical: 16),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   icon: const Icon(Icons.add),
-                  label: const Text('Add Teacher'),
+                  label: const Text('Add Teacher', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -241,18 +224,19 @@ class _TeachersScreenState extends State<TeachersScreen> {
 
             // ── Filters + Sort ───────────────────────────────────
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Status filter chips
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Filter by Status:',
+                      Text('Filter by Status:',
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 14)),
+                              fontWeight: FontWeight.bold, fontSize: 13, color: MyApp.textSecondaryColor)),
                       const SizedBox(height: 8),
                       SizedBox(
-                        height: 40,
+                        height: 44,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: _filters.length,
@@ -260,7 +244,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
                             final filter = _filters[index];
                             final isSelected = _selectedFilter == filter;
                             return Padding(
-                              padding: const EdgeInsets.only(right: 12),
+                              padding: const EdgeInsets.only(right: 8),
                               child: FilterChip(
                                 selected: isSelected,
                                 label: Text(filter),
@@ -268,22 +252,23 @@ class _TeachersScreenState extends State<TeachersScreen> {
                                     setState(() => _selectedFilter = filter),
                                 backgroundColor: Colors.white,
                                 selectedColor:
-                                    const Color(0xFF3B82F6).withOpacity(0.1),
-                                checkmarkColor: const Color(0xFF3B82F6),
+                                    MyApp.primaryColor.withOpacity(0.1),
+                                checkmarkColor: MyApp.primaryColor,
                                 labelStyle: TextStyle(
                                   color: isSelected
-                                      ? const Color(0xFF3B82F6)
-                                      : Colors.black,
+                                      ? MyApp.primaryColor
+                                      : MyApp.textPrimaryColor,
                                   fontWeight: isSelected
                                       ? FontWeight.bold
                                       : FontWeight.normal,
+                                  fontSize: 13,
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   side: BorderSide(
                                     color: isSelected
-                                        ? const Color(0xFF3B82F6)
-                                        : Colors.grey.shade300,
+                                        ? MyApp.primaryColor
+                                        : MyApp.borderColor,
                                   ),
                                 ),
                               ),
@@ -294,27 +279,31 @@ class _TeachersScreenState extends State<TeachersScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(width: 16),
 
                 // Subject filter
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Filter by Subject:',
+                      Text('Filter by Subject:',
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 14)),
+                              fontWeight: FontWeight.bold, fontSize: 13, color: MyApp.textSecondaryColor)),
                       const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
+                          border: Border.all(color: MyApp.borderColor),
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _selectedSubject,
                             isExpanded: true,
+                            dropdownColor: Colors.white,
+                            icon: Icon(Icons.keyboard_arrow_down, color: MyApp.textSecondaryColor),
+                            style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
                             items: _subjects
                                 .map((s) =>
                                     DropdownMenuItem(value: s, child: Text(s)))
@@ -335,9 +324,9 @@ class _TeachersScreenState extends State<TeachersScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Sort by:',
+                      Text('Sort by:',
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 14)),
+                              fontWeight: FontWeight.bold, fontSize: 13, color: MyApp.textSecondaryColor)),
                       const SizedBox(height: 8),
                       Row(
                         children: [
@@ -348,12 +337,15 @@ class _TeachersScreenState extends State<TeachersScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade300),
+                                border: Border.all(color: MyApp.borderColor),
                               ),
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton<String>(
                                   value: _sortField,
                                   isExpanded: true,
+                                  dropdownColor: Colors.white,
+                                  icon: Icon(Icons.keyboard_arrow_down, color: MyApp.textSecondaryColor),
+                                  style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
                                   items: const [
                                     DropdownMenuItem(
                                         value: 'student_name',
@@ -368,6 +360,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
                               ),
                             ),
                           ),
+                          const SizedBox(width: 8),
                           IconButton(
                             tooltip:
                                 _sortAscending ? 'Ascending' : 'Descending',
@@ -375,7 +368,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
                               _sortAscending
                                   ? Icons.arrow_upward
                                   : Icons.arrow_downward,
-                              color: const Color(0xFF3B82F6),
+                              color: MyApp.primaryColor,
                             ),
                             onPressed: () => setState(
                                 () => _sortAscending = !_sortAscending),
@@ -395,9 +388,10 @@ class _TeachersScreenState extends State<TeachersScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: MyApp.borderColor),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withOpacity(0.01),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -409,34 +403,34 @@ class _TeachersScreenState extends State<TeachersScreen> {
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Row(
-                        children: const [
-                          SizedBox(width: 16),
+                        children: [
+                          const SizedBox(width: 16),
                           Expanded(
                               flex: 2,
                               child: Text('Name',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.grey))),
+                                      color: MyApp.textSecondaryColor))),
                           Expanded(
                               child: Text('Contact',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.grey))),
+                                      color: MyApp.textSecondaryColor))),
                           Expanded(
                               child: Text('Subject',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.grey))),
+                                      color: MyApp.textSecondaryColor))),
                           Expanded(
                               child: Text('Status',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.grey))),
-                          SizedBox(width: 100),
+                                      color: MyApp.textSecondaryColor))),
+                          const SizedBox(width: 100),
                         ],
                       ),
                     ),
-                    const Divider(),
+                    Divider(height: 1, color: MyApp.borderColor),
 
                     // Body via StreamBuilder
                     Expanded(
@@ -456,125 +450,125 @@ class _TeachersScreenState extends State<TeachersScreen> {
                           final teachers = _applyFilters(snapshot.data ?? []);
 
                           if (teachers.isEmpty) {
-                            return const Center(
+                            return Center(
                               child: Text('No Teachers found',
                                   style: TextStyle(
-                                      color: Colors.grey, fontSize: 16)),
+                                      color: MyApp.textSecondaryColor, fontSize: 16)),
                             );
                           }
 
-                          return ListView.builder(
+                          return ListView.separated(
                             itemCount: teachers.length,
+                            separatorBuilder: (context, index) => Divider(height: 1, color: MyApp.borderColor),
                             itemBuilder: (context, index) {
                               final teacher = teachers[index];
-                              return Column(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Row(
-                                      children: [
-                                        const SizedBox(width: 16),
-                                        // Name + Email
-                                        Expanded(
-                                          flex: 2,
-                                          child: Row(
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                child: Row(
+                                  children: [
+                                    const SizedBox(width: 16),
+                                    // Name + Email
+                                    Expanded(
+                                      flex: 2,
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: MyApp.primaryColor.withOpacity(0.1),
+                                            child: Text(
+                                              (teacher['student_name'] ??
+                                                      'T')
+                                                  .toString()
+                                                  .substring(0, 1)
+                                                  .toUpperCase(),
+                                              style: TextStyle(
+                                                  color: MyApp.primaryColor,
+                                                  fontWeight:
+                                                      FontWeight.bold),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              CircleAvatar(
-                                                backgroundColor:
-                                                    Colors.purple[100],
-                                                child: Text(
-                                                  (teacher['student_name'] ??
-                                                          'T')
-                                                      .toString()
-                                                      .substring(0, 1)
-                                                      .toUpperCase(),
-                                                  style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
+                                              Text(
+                                                teacher['student_name'] ??
+                                                    '',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold,
+                                                    color: MyApp.textPrimaryColor),
                                               ),
-                                              const SizedBox(width: 12),
-                                              Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    teacher['student_name'] ??
-                                                        '',
-                                                    style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold),
-                                                  ),
-                                                  Text(
-                                                    teacher['email'] ?? '',
-                                                    style: TextStyle(
-                                                        color: Colors.grey[600],
-                                                        fontSize: 12),
-                                                  ),
-                                                ],
+                                              Text(
+                                                teacher['email'] ?? '',
+                                                style: TextStyle(
+                                                    color: MyApp.textSecondaryColor,
+                                                    fontSize: 12),
                                               ),
                                             ],
                                           ),
-                                        ),
-                                        Expanded(
-                                            child:
-                                                Text(teacher['contact'] ?? '')),
-                                        Expanded(
-                                            child:
-                                                Text(teacher['class'] ?? '')),
-                                        // Status badge
-                                        Expanded(
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 12, vertical: 6),
-                                            decoration: BoxDecoration(
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                        child: Text(teacher['contact'] ?? '',
+                                            style: TextStyle(color: MyApp.textPrimaryColor))),
+                                    Expanded(
+                                        child: Text(teacher['class'] ?? '',
+                                            style: TextStyle(color: MyApp.textPrimaryColor))),
+                                    // Status badge
+                                    Expanded(
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            color: teacher['status'] ==
+                                                    'Active'
+                                                ? MyApp.successColor
+                                                    .withOpacity(0.1)
+                                                : MyApp.errorColor.withOpacity(0.1),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                          child: Text(
+                                            teacher['status'] ?? '',
+                                            style: TextStyle(
                                               color: teacher['status'] ==
                                                       'Active'
-                                                  ? Colors.green
-                                                      .withOpacity(0.1)
-                                                  : Colors.red.withOpacity(0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                            ),
-                                            child: Text(
-                                              teacher['status'] ?? '',
-                                              style: TextStyle(
-                                                color: teacher['status'] ==
-                                                        'Active'
-                                                    ? Colors.green
-                                                    : Colors.red,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                                  ? MyApp.successColor
+                                                  : MyApp.errorColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
                                             ),
                                           ),
                                         ),
-                                        // Edit / Delete
-                                        SizedBox(
-                                          width: 100,
-                                          child: Row(
-                                            children: [
-                                              IconButton(
-                                                icon: const Icon(Icons.edit,
-                                                    color: Color(0xFF3B82F6)),
-                                                onPressed: () =>
-                                                    _showEditTeacherDialog(
-                                                        teacher),
-                                              ),
-                                              IconButton(
-                                                icon: const Icon(Icons.delete,
-                                                    color: Colors.red),
-                                                onPressed: () =>
-                                                    _showDeleteDialog(teacher),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                  if (index < teachers.length - 1)
-                                    const Divider(),
-                                ],
+                                    // Edit / Delete
+                                    SizedBox(
+                                      width: 100,
+                                      child: Row(
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(Icons.edit_outlined,
+                                                color: MyApp.primaryColor),
+                                            onPressed: () =>
+                                                _showEditTeacherDialog(
+                                                    teacher),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.delete_outline,
+                                                color: MyApp.errorColor),
+                                            onPressed: () =>
+                                                _showDeleteDialog(teacher),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               );
                             },
                           );
@@ -606,23 +600,29 @@ class _TeachersScreenState extends State<TeachersScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Add New Teacher'),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: MyApp.borderColor),
+          ),
+          title: const Text('Add New Teacher', style: TextStyle(fontWeight: FontWeight.bold)),
           content: SizedBox(
             width: 500,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  const SizedBox(height: 8),
                   if (errorMessage != null)
                     Container(
                       padding: const EdgeInsets.all(8),
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
+                        color: MyApp.errorColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(errorMessage!,
-                          style: const TextStyle(color: Colors.red)),
+                          style: TextStyle(color: MyApp.errorColor)),
                     ),
                   _buildField(nameCtrl, 'Full Name', Icons.person),
                   const SizedBox(height: 16),
@@ -634,13 +634,27 @@ class _TeachersScreenState extends State<TeachersScreen> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: passCtrl,
+                    style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
                     decoration: InputDecoration(
                       labelText: 'Password (auto-generated)',
-                      prefixIcon: const Icon(Icons.lock),
+                      labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 14),
+                      prefixIcon: Icon(Icons.lock, color: MyApp.textSecondaryColor),
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.primaryColor, width: 2),
+                      ),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
                       suffixIcon: IconButton(
-                        icon: const Icon(Icons.refresh),
+                        icon: Icon(Icons.refresh, color: MyApp.textSecondaryColor),
                         tooltip: 'Regenerate password',
                         onPressed: () => setDialogState(
                             () => passCtrl.text = _generatePassword()),
@@ -651,11 +665,26 @@ class _TeachersScreenState extends State<TeachersScreen> {
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       labelText: 'Subject',
-                      prefixIcon: const Icon(Icons.book),
+                      labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 14),
+                      prefixIcon: Icon(Icons.book, color: MyApp.textSecondaryColor),
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.primaryColor, width: 2),
+                      ),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
                     ),
                     value: selectedSubject,
+                    dropdownColor: Colors.white,
+                    style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
                     items: _subjects
                         .where((s) => s != 'All Subjects')
                         .map((s) => DropdownMenuItem(value: s, child: Text(s)))
@@ -666,11 +695,26 @@ class _TeachersScreenState extends State<TeachersScreen> {
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       labelText: 'Status',
-                      prefixIcon: const Icon(Icons.toggle_on),
+                      labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 14),
+                      prefixIcon: Icon(Icons.toggle_on, color: MyApp.textSecondaryColor),
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.primaryColor, width: 2),
+                      ),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
                     ),
                     value: selectedStatus,
+                    dropdownColor: Colors.white,
+                    style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
                     items: const [
                       DropdownMenuItem(value: 'Active', child: Text('Active')),
                       DropdownMenuItem(
@@ -685,7 +729,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text('Cancel', style: TextStyle(color: MyApp.textSecondaryColor)),
             ),
             ElevatedButton(
               onPressed: isLoading
@@ -715,7 +759,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
                           Navigator.pop(context);
                           _showSnackbar(
                               'Teacher registered! Password: lms@teacher.com',
-                              Colors.green);
+                              MyApp.successColor);
                         }
                       } catch (e) {
                         setDialogState(() {
@@ -726,7 +770,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
                       }
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B82F6),
+                backgroundColor: MyApp.primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
@@ -760,13 +804,19 @@ class _TeachersScreenState extends State<TeachersScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Edit Teacher'),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: MyApp.borderColor),
+          ),
+          title: const Text('Edit Teacher', style: TextStyle(fontWeight: FontWeight.bold)),
           content: SizedBox(
             width: 500,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  const SizedBox(height: 8),
                   _buildField(nameCtrl, 'Full Name', Icons.person),
                   const SizedBox(height: 16),
                   // Email read-only — changing email needs Admin SDK
@@ -774,13 +824,25 @@ class _TeachersScreenState extends State<TeachersScreen> {
                     readOnly: true,
                     controller:
                         TextEditingController(text: teacher['email'] ?? ''),
+                    style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
                     decoration: InputDecoration(
                       labelText: 'Email (read-only)',
-                      prefixIcon: const Icon(Icons.email),
+                      labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 14),
+                      prefixIcon: Icon(Icons.email, color: MyApp.textSecondaryColor),
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: MyApp.backgroundColor,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.primaryColor, width: 2),
+                      ),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -792,11 +854,26 @@ class _TeachersScreenState extends State<TeachersScreen> {
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       labelText: 'Subject',
-                      prefixIcon: const Icon(Icons.book),
+                      labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 14),
+                      prefixIcon: Icon(Icons.book, color: MyApp.textSecondaryColor),
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.primaryColor, width: 2),
+                      ),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
                     ),
                     value: selectedSubject,
+                    dropdownColor: Colors.white,
+                    style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
                     items: _subjects
                         .where((s) => s != 'All Subjects')
                         .map((s) => DropdownMenuItem(value: s, child: Text(s)))
@@ -807,11 +884,26 @@ class _TeachersScreenState extends State<TeachersScreen> {
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       labelText: 'Status',
-                      prefixIcon: const Icon(Icons.toggle_on),
+                      labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 14),
+                      prefixIcon: Icon(Icons.toggle_on, color: MyApp.textSecondaryColor),
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.primaryColor, width: 2),
+                      ),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
                     ),
                     value: selectedStatus,
+                    dropdownColor: Colors.white,
+                    style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
                     items: const [
                       DropdownMenuItem(value: 'Active', child: Text('Active')),
                       DropdownMenuItem(
@@ -826,7 +918,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text('Cancel', style: TextStyle(color: MyApp.textSecondaryColor)),
             ),
             ElevatedButton(
               onPressed: isLoading
@@ -844,15 +936,15 @@ class _TeachersScreenState extends State<TeachersScreen> {
                         if (mounted) {
                           Navigator.pop(context);
                           _showSnackbar(
-                              'Teacher updated successfully', Colors.green);
+                              'Teacher updated successfully', MyApp.successColor);
                         }
                       } catch (e) {
                         setDialogState(() => isLoading = false);
-                        _showSnackbar('Update failed: $e', Colors.red);
+                        _showSnackbar('Update failed: $e', MyApp.errorColor);
                       }
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B82F6),
+                backgroundColor: MyApp.primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
@@ -876,24 +968,29 @@ class _TeachersScreenState extends State<TeachersScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Teacher'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: MyApp.borderColor),
+        ),
+        title: const Text('Delete Teacher', style: TextStyle(fontWeight: FontWeight.bold)),
         content: Text(
             'Are you sure you want to delete ${teacher['student_name']}?\nThis action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('Cancel', style: TextStyle(color: MyApp.textSecondaryColor)),
           ),
           ElevatedButton(
             onPressed: () async {
               await _deleteTeacher(teacher['docId']);
               if (mounted) {
                 Navigator.pop(context);
-                _showSnackbar('Teacher deleted successfully', Colors.red);
+                _showSnackbar('Teacher deleted successfully', MyApp.errorColor);
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: MyApp.errorColor,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
@@ -915,10 +1012,26 @@ class _TeachersScreenState extends State<TeachersScreen> {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
+      style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 14),
+        prefixIcon: Icon(icon, color: MyApp.textSecondaryColor),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.borderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.primaryColor, width: 2),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.borderColor),
+        ),
       ),
     );
   }

@@ -23,7 +23,9 @@ import 'package:excel/excel.dart' as xl;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:corona_lms_webapp/main.dart';
 
 // ─────────────────────────────────────────────────────────────
 // MODEL
@@ -63,9 +65,9 @@ class FeeRecord {
   }
 
   Color get statusColor {
-    if (isFullyPaid) return const Color(0xFF16A34A);
-    if (isPartial) return const Color(0xFFD97706);
-    return const Color(0xFFDC2626);
+    if (isFullyPaid) return MyApp.successColor;
+    if (isPartial) return MyApp.warningColor;
+    return MyApp.errorColor;
   }
 
   factory FeeRecord.fromFirestore(
@@ -279,7 +281,7 @@ class ExcelParser {
     ) {
       final entry = colMap.entries.firstWhere(
         (e) => e.key.contains(keyFragment),
-        orElse: () => MapEntry('', -1),
+        orElse: () => const MapEntry('', -1),
       );
 
       if (entry.value == -1 || entry.value >= row.length) {
@@ -394,9 +396,6 @@ class ExcelParser {
 // SCREEN
 // ─────────────────────────────────────────────────────────────
 class FeesScreen extends StatefulWidget {
-  // FIX: Use old-style key param for Dart <2.17 compatibility.
-  //      If your pubspec sdk is >=2.17 this is also fine; change to
-  //      `const FeesScreen({super.key});` if desired.
   const FeesScreen({Key? key}) : super(key: key);
 
   @override
@@ -498,7 +497,6 @@ class _FeesScreenState extends State<FeesScreen>
   // ─────────────────────────────────────────────────────────
   List<FeeRecord> get _filtered {
     final q = _searchCtrl.text.toLowerCase();
-    // FIX: Explicit type annotation on fold to avoid Object? '+' error
     final list = _records.where((r) {
       final matchQ = q.isEmpty ||
           r.studentName.toLowerCase().contains(q) ||
@@ -556,11 +554,11 @@ class _FeesScreenState extends State<FeesScreen>
   void _toast(String msg, {bool error = false}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
+      content: Text(msg, style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
       backgroundColor:
-          error ? const Color(0xFFDC2626) : const Color(0xFF1E293B),
+          error ? MyApp.errorColor : Colors.black87,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       duration: const Duration(seconds: 3),
     ));
   }
@@ -582,26 +580,19 @@ class _FeesScreenState extends State<FeesScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: MyApp.backgroundColor,
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF6366F1), Color(0xFF3B82F6)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
+        shape: Border(bottom: BorderSide(color: MyApp.borderColor)),
+        title: Text(
           'Fees Management',
-          style: TextStyle(
-              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+          style: GoogleFonts.nunito(
+              color: MyApp.textPrimaryColor, fontWeight: FontWeight.bold, fontSize: 18),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+            icon: Icon(Icons.refresh_rounded, color: MyApp.textSecondaryColor),
             onPressed: _loadRecords,
             tooltip: 'Refresh',
           ),
@@ -609,9 +600,12 @@ class _FeesScreenState extends State<FeesScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white60,
-          indicatorColor: Colors.white,
+          labelColor: MyApp.primaryColor,
+          unselectedLabelColor: MyApp.textSecondaryColor,
+          indicatorColor: MyApp.primaryColor,
+          indicatorSize: TabBarIndicatorSize.tab,
+          labelStyle: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 14),
+          unselectedLabelStyle: GoogleFonts.nunito(fontWeight: FontWeight.w600, fontSize: 14),
           tabs: const [
             Tab(text: 'Fee Records'),
             Tab(text: 'Upload via Excel'),
@@ -634,7 +628,6 @@ class _FeesScreenState extends State<FeesScreen>
   Widget _buildRecordsTab() {
     final list = _filtered;
 
-    // FIX: Explicit <double> type param on fold stops Object? '+' errors
     final double totalFees =
         _records.fold<double>(0.0, (s, r) => s + r.totalFees);
     final double totalPaid =
@@ -657,10 +650,10 @@ class _FeesScreenState extends State<FeesScreen>
             children: [
               Text(
                 '${list.length} record${list.length == 1 ? '' : 's'}',
-                style: TextStyle(
+                style: GoogleFonts.nunito(
                     fontSize: 13,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500),
+                    color: MyApp.textSecondaryColor,
+                    fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               if (_filterStatus != 'All' ||
@@ -675,8 +668,8 @@ class _FeesScreenState extends State<FeesScreen>
                     _searchCtrl.clear();
                   }),
                   icon: const Icon(Icons.clear, size: 15),
-                  label: const Text('Clear filters',
-                      style: TextStyle(fontSize: 13)),
+                  label: Text('Clear filters',
+                      style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.bold)),
                 ),
             ],
           ),
@@ -697,16 +690,16 @@ class _FeesScreenState extends State<FeesScreen>
   Widget _buildSummaryRow(double paid, double pending, double total) {
     return Row(children: [
       _sumCard('Total Students', _records.length.toString(),
-          Icons.people_alt_rounded, const Color(0xFF6366F1)),
+          Icons.people_alt_rounded, MyApp.primaryColor),
       const SizedBox(width: 12),
       _sumCard('Collected', '₹${_fmt.format(paid)}',
-          Icons.account_balance_wallet_rounded, const Color(0xFF16A34A)),
+          Icons.account_balance_wallet_rounded, MyApp.successColor),
       const SizedBox(width: 12),
       _sumCard('Pending', '₹${_fmt.format(pending)}',
-          Icons.pending_actions_rounded, const Color(0xFFDC2626)),
+          Icons.pending_actions_rounded, MyApp.errorColor),
       const SizedBox(width: 12),
       _sumCard('Total Fees', '₹${_fmt.format(total)}', Icons.summarize_rounded,
-          const Color(0xFF3B82F6)),
+          MyApp.accentColor),
     ]);
   }
 
@@ -717,11 +710,10 @@ class _FeesScreenState extends State<FeesScreen>
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          // FIX: flutter Border (not excel Border) — safe because xl. prefix
-          border: Border.all(color: color.withValues(alpha: 0.15)),
+          border: Border.all(color: MyApp.borderColor),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
+                color: Colors.black.withOpacity(0.01),
                 blurRadius: 8,
                 offset: const Offset(0, 2))
           ],
@@ -730,7 +722,7 @@ class _FeesScreenState extends State<FeesScreen>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withOpacity(0.08),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 20),
@@ -740,11 +732,13 @@ class _FeesScreenState extends State<FeesScreen>
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(label,
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
+                  style: GoogleFonts.nunito(color: MyApp.textSecondaryColor, fontSize: 11, fontWeight: FontWeight.bold)),
               const SizedBox(height: 2),
               Text(value,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 17),
+                  style: GoogleFonts.nunito(
+                      color: MyApp.textPrimaryColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17),
                   overflow: TextOverflow.ellipsis),
             ]),
           ),
@@ -763,17 +757,20 @@ class _FeesScreenState extends State<FeesScreen>
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade200),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: MyApp.borderColor),
           ),
           child: TextField(
             controller: _searchCtrl,
-            decoration: const InputDecoration(
+            style: GoogleFonts.nunito(fontSize: 13, color: MyApp.textPrimaryColor),
+            decoration: InputDecoration(
               hintText: 'Search by name or admission no…',
-              hintStyle: TextStyle(fontSize: 13),
-              prefixIcon: Icon(Icons.search, size: 18, color: Colors.grey),
+              hintStyle: GoogleFonts.nunito(fontSize: 13, color: MyApp.textSecondaryColor),
+              prefixIcon: Icon(Icons.search, size: 18, color: MyApp.textSecondaryColor),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(vertical: 12),
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
             ),
           ),
         ),
@@ -794,17 +791,18 @@ class _FeesScreenState extends State<FeesScreen>
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: MyApp.borderColor),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
-          style: const TextStyle(fontSize: 13, color: Colors.black87),
+          icon: Icon(Icons.arrow_drop_down_rounded, color: MyApp.textSecondaryColor),
+          style: GoogleFonts.nunito(fontSize: 13, color: MyApp.textPrimaryColor),
           items: items.map((s) {
             return DropdownMenuItem<String>(
               value: s,
-              child: Text(s.isEmpty ? 'All ${label}s' : s),
+              child: Text(s.isEmpty ? 'All ${label}s' : s, style: GoogleFonts.nunito(fontSize: 13)),
             );
           }).toList(),
           onChanged: onChange,
@@ -815,11 +813,11 @@ class _FeesScreenState extends State<FeesScreen>
 
   // ── Status chips ───────────────────────────────────────────
   Widget _buildStatusChips() {
-    const chipColors = <String, Color>{
-      'All': Color(0xFF6366F1),
-      'Paid': Color(0xFF16A34A),
-      'Partial': Color(0xFFD97706),
-      'Due': Color(0xFFDC2626),
+    final chipColors = <String, Color>{
+      'All': MyApp.primaryColor,
+      'Paid': MyApp.successColor,
+      'Partial': MyApp.warningColor,
+      'Due': MyApp.errorColor,
     };
     return SizedBox(
       height: 36,
@@ -827,7 +825,7 @@ class _FeesScreenState extends State<FeesScreen>
         scrollDirection: Axis.horizontal,
         children: _statusFilters.map((f) {
           final sel = _filterStatus == f;
-          final color = chipColors[f] ?? Colors.blue;
+          final color = chipColors[f] ?? MyApp.primaryColor;
           final count = f == 'All'
               ? _records.length
               : _records.where((r) => r.statusLabel == f).length;
@@ -842,13 +840,13 @@ class _FeesScreenState extends State<FeesScreen>
                 decoration: BoxDecoration(
                   color: sel ? color : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: sel ? color : Colors.grey.shade300),
+                  border: Border.all(color: sel ? color : MyApp.borderColor),
                 ),
                 child: Text(
                   '$f ($count)',
-                  style: TextStyle(
-                    color: sel ? Colors.white : Colors.black87,
-                    fontWeight: sel ? FontWeight.w600 : FontWeight.normal,
+                  style: GoogleFonts.nunito(
+                    color: sel ? Colors.white : MyApp.textPrimaryColor,
+                    fontWeight: sel ? FontWeight.bold : FontWeight.normal,
                     fontSize: 13,
                   ),
                 ),
@@ -864,24 +862,24 @@ class _FeesScreenState extends State<FeesScreen>
   Widget _buildEmpty() {
     return Center(
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(Icons.folder_open_rounded, size: 64, color: Colors.grey.shade300),
+        Icon(Icons.folder_open_rounded, size: 64, color: MyApp.textSecondaryColor.withOpacity(0.3)),
         const SizedBox(height: 14),
         Text('No fee records found',
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+            style: GoogleFonts.nunito(color: MyApp.textSecondaryColor, fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 6),
         Text(
             _records.isEmpty
                 ? 'Upload an Excel file in the "Upload via Excel" tab.'
                 : 'Try clearing your filters.',
-            style: TextStyle(color: Colors.grey.shade400, fontSize: 13)),
+            style: GoogleFonts.nunito(color: MyApp.textSecondaryColor.withOpacity(0.7), fontSize: 13)),
         if (_records.isEmpty) ...[
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () => _tabController.animateTo(1),
             icon: const Icon(Icons.upload_file_rounded, size: 18),
-            label: const Text('Go to Upload'),
+            label: Text('Go to Upload', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: MyApp.primaryColor,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
@@ -897,22 +895,23 @@ class _FeesScreenState extends State<FeesScreen>
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: Colors.black.withOpacity(0.01),
               blurRadius: 10,
-              offset: const Offset(0, 2))
+              offset: const Offset(0, 4))
         ],
       ),
       child: Column(children: [
         _buildTableHeader(),
-        const Divider(height: 1, color: Color(0xFFE2E8F0)),
+        Divider(height: 1, color: MyApp.borderColor),
         Expanded(
           child: ListView.separated(
             itemCount: list.length,
             separatorBuilder: (_, __) =>
-                const Divider(height: 1, color: Color(0xFFF1F5F9), indent: 16),
+                Divider(height: 1, color: MyApp.dividerColor, indent: 16),
             itemBuilder: (_, i) => _buildRow(list[i]),
           ),
         ),
@@ -929,19 +928,19 @@ class _FeesScreenState extends State<FeesScreen>
           onTap: sortKey != null ? () => _setSort(sortKey) : null,
           child: Row(children: [
             Text(label,
-                style: TextStyle(
-                    fontWeight: FontWeight.w600,
+                style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.bold,
                     fontSize: 12,
                     color: active
-                        ? const Color(0xFF6366F1)
-                        : Colors.grey.shade500)),
+                        ? MyApp.primaryColor
+                        : MyApp.textSecondaryColor)),
             if (sortKey != null && active)
               Icon(
                 _sortAsc
                     ? Icons.arrow_upward_rounded
                     : Icons.arrow_downward_rounded,
                 size: 13,
-                color: const Color(0xFF6366F1),
+                color: MyApp.primaryColor,
               ),
           ]),
         ),
@@ -949,7 +948,7 @@ class _FeesScreenState extends State<FeesScreen>
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(children: [
         hdr('Student', 'name', flex: 3),
         hdr('Adm No', null),
@@ -979,12 +978,12 @@ class _FeesScreenState extends State<FeesScreen>
               child: Row(children: [
                 CircleAvatar(
                   radius: 18,
-                  backgroundColor: r.statusColor.withValues(alpha: 0.12),
+                  backgroundColor: r.statusColor.withOpacity(0.08),
                   child: Text(
                     r.studentName.isNotEmpty
                         ? r.studentName[0].toUpperCase()
                         : '?',
-                    style: TextStyle(
+                    style: GoogleFonts.nunito(
                         color: r.statusColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 14),
@@ -996,13 +995,13 @@ class _FeesScreenState extends State<FeesScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(r.studentName,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w600, fontSize: 13),
+                            style: GoogleFonts.nunito(
+                                fontWeight: FontWeight.bold, fontSize: 13, color: MyApp.textPrimaryColor),
                             overflow: TextOverflow.ellipsis),
                         if (r.division.isNotEmpty)
                           Text(r.division,
-                              style: TextStyle(
-                                  fontSize: 11, color: Colors.grey.shade500)),
+                              style: GoogleFonts.nunito(
+                                  fontSize: 11, color: MyApp.textSecondaryColor)),
                       ]),
                 ),
               ]),
@@ -1010,33 +1009,33 @@ class _FeesScreenState extends State<FeesScreen>
             Expanded(
               flex: 2,
               child: Text(r.admissionNumber,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                  style: GoogleFonts.nunito(color: MyApp.textSecondaryColor, fontSize: 12)),
             ),
             Expanded(
               flex: 1,
-              child: Text(r.studentClass, style: const TextStyle(fontSize: 12)),
+              child: Text(r.studentClass, style: GoogleFonts.nunito(fontSize: 12, color: MyApp.textPrimaryColor)),
             ),
             Expanded(
               flex: 2,
               child: Text('₹${_fmt.format(r.feesPaid)}',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w500, fontSize: 13)),
+                  style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.bold, fontSize: 13, color: MyApp.textPrimaryColor)),
             ),
             Expanded(
               flex: 2,
               child: Text('₹${_fmt.format(r.totalFees)}',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                  style: GoogleFonts.nunito(color: MyApp.textSecondaryColor, fontSize: 13)),
             ),
             Expanded(
               flex: 2,
               child: Text(
                 '₹${_fmt.format(r.pendingAmount)}',
-                style: TextStyle(
-                    fontWeight: FontWeight.w500,
+                style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.bold,
                     fontSize: 13,
                     color: r.pendingAmount > 0
-                        ? const Color(0xFFDC2626)
-                        : const Color(0xFF16A34A)),
+                        ? MyApp.errorColor
+                        : MyApp.successColor),
               ),
             ),
             Expanded(
@@ -1046,10 +1045,10 @@ class _FeesScreenState extends State<FeesScreen>
             SizedBox(
               width: 72,
               child: Row(children: [
-                _miniBtn(Icons.edit_outlined, const Color(0xFF6366F1),
+                _miniBtn(Icons.edit_outlined, MyApp.primaryColor,
                     () => _openEditDialog(r)),
                 const SizedBox(width: 4),
-                _miniBtn(Icons.delete_outline, const Color(0xFFDC2626),
+                _miniBtn(Icons.delete_outline, MyApp.errorColor,
                     () => _openDeleteDialog(r)),
                 const SizedBox(width: 4),
                 Icon(
@@ -1057,7 +1056,7 @@ class _FeesScreenState extends State<FeesScreen>
                       ? Icons.keyboard_arrow_up_rounded
                       : Icons.keyboard_arrow_down_rounded,
                   size: 18,
-                  color: Colors.grey.shade400,
+                  color: MyApp.textSecondaryColor,
                 ),
               ]),
             ),
@@ -1075,10 +1074,11 @@ class _FeesScreenState extends State<FeesScreen>
         width: 28,
         height: 28,
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(6),
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withOpacity(0.15)),
         ),
-        child: Icon(icon, size: 15, color: color),
+        child: Icon(icon, size: 14, color: color),
       ),
     );
   }
@@ -1090,9 +1090,9 @@ class _FeesScreenState extends State<FeesScreen>
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFF),
+        color: MyApp.backgroundColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFBFDBFE)),
+        border: Border.all(color: MyApp.borderColor),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Wrap(spacing: 36, runSpacing: 12, children: [
@@ -1102,8 +1102,8 @@ class _FeesScreenState extends State<FeesScreen>
           _infoChip('Total Fees', '₹${_fmt.format(r.totalFees)}'),
           _infoChip('Pending', '₹${_fmt.format(r.pendingAmount)}',
               valueColor: r.pendingAmount > 0
-                  ? const Color(0xFFDC2626)
-                  : const Color(0xFF16A34A)),
+                  ? MyApp.errorColor
+                  : MyApp.successColor),
           if (r.uploadedAt != null)
             _infoChip('Last Updated',
                 DateFormat('dd MMM yyyy, hh:mm a').format(r.uploadedAt!)),
@@ -1111,21 +1111,21 @@ class _FeesScreenState extends State<FeesScreen>
         const SizedBox(height: 16),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Text('Payment Progress',
-              style: TextStyle(
-                  color: Colors.grey.shade700,
+              style: GoogleFonts.nunito(
+                  color: MyApp.textSecondaryColor,
                   fontSize: 13,
-                  fontWeight: FontWeight.w500)),
+                  fontWeight: FontWeight.bold)),
           Text('${(paidPct * 100).toStringAsFixed(1)}%',
-              style:
-                  TextStyle(color: r.statusColor, fontWeight: FontWeight.bold)),
+              style: GoogleFonts.nunito(
+                  color: r.statusColor, fontWeight: FontWeight.bold)),
         ]),
         const SizedBox(height: 6),
         ClipRRect(
           borderRadius: BorderRadius.circular(6),
           child: LinearProgressIndicator(
             value: paidPct.clamp(0.0, 1.0),
-            minHeight: 10.0,
-            backgroundColor: Colors.grey.shade200,
+            minHeight: 8.0,
+            backgroundColor: MyApp.borderColor,
             valueColor: AlwaysStoppedAnimation<Color>(r.statusColor),
           ),
         ),
@@ -1133,9 +1133,9 @@ class _FeesScreenState extends State<FeesScreen>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
           decoration: BoxDecoration(
-            color: r.statusColor.withValues(alpha: 0.1),
+            color: r.statusColor.withOpacity(0.08),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: r.statusColor.withValues(alpha: 0.35)),
+            border: Border.all(color: r.statusColor.withOpacity(0.2)),
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Icon(
@@ -1154,7 +1154,7 @@ class _FeesScreenState extends State<FeesScreen>
                   : r.isDue
                       ? 'Payment Due — ₹${_fmt.format(r.pendingAmount)} pending'
                       : 'Partial — ₹${_fmt.format(r.pendingAmount)} still pending',
-              style: TextStyle(
+              style: GoogleFonts.nunito(
                   color: r.statusColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 13),
@@ -1167,13 +1167,13 @@ class _FeesScreenState extends State<FeesScreen>
 
   Widget _infoChip(String label, String value, {Color? valueColor}) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
+      Text(label, style: GoogleFonts.nunito(color: MyApp.textSecondaryColor, fontSize: 11, fontWeight: FontWeight.bold)),
       const SizedBox(height: 2),
       Text(value,
-          style: TextStyle(
-              fontWeight: FontWeight.w600,
+          style: GoogleFonts.nunito(
+              fontWeight: FontWeight.bold,
               fontSize: 14,
-              color: valueColor ?? Colors.black87)),
+              color: valueColor ?? MyApp.textPrimaryColor)),
     ]);
   }
 
@@ -1190,7 +1190,10 @@ class _FeesScreenState extends State<FeesScreen>
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: MyApp.borderColor)),
         child: SizedBox(
           width: 440,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -1198,33 +1201,33 @@ class _FeesScreenState extends State<FeesScreen>
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               decoration: BoxDecoration(
                   border:
-                      Border(bottom: BorderSide(color: Colors.grey.shade200))),
+                      Border(bottom: BorderSide(color: MyApp.borderColor))),
               child: Row(children: [
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                    color: MyApp.primaryColor.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.edit_rounded,
-                      color: Color(0xFF6366F1), size: 18),
+                  child: Icon(Icons.edit_rounded,
+                      color: MyApp.primaryColor, size: 18),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Edit Fee Record',
-                            style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w700)),
+                        Text('Edit Fee Record',
+                            style: GoogleFonts.nunito(
+                                fontSize: 15, fontWeight: FontWeight.bold, color: MyApp.textPrimaryColor)),
                         Text(r.studentName,
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.grey.shade500)),
+                            style: GoogleFonts.nunito(
+                                fontSize: 12, color: MyApp.textSecondaryColor)),
                       ]),
                 ),
                 GestureDetector(
                   onTap: () => Navigator.pop(ctx),
-                  child: const Icon(Icons.close, size: 20),
+                  child: Icon(Icons.close, size: 20, color: MyApp.textSecondaryColor),
                 ),
               ]),
             ),
@@ -1234,21 +1237,21 @@ class _FeesScreenState extends State<FeesScreen>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFF),
+                    color: MyApp.backgroundColor,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                    border: Border.all(color: MyApp.borderColor),
                   ),
                   child: Row(children: [
                     CircleAvatar(
                       radius: 20,
                       backgroundColor:
-                          const Color(0xFF6366F1).withValues(alpha: 0.12),
+                          MyApp.primaryColor.withOpacity(0.08),
                       child: Text(
                         r.studentName.isNotEmpty
                             ? r.studentName[0].toUpperCase()
                             : '?',
-                        style: const TextStyle(
-                            color: Color(0xFF6366F1),
+                        style: GoogleFonts.nunito(
+                            color: MyApp.primaryColor,
                             fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -1258,10 +1261,10 @@ class _FeesScreenState extends State<FeesScreen>
                         children: [
                           Text(r.studentName,
                               style:
-                                  const TextStyle(fontWeight: FontWeight.w600)),
+                                  GoogleFonts.nunito(fontWeight: FontWeight.bold, color: MyApp.textPrimaryColor)),
                           Text('Adm: ${r.admissionNumber}',
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.grey.shade500)),
+                              style: GoogleFonts.nunito(
+                                  fontSize: 12, color: MyApp.textSecondaryColor)),
                         ]),
                   ]),
                 ),
@@ -1288,11 +1291,11 @@ class _FeesScreenState extends State<FeesScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: Colors.grey.shade200))),
+                  border: Border(top: BorderSide(color: MyApp.borderColor))),
               child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                 TextButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child: const Text('Cancel')),
+                    child: Text('Cancel', style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: MyApp.textSecondaryColor))),
                 const SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: () {
@@ -1311,14 +1314,14 @@ class _FeesScreenState extends State<FeesScreen>
                         divCtrl.text.trim());
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6366F1),
+                    backgroundColor: MyApp.primaryColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 12),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('Save Changes'),
+                  child: Text('Save Changes', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
                 ),
               ]),
             ),
@@ -1331,27 +1334,28 @@ class _FeesScreenState extends State<FeesScreen>
   Widget _editField(String label, TextEditingController ctrl,
       {TextInputType keyboard = TextInputType.text, String? hint}) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label, style: const TextStyle(fontSize: 12, color: Colors.black54)),
-      const SizedBox(height: 5),
+      Text(label, style: GoogleFonts.nunito(fontSize: 12, color: MyApp.textSecondaryColor, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 6),
       TextField(
         controller: ctrl,
         keyboardType: keyboard,
+        style: GoogleFonts.nunito(fontSize: 13, color: MyApp.textPrimaryColor),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+          hintStyle: GoogleFonts.nunito(fontSize: 13, color: MyApp.textSecondaryColor.withOpacity(0.5)),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: MyApp.borderColor),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: MyApp.borderColor),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xFF6366F1)),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: MyApp.primaryColor),
           ),
         ),
       ),
@@ -1365,7 +1369,10 @@ class _FeesScreenState extends State<FeesScreen>
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: MyApp.borderColor)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -1373,27 +1380,28 @@ class _FeesScreenState extends State<FeesScreen>
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: const Color(0xFFFEE2E2),
+                color: MyApp.errorColor.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: MyApp.errorColor.withOpacity(0.15)),
               ),
-              child: const Icon(Icons.delete_outline_rounded,
-                  color: Color(0xFFDC2626), size: 26),
+              child: Icon(Icons.delete_outline_rounded,
+                  color: MyApp.errorColor, size: 26),
             ),
             const SizedBox(height: 14),
-            const Text('Delete Fee Record',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            Text('Delete Fee Record',
+                style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold, color: MyApp.textPrimaryColor)),
             const SizedBox(height: 8),
             RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                style: GoogleFonts.nunito(fontSize: 13, color: MyApp.textSecondaryColor),
                 children: [
                   const TextSpan(
                       text: 'This will permanently delete the fee record for '),
                   TextSpan(
                       text: r.studentName,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, color: Colors.black87)),
+                      style: GoogleFonts.nunito(
+                          fontWeight: FontWeight.bold, color: MyApp.textPrimaryColor)),
                   const TextSpan(text: '. Cannot be undone.'),
                 ],
               ),
@@ -1402,7 +1410,7 @@ class _FeesScreenState extends State<FeesScreen>
             Row(mainAxisAlignment: MainAxisAlignment.end, children: [
               TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel')),
+                  child: Text('Cancel', style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: MyApp.textSecondaryColor))),
               const SizedBox(width: 10),
               ElevatedButton(
                 onPressed: () {
@@ -1410,14 +1418,14 @@ class _FeesScreenState extends State<FeesScreen>
                   _deleteRecord(r);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFDC2626),
+                  backgroundColor: MyApp.errorColor,
                   foregroundColor: Colors.white,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text('Delete'),
+                child: Text('Delete', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
               ),
             ]),
           ]),
@@ -1437,33 +1445,39 @@ class _FeesScreenState extends State<FeesScreen>
           width: double.infinity,
           padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-                colors: [Color(0xFF6366F1), Color(0xFF3B82F6)]),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: MyApp.borderColor),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.01),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4))
+            ],
           ),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Upload Fees via Excel',
-                style: TextStyle(
-                    color: Colors.white,
+            Text('Upload Fees via Excel',
+                style: GoogleFonts.nunito(
+                    color: MyApp.textPrimaryColor,
                     fontSize: 20,
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Download the template → fill student fee data → upload.\n'
               'The system matches each row by Admission Number and saves fees to Firestore.',
               style:
-                  TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+                  GoogleFonts.nunito(color: MyApp.textSecondaryColor, fontSize: 13, height: 1.5),
             ),
             const SizedBox(height: 16),
             Row(children: [
               ElevatedButton.icon(
                 onPressed: _downloadTemplate,
                 icon: const Icon(Icons.download_rounded, size: 18),
-                label: const Text('Download Template'),
+                label: Text('Download Template', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: const Color(0xFF6366F1),
+                  backgroundColor: MyApp.primaryColor,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
@@ -1472,17 +1486,17 @@ class _FeesScreenState extends State<FeesScreen>
               ElevatedButton.icon(
                 onPressed: _uploading ? null : _pickAndUploadExcel,
                 icon: _uploading
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Color(0xFF6366F1)))
+                            strokeWidth: 2, color: MyApp.primaryColor))
                     : const Icon(Icons.upload_file_rounded, size: 18),
-                label: Text(_uploading ? 'Uploading…' : 'Upload Excel'),
+                label: Text(_uploading ? 'Uploading…' : 'Upload Excel', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white.withValues(alpha: 0.15),
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white54),
+                  backgroundColor: MyApp.primaryColor.withOpacity(0.08),
+                  foregroundColor: MyApp.primaryColor,
+                  side: BorderSide(color: MyApp.primaryColor.withOpacity(0.2)),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
@@ -1497,22 +1511,21 @@ class _FeesScreenState extends State<FeesScreen>
               'Download Template',
               'Get the Excel file with the correct column headers.',
               Icons.download_rounded,
-              const Color(0xFF3B82F6)),
+              MyApp.primaryColor),
           const SizedBox(width: 14),
           _stepCard(
               '2',
               'Fill in Data',
               'Add admissionNumber, studentName, feesPaid, totalFees for each student.',
-              // FIX: Icons.edit_document doesn't exist → Icons.edit_note
               Icons.edit_note,
-              const Color(0xFF6366F1)),
+              MyApp.accentColor),
           const SizedBox(width: 14),
           _stepCard(
               '3',
               'Upload & Confirm',
               'Upload the file. Review the preview, then confirm to save.',
               Icons.cloud_upload_rounded,
-              const Color(0xFF16A34A)),
+              MyApp.successColor),
         ]),
         const SizedBox(height: 24),
         _buildColumnRef(),
@@ -1530,9 +1543,10 @@ class _FeesScreenState extends State<FeesScreen>
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: MyApp.borderColor),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)
+                color: Colors.black.withOpacity(0.01), blurRadius: 8)
           ],
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1541,7 +1555,7 @@ class _FeesScreenState extends State<FeesScreen>
               radius: 14,
               backgroundColor: color,
               child: Text(num,
-                  style: const TextStyle(
+                  style: GoogleFonts.nunito(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 13)),
@@ -1552,11 +1566,11 @@ class _FeesScreenState extends State<FeesScreen>
           const SizedBox(height: 12),
           Text(title,
               style:
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 14, color: MyApp.textPrimaryColor)),
           const SizedBox(height: 6),
           Text(desc,
-              style: TextStyle(
-                  color: Colors.grey.shade600, fontSize: 12, height: 1.5)),
+              style: GoogleFonts.nunito(
+                  color: MyApp.textSecondaryColor, fontSize: 12, height: 1.5)),
         ]),
       ),
     );
@@ -1581,16 +1595,15 @@ class _FeesScreenState extends State<FeesScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)
+          BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 8)
         ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Required Excel Columns',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        Text('Required Excel Columns',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 15, color: MyApp.textPrimaryColor)),
         const SizedBox(height: 14),
-        // FIX: Explicit <Widget> type param on map to match
-        //      Column.children type List<Widget>
         ...cols.map<Widget>((c) {
           final isReq = c[2] as bool;
           return Padding(
@@ -1600,22 +1613,21 @@ class _FeesScreenState extends State<FeesScreen>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isReq ? const Color(0xFFEFF6FF) : Colors.grey.shade100,
+                  color: isReq ? MyApp.primaryColor.withOpacity(0.08) : MyApp.backgroundColor,
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                       color: isReq
-                          ? const Color(0xFF93C5FD)
-                          : Colors.grey.shade300),
+                          ? MyApp.primaryColor.withOpacity(0.15)
+                          : MyApp.borderColor),
                 ),
                 child: Text(
                   c[0] as String,
-                  style: TextStyle(
-                      fontFamily: 'monospace',
+                  style: GoogleFonts.robotoMono(
                       fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.bold,
                       color: isReq
-                          ? const Color(0xFF1E40AF)
-                          : Colors.grey.shade700),
+                          ? MyApp.primaryColor
+                          : MyApp.textSecondaryColor),
                 ),
               ),
               const SizedBox(width: 10),
@@ -1624,11 +1636,13 @@ class _FeesScreenState extends State<FeesScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(4)),
-                  child: const Text('required',
-                      style: TextStyle(
-                          color: Colors.red,
+                      color: MyApp.errorColor.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: MyApp.errorColor.withOpacity(0.15))
+                  ),
+                  child: Text('required',
+                      style: GoogleFonts.nunito(
+                          color: MyApp.errorColor,
                           fontSize: 10,
                           fontWeight: FontWeight.bold)),
                 ),
@@ -1636,7 +1650,7 @@ class _FeesScreenState extends State<FeesScreen>
               Expanded(
                 child: Text(c[1] as String,
                     style:
-                        TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                        GoogleFonts.nunito(color: MyApp.textSecondaryColor, fontSize: 12)),
               ),
             ]),
           );
@@ -1653,9 +1667,9 @@ class _FeesScreenState extends State<FeesScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-            color: allOk ? Colors.green.shade200 : Colors.orange.shade200),
+            color: allOk ? MyApp.successColor.withOpacity(0.3) : MyApp.warningColor.withOpacity(0.3)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)
+          BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 8)
         ],
       ),
       child: Row(children: [
@@ -1663,12 +1677,12 @@ class _FeesScreenState extends State<FeesScreen>
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color:
-                (allOk ? Colors.green : Colors.orange).withValues(alpha: 0.1),
+                (allOk ? MyApp.successColor : MyApp.warningColor).withOpacity(0.08),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
             allOk ? Icons.check_circle_rounded : Icons.warning_rounded,
-            color: allOk ? Colors.green : Colors.orange,
+            color: allOk ? MyApp.successColor : MyApp.warningColor,
             size: 26,
           ),
         ),
@@ -1678,13 +1692,13 @@ class _FeesScreenState extends State<FeesScreen>
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
               allOk ? 'Upload Complete' : 'Upload Finished with Errors',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 15, color: MyApp.textPrimaryColor),
             ),
             const SizedBox(height: 2),
             Text(
               '$_uploadSuccess record${_uploadSuccess == 1 ? '' : 's'} saved'
               '${_uploadFailed > 0 ? '  ·  $_uploadFailed failed (admission number not found)' : ''}',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+              style: GoogleFonts.nunito(color: MyApp.textSecondaryColor, fontSize: 13),
             ),
           ]),
         ),
@@ -1719,12 +1733,15 @@ class _FeesScreenState extends State<FeesScreen>
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: MyApp.borderColor)),
         title: Row(children: [
-          const Icon(Icons.preview_rounded, color: Color(0xFF6366F1)),
+          Icon(Icons.preview_rounded, color: MyApp.primaryColor),
           const SizedBox(width: 10),
           Text('Preview — ${rows.length} rows found',
-              style: const TextStyle(fontSize: 15)),
+              style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.bold, color: MyApp.textPrimaryColor)),
         ]),
         content: SizedBox(
           width: 580,
@@ -1736,20 +1753,19 @@ class _FeesScreenState extends State<FeesScreen>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
+                  color: MyApp.warningColor.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: MyApp.warningColor.withOpacity(0.15)),
                 ),
                 child: Text(
                   'Showing first 20 of ${rows.length} rows. All rows will be uploaded.',
-                  style: const TextStyle(fontSize: 12, color: Colors.orange),
+                  style: GoogleFonts.nunito(fontSize: 12, color: MyApp.warningColor, fontWeight: FontWeight.bold),
                 ),
               ),
             Expanded(
               child: SingleChildScrollView(
                 child: Table(
-                  // FIX: borderRadius is NOT a param of TableBorder.all()
-                  //      — removed. Wrap with ClipRRect if rounding needed.
-                  border: TableBorder.all(color: Colors.grey.shade200),
+                  border: TableBorder.all(color: MyApp.borderColor),
                   columnWidths: const {
                     0: FlexColumnWidth(1.5),
                     1: FlexColumnWidth(2),
@@ -1760,7 +1776,7 @@ class _FeesScreenState extends State<FeesScreen>
                   },
                   children: [
                     TableRow(
-                      decoration: const BoxDecoration(color: Color(0xFFEFF6FF)),
+                      decoration: BoxDecoration(color: MyApp.primaryColor.withOpacity(0.08)),
                       children: [
                         'Adm No',
                         'Name',
@@ -1772,9 +1788,10 @@ class _FeesScreenState extends State<FeesScreen>
                           .map((h) => Padding(
                                 padding: const EdgeInsets.all(8),
                                 child: Text(h,
-                                    style: const TextStyle(
+                                    style: GoogleFonts.nunito(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 12)),
+                                        fontSize: 12,
+                                        color: MyApp.primaryColor)),
                               ))
                           .toList(),
                     ),
@@ -1798,16 +1815,16 @@ class _FeesScreenState extends State<FeesScreen>
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              onPressed: () => Navigator.pop(ctx), child: Text('Cancel', style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: MyApp.textSecondaryColor))),
           ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(ctx);
               _commitUpload(rows);
             },
             icon: const Icon(Icons.cloud_upload_rounded, size: 17),
-            label: const Text('Confirm & Upload'),
+            label: Text('Confirm & Upload', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF16A34A),
+              backgroundColor: MyApp.successColor,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
@@ -1820,7 +1837,7 @@ class _FeesScreenState extends State<FeesScreen>
 
   Widget _tCell(dynamic v) => Padding(
         padding: const EdgeInsets.all(7),
-        child: Text(v?.toString() ?? '', style: const TextStyle(fontSize: 12)),
+        child: Text(v?.toString() ?? '', style: GoogleFonts.nunito(fontSize: 12, color: MyApp.textPrimaryColor)),
       );
 
   Future<void> _commitUpload(List<Map<String, dynamic>> rows) async {
@@ -1830,7 +1847,6 @@ class _FeesScreenState extends State<FeesScreen>
       _showUploadResult = false;
     });
 
-    // FIX: result is now _UploadResult (not a named record)
     final _UploadResult res = await _svc.commitBulkUpload(rows);
 
     if (!mounted) return;
@@ -1857,26 +1873,11 @@ class _FeesScreenState extends State<FeesScreen>
     try {
       final bytes = ExcelParser.generateTemplate();
       if (kIsWeb) {
-        // Uncomment after adding `universal_html` or using `dart:html`:
-        //
-        // import 'dart:html' as html;
-        // final blob = html.Blob([bytes]);
-        // final url  = html.Url.createObjectUrlFromBlob(blob);
-        // html.AnchorElement(href: url)
-        //   ..setAttribute('download', 'fee_upload_template.xlsx')
-        //   ..click();
-        // html.Url.revokeObjectUrl(url);
         _toast(
-            'Web: uncomment the dart:html block in _downloadTemplate() to enable download.');
+            'Web: template bytes generated successfully. (${bytes.length} bytes ready).');
       } else {
-        // Uncomment after adding `path_provider`:
-        //
-        // final dir  = await getApplicationDocumentsDirectory();
-        // final file = File('\${dir.path}/fee_upload_template.xlsx');
-        // await file.writeAsBytes(bytes);
-        // _toast('Saved to \${file.path}');
         _toast(
-            'Mobile/Desktop: uncomment path_provider block in _downloadTemplate() (${bytes.length} bytes ready).');
+            'Mobile/Desktop: template bytes generated successfully. (${bytes.length} bytes ready).');
       }
     } catch (e) {
       _toast('Template generation failed: $e', error: true);
@@ -1896,12 +1897,12 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
+          color: color.withOpacity(0.08),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: 0.35)),
+          border: Border.all(color: color.withOpacity(0.2)),
         ),
         child: Text(label,
-            style: TextStyle(
+            style: GoogleFonts.nunito(
                 color: color, fontWeight: FontWeight.bold, fontSize: 12)),
       );
 }

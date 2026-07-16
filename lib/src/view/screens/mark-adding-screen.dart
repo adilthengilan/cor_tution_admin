@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:corona_lms_webapp/main.dart';
 
 // ─── Max Mark Manager ────────────────────────────────────────────────────────
 
@@ -257,12 +258,11 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
         Icon(isError ? Icons.error_outline : Icons.check_circle_outline,
             color: Colors.white),
         const SizedBox(width: 10),
-        Expanded(child: Text(msg)),
+        Expanded(child: Text(msg, style: const TextStyle(color: Colors.white))),
       ]),
-      backgroundColor: isError ? Colors.red[700] : Colors.green[700],
+      backgroundColor: isError ? MyApp.errorColor : MyApp.successColor,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      margin: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ));
   }
 
@@ -281,31 +281,38 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: MyApp.backgroundColor,
       appBar: AppBar(
-        title: const Text('Add Mark',
-            style: TextStyle(fontWeight: FontWeight.w700)),
-        backgroundColor: Colors.blue[700],
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
         elevation: 0,
+        shape: Border(bottom: BorderSide(color: MyApp.borderColor)),
+        title: Text(
+          'Add Mark',
+          style: TextStyle(
+            color: MyApp.textPrimaryColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        iconTheme: IconThemeData(color: MyApp.textPrimaryColor),
       ),
       body: Stack(
         children: [
           Form(
             key: _formKey,
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(24),
               children: [
                 _teacherCard(),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 _classDivisionSubjectCard(),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 _studentSelectionCard(),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 _markEntryCard(),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 _datePicker(),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 _markPreview(),
                 const SizedBox(height: 24),
                 _actionButtons(),
@@ -327,8 +334,8 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundColor: Colors.blue[100],
-            child: Icon(Icons.person, color: Colors.blue[700], size: 28),
+            backgroundColor: MyApp.primaryColor.withOpacity(0.1),
+            child: Icon(Icons.person, color: MyApp.primaryColor, size: 28),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -338,16 +345,16 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
                 Text('Teacher',
                     style: TextStyle(
                         fontSize: 11,
-                        color: Colors.grey[500],
-                        fontWeight: FontWeight.w600,
+                        color: MyApp.textSecondaryColor,
+                        fontWeight: FontWeight.bold,
                         letterSpacing: 0.5)),
                 const SizedBox(height: 2),
                 Text(_teacherName.isEmpty ? '—' : _teacherName,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold)),
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold, color: MyApp.textPrimaryColor)),
                 if (_teacherSubject.isNotEmpty)
                   Text('Subject: $_teacherSubject',
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+                      style: TextStyle(fontSize: 13, color: MyApp.textSecondaryColor)),
               ],
             ),
           ),
@@ -364,7 +371,7 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionTitle('Class & Division'),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -402,7 +409,7 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
               )),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           _dropdown(
             label: 'Subject',
             icon: Icons.menu_book,
@@ -424,32 +431,45 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionTitle('Select Student'),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
-          // Search bar (shown only when students are loaded)
+          // Search bar
           if (_allStudents.isNotEmpty) ...[
             TextField(
               controller: _searchController,
+              style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'Search by name or roll no...',
-                prefixIcon: const Icon(Icons.search, size: 20),
+                hintStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 13),
+                prefixIcon: Icon(Icons.search, size: 20, color: MyApp.textSecondaryColor),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
+                        icon: Icon(Icons.clear, size: 18, color: MyApp.textSecondaryColor),
                         onPressed: () {
                           _searchController.clear();
                           _applySearch('');
                         })
                     : null,
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: MyApp.borderColor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: MyApp.borderColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: MyApp.primaryColor),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                 isDense: true,
               ),
               onChanged: _applySearch,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
           ],
 
           if (_isFetchingStudents)
@@ -470,47 +490,45 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
             Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                      color: Colors.blue[50],
+                      color: MyApp.primaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20)),
                   child: Text(
                       '${_filteredStudents.length} student${_filteredStudents.length != 1 ? 's' : ''}',
                       style: TextStyle(
                           fontSize: 12,
-                          color: Colors.blue[800],
-                          fontWeight: FontWeight.w600)),
+                          color: MyApp.primaryColor,
+                          fontWeight: FontWeight.bold)),
                 ),
                 if (_selectedStudent != null) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                        color: Colors.green[50],
+                        color: MyApp.successColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20)),
                     child: Row(children: [
                       Icon(Icons.check_circle,
-                          size: 14, color: Colors.green[700]),
+                          size: 14, color: MyApp.successColor),
                       const SizedBox(width: 4),
                       Text(_selectedStudent!.name,
                           style: TextStyle(
                               fontSize: 12,
-                              color: Colors.green[800],
-                              fontWeight: FontWeight.w600)),
+                              color: MyApp.successColor,
+                              fontWeight: FontWeight.bold)),
                     ]),
                   ),
                 ],
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             // Student list
             SizedBox(
               height: 220,
               child: ListView.separated(
                 itemCount: _filteredStudents.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (_, __) => Divider(height: 1, color: MyApp.borderColor),
                 itemBuilder: (_, i) {
                   final s = _filteredStudents[i];
                   final selected = _selectedStudent?.uid == s.uid;
@@ -519,11 +537,11 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
                     leading: CircleAvatar(
                       radius: 18,
                       backgroundColor:
-                          selected ? Colors.blue[600] : Colors.grey[200],
+                          selected ? MyApp.primaryColor : MyApp.backgroundColor,
                       child: Text(
                         s.name.isNotEmpty ? s.name[0].toUpperCase() : '?',
                         style: TextStyle(
-                            color: selected ? Colors.white : Colors.grey[700],
+                            color: selected ? Colors.white : MyApp.textSecondaryColor,
                             fontWeight: FontWeight.bold,
                             fontSize: 14),
                       ),
@@ -532,16 +550,17 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
                         style: TextStyle(
                             fontWeight:
                                 selected ? FontWeight.bold : FontWeight.normal,
+                            color: MyApp.textPrimaryColor,
                             fontSize: 14)),
                     subtitle: Text(
                         'Roll: ${s.rollNo}  •  ${s.className} ${s.division}',
-                        style: const TextStyle(fontSize: 11)),
+                        style: TextStyle(fontSize: 11, color: MyApp.textSecondaryColor)),
                     trailing: selected
                         ? Icon(Icons.check_circle,
-                            color: Colors.green[600], size: 20)
+                            color: MyApp.successColor, size: 20)
                         : null,
                     selected: selected,
-                    selectedTileColor: Colors.blue[50],
+                    selectedTileColor: MyApp.primaryColor.withOpacity(0.05),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                     onTap: () => setState(() => _selectedStudent = s),
@@ -565,7 +584,7 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionTitle('Mark Details'),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Row(
             children: [
               // Mark field
@@ -573,6 +592,7 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
                 child: TextFormField(
                   controller: _markController,
                   keyboardType: TextInputType.number,
+                  style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                     TextInputFormatter.withFunction((old, nv) {
@@ -584,10 +604,23 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
                   ],
                   decoration: InputDecoration(
                     labelText: 'Mark',
-                    prefixIcon: const Icon(Icons.grade),
+                    labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+                    prefixIcon: Icon(Icons.grade, color: MyApp.textSecondaryColor),
                     suffixText: '/${maxMark.toInt()}',
+                    filled: true,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: MyApp.borderColor),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: MyApp.borderColor),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: MyApp.primaryColor),
+                    ),
                   ),
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Required';
@@ -602,15 +635,29 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
               const SizedBox(width: 12),
               // Out of field
               SizedBox(
-                width: 80,
+                width: 100,
                 child: TextFormField(
                   controller: _outOfController,
                   keyboardType: TextInputType.number,
+                  style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: InputDecoration(
                     labelText: 'Out of',
+                    labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+                    filled: true,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: MyApp.borderColor),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: MyApp.borderColor),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: MyApp.primaryColor),
+                    ),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 14),
                   ),
@@ -629,17 +676,31 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: TextFormField(
                   controller: _examNameController,
+                  style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
                   decoration: InputDecoration(
                     labelText: 'Exam Name',
-                    prefixIcon: const Icon(Icons.quiz),
+                    labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+                    prefixIcon: Icon(Icons.quiz, color: MyApp.textSecondaryColor),
+                    filled: true,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: MyApp.borderColor),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: MyApp.borderColor),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: MyApp.primaryColor),
+                    ),
                   ),
                   validator: (v) =>
                       (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -649,11 +710,25 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
               Expanded(
                 child: TextFormField(
                   controller: _gradeController,
+                  style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
                   decoration: InputDecoration(
                     labelText: 'Grade (A+, B…)',
-                    prefixIcon: const Icon(Icons.grading),
+                    labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+                    prefixIcon: Icon(Icons.grading, color: MyApp.textSecondaryColor),
+                    filled: true,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: MyApp.borderColor),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: MyApp.borderColor),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: MyApp.primaryColor),
+                    ),
                   ),
                   validator: (v) =>
                       (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -672,7 +747,7 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
   Widget _datePicker() {
     return _card(
       child: InkWell(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         onTap: () async {
           final picked = await showDatePicker(
             context: context,
@@ -683,13 +758,23 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
           if (picked != null) setState(() => _selectedDate = picked);
         },
         child: InputDecorator(
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Exam Date',
-            prefixIcon: Icon(Icons.calendar_today),
-            border: OutlineInputBorder(),
+            labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+            prefixIcon: Icon(Icons.calendar_today, color: MyApp.textSecondaryColor),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: MyApp.borderColor),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: MyApp.borderColor),
+            ),
           ),
           child: Text(DateFormat('MMMM dd, yyyy').format(_selectedDate),
-              style: const TextStyle(fontSize: 15)),
+              style: TextStyle(fontSize: 13, color: MyApp.textPrimaryColor)),
         ),
       ),
     );
@@ -709,10 +794,10 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
 
     final pct = (mark / outOf * 100).clamp(0, 100);
     final color = pct >= 80
-        ? Colors.green
+        ? MyApp.successColor
         : pct >= 60
-            ? Colors.orange
-            : Colors.red;
+            ? MyApp.warningColor
+            : MyApp.errorColor;
 
     return _card(
       child: Row(
@@ -721,7 +806,7 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-                color: color.withOpacity(0.15), shape: BoxShape.circle),
+                color: color.withOpacity(0.1), shape: BoxShape.circle),
             child: Center(
               child: Text(_gradeController.text,
                   style: TextStyle(
@@ -736,16 +821,16 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
                 Text('Preview',
                     style: TextStyle(
                         fontSize: 11,
-                        color: Colors.grey[500],
-                        fontWeight: FontWeight.w600,
+                        color: MyApp.textSecondaryColor,
+                        fontWeight: FontWeight.bold,
                         letterSpacing: 0.5)),
                 const SizedBox(height: 2),
                 Text(_selectedStudent!.name,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15)),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 15, color: MyApp.textPrimaryColor)),
                 Text(
                     '${_examNameController.text.isEmpty ? 'Exam' : _examNameController.text} — ${_selectedSubject ?? ''}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                    style: TextStyle(fontSize: 12, color: MyApp.textSecondaryColor)),
               ],
             ),
           ),
@@ -756,7 +841,7 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
                   style: TextStyle(
                       fontSize: 20, fontWeight: FontWeight.bold, color: color)),
               Text('${pct.toStringAsFixed(1)}%',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                  style: TextStyle(fontSize: 12, color: MyApp.textSecondaryColor)),
             ],
           ),
         ],
@@ -774,10 +859,11 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
             onPressed: _isSaving ? null : () => Navigator.pop(context),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 15),
+              side: BorderSide(color: MyApp.borderColor),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('Cancel'),
+            child: Text('Cancel', style: TextStyle(color: MyApp.textSecondaryColor, fontWeight: FontWeight.bold)),
           ),
         ),
         const SizedBox(width: 16),
@@ -786,12 +872,12 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
           child: ElevatedButton(
             onPressed: _isSaving ? null : _saveMark,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[700],
+              backgroundColor: MyApp.primaryColor,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 15),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
-              elevation: 2,
+              elevation: 0,
             ),
             child: _isSaving
                 ? const Row(
@@ -808,7 +894,7 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
                   )
                 : const Text('Save Mark',
                     style:
-                        TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           ),
         ),
       ],
@@ -822,6 +908,7 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
       color: Colors.black26,
       child: Center(
         child: Card(
+          color: Colors.white,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: const Padding(
@@ -846,15 +933,16 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
   Widget _card({required Widget child}) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2))
+              color: Colors.black.withOpacity(0.01),
+              blurRadius: 10,
+              offset: const Offset(0, 4))
         ],
       ),
       child: child,
@@ -865,8 +953,8 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
     return Text(title,
         style: TextStyle(
             fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: Colors.blue[800],
+            fontWeight: FontWeight.bold,
+            color: MyApp.primaryColor,
             letterSpacing: 0.3));
   }
 
@@ -880,10 +968,26 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
   }) {
     return DropdownButtonFormField<String>(
       value: value,
+      dropdownColor: Colors.white,
+      style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, size: 20),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        labelStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 12),
+        prefixIcon: Icon(icon, size: 20, color: MyApp.textSecondaryColor),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.borderColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.borderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: MyApp.primaryColor),
+        ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       ),
@@ -900,12 +1004,12 @@ class _MarkAddingPageState extends State<MarkAddingPage> {
       child: Center(
         child: Column(
           children: [
-            Icon(icon, size: 40, color: Colors.grey[400]),
+            Icon(icon, size: 40, color: MyApp.textSecondaryColor.withOpacity(0.3)),
             const SizedBox(height: 10),
             Text(message,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: Colors.grey[500], fontSize: 14, height: 1.4)),
+                    color: MyApp.textSecondaryColor, fontSize: 14, height: 1.4)),
           ],
         ),
       ),

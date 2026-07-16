@@ -22,6 +22,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:corona_lms_webapp/main.dart';
 
 // ─────────────────────────────────────────────────────────────
 // CONSTANTS
@@ -303,11 +304,10 @@ class _ClassesScreenState extends State<ClassesScreen>
 
   void _toast(String msg, {bool error = false}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
-      backgroundColor:
-          error ? const Color(0xFFDC2626) : const Color(0xFF1E293B),
+      content: Text(msg, style: const TextStyle(color: Colors.white)),
+      backgroundColor: error ? MyApp.errorColor : MyApp.textPrimaryColor,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       duration: const Duration(seconds: 2),
     ));
   }
@@ -339,24 +339,17 @@ class _ClassesScreenState extends State<ClassesScreen>
         final classesCovered = all.map((m) => m.cls).toSet().length;
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF3F4F6),
+          backgroundColor: MyApp.backgroundColor,
           appBar: AppBar(
-            flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF7C3AED), Color(0xFF2563EB)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
+            backgroundColor: Colors.white,
             elevation: 0,
-            title: const Text(
+            shape: Border(bottom: BorderSide(color: MyApp.borderColor)),
+            title: Text(
               'Class Materials — LMS',
               style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 17),
+                  color: MyApp.textPrimaryColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18),
             ),
             actions: [
               // Loading indicator for stream
@@ -367,8 +360,7 @@ class _ClassesScreenState extends State<ClassesScreen>
                     child: SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(
-                          color: Colors.white70, strokeWidth: 2),
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   ),
                 ),
@@ -376,21 +368,23 @@ class _ClassesScreenState extends State<ClassesScreen>
                 onPressed: () => setState(() => _isGridView = !_isGridView),
                 icon: Icon(
                   _isGridView ? Icons.view_list : Icons.grid_view,
-                  color: Colors.white70,
+                  color: MyApp.textSecondaryColor,
                   size: 18,
                 ),
                 label: Text(
                   _isGridView ? 'List view' : 'Grid view',
-                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  style:
+                      TextStyle(color: MyApp.textSecondaryColor, fontSize: 13),
                 ),
               ),
               const SizedBox(width: 8),
             ],
             bottom: TabBar(
               controller: _tabController,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white60,
-              indicatorColor: Colors.white,
+              labelColor: MyApp.primaryColor,
+              unselectedLabelColor: MyApp.textSecondaryColor,
+              indicatorColor: MyApp.primaryColor,
+              indicatorWeight: 2,
               tabs: const [
                 Tab(text: 'All Materials'),
                 Tab(text: 'Videos'),
@@ -416,7 +410,7 @@ class _ClassesScreenState extends State<ClassesScreen>
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: _openAddDialog,
-            backgroundColor: const Color(0xFF2563EB),
+            backgroundColor: MyApp.primaryColor,
             child: const Icon(Icons.add, color: Colors.white),
           ),
         );
@@ -429,8 +423,11 @@ class _ClassesScreenState extends State<ClassesScreen>
   // ─────────────────────────────────────────────────────────
   Widget _buildToolbar() {
     return Container(
-      color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: MyApp.borderColor)),
+      ),
       child: Wrap(
         spacing: 10,
         runSpacing: 8,
@@ -441,18 +438,25 @@ class _ClassesScreenState extends State<ClassesScreen>
             height: 38,
             child: TextField(
               controller: _searchCtrl,
+              style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'Search materials...',
-                hintStyle: const TextStyle(fontSize: 13),
-                prefixIcon: const Icon(Icons.search, size: 18),
+                hintStyle:
+                    TextStyle(color: MyApp.textSecondaryColor, fontSize: 13),
+                prefixIcon: Icon(Icons.search,
+                    size: 18, color: MyApp.textSecondaryColor),
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: MyApp.borderColor),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: MyApp.borderColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: MyApp.primaryColor),
                 ),
               ),
             ),
@@ -475,8 +479,9 @@ class _ClassesScreenState extends State<ClassesScreen>
                 _filterDivision = '';
                 _searchCtrl.clear();
               }),
-              icon: const Icon(Icons.clear, size: 15),
-              label: const Text('Clear', style: TextStyle(fontSize: 13)),
+              icon: Icon(Icons.clear, size: 15, color: MyApp.errorColor),
+              label: Text('Clear',
+                  style: TextStyle(fontSize: 13, color: MyApp.errorColor)),
             ),
         ],
       ),
@@ -490,13 +495,13 @@ class _ClassesScreenState extends State<ClassesScreen>
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: MyApp.borderColor),
         borderRadius: BorderRadius.circular(8),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
-          style: const TextStyle(fontSize: 13, color: Colors.black87),
+          style: TextStyle(fontSize: 13, color: MyApp.textPrimaryColor),
           items: items.map((s) {
             return DropdownMenuItem<String>(
               value: s,
@@ -514,17 +519,21 @@ class _ClassesScreenState extends State<ClassesScreen>
   // ─────────────────────────────────────────────────────────
   Widget _buildStats(int total, int videos, int docs, int classes) {
     return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      // color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: MyApp.borderColor)),
+      ),
       child: Row(
         children: [
-          _statCard('Total', total, const Color(0xFF7C3AED)),
+          _statCard('Total', total, MyApp.primaryColor),
           const SizedBox(width: 10),
-          _statCard('Videos', videos, const Color(0xFFDC2626)),
+          _statCard('Videos', videos, MyApp.errorColor),
           const SizedBox(width: 10),
-          _statCard('Documents', docs, const Color(0xFF2563EB)),
+          _statCard('Documents', docs, MyApp.primaryColor),
           const SizedBox(width: 10),
-          _statCard('Classes', classes, const Color(0xFF059669)),
+          _statCard('Classes', classes, MyApp.successColor),
         ],
       ),
     );
@@ -535,18 +544,19 @@ class _ClassesScreenState extends State<ClassesScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.07),
+          color: color.withOpacity(0.05),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withOpacity(0.2)),
+          border: Border.all(color: color.withOpacity(0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('$value',
                 style: TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.w600, color: color)),
+                    fontSize: 20, fontWeight: FontWeight.bold, color: color)),
             Text(label,
-                style: TextStyle(fontSize: 11, color: color.withOpacity(0.75))),
+                style:
+                    TextStyle(fontSize: 11, color: MyApp.textSecondaryColor)),
           ],
         ),
       ),
@@ -563,13 +573,18 @@ class _ClassesScreenState extends State<ClassesScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.folder_open, size: 56, color: Colors.grey[400]),
+            Icon(Icons.folder_open,
+                size: 56, color: MyApp.textSecondaryColor.withOpacity(0.5)),
             const SizedBox(height: 12),
             Text('No materials found',
-                style: TextStyle(fontSize: 16, color: Colors.grey[600])),
+                style: TextStyle(
+                    fontSize: 16,
+                    color: MyApp.textPrimaryColor,
+                    fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Text('Adjust filters or add a new material.',
-                style: TextStyle(fontSize: 13, color: Colors.grey[400])),
+                style:
+                    TextStyle(fontSize: 13, color: MyApp.textSecondaryColor)),
           ],
         ),
       );
@@ -582,12 +597,14 @@ class _ClassesScreenState extends State<ClassesScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 48, color: Color(0xFFDC2626)),
+          Icon(Icons.error_outline, size: 48, color: MyApp.errorColor),
           const SizedBox(height: 12),
-          Text('Firebase error', style: TextStyle(color: Colors.grey[700])),
+          Text('Firebase error',
+              style: TextStyle(
+                  color: MyApp.textPrimaryColor, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text(err,
-              style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+              style: TextStyle(fontSize: 11, color: MyApp.textSecondaryColor),
               textAlign: TextAlign.center),
         ],
       ),
@@ -615,11 +632,13 @@ class _ClassesScreenState extends State<ClassesScreen>
 
   Widget _buildCard(ClassMaterial m) {
     final isVideo = m.type == 'Video';
-    final thumbColor =
-        isVideo ? const Color(0xFFFEF2F2) : const Color(0xFFEFF6FF);
-    final badgeColor =
-        isVideo ? const Color(0xFFDC2626) : const Color(0xFF2563EB);
-    final badgeBg = isVideo ? const Color(0xFFFEE2E2) : const Color(0xFFDBEAFE);
+    final thumbColor = isVideo
+        ? MyApp.errorColor.withOpacity(0.05)
+        : MyApp.primaryColor.withOpacity(0.05);
+    final badgeColor = isVideo ? MyApp.errorColor : MyApp.primaryColor;
+    final badgeBg = isVideo
+        ? MyApp.errorColor.withOpacity(0.1)
+        : MyApp.primaryColor.withOpacity(0.1);
 
     return GestureDetector(
       onTap: () => _openViewDialog(m),
@@ -627,10 +646,10 @@ class _ClassesScreenState extends State<ClassesScreen>
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: MyApp.borderColor),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withOpacity(0.02),
                 blurRadius: 8,
                 offset: const Offset(0, 3))
           ],
@@ -651,8 +670,8 @@ class _ClassesScreenState extends State<ClassesScreen>
                   child: Center(
                     child: Icon(
                       isVideo ? Icons.play_circle_fill : Icons.description,
-                      size: 44,
-                      color: badgeColor.withOpacity(0.6),
+                      size: 40,
+                      color: badgeColor,
                     ),
                   ),
                 ),
@@ -668,9 +687,9 @@ class _ClassesScreenState extends State<ClassesScreen>
                     ),
                     child: Text(m.type,
                         style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             color: badgeColor,
-                            fontWeight: FontWeight.w600)),
+                            fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -683,13 +702,16 @@ class _ClassesScreenState extends State<ClassesScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(m.title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 13),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: MyApp.textPrimaryColor),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
                     Text(m.description,
-                        style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                        style: TextStyle(
+                            color: MyApp.textSecondaryColor, fontSize: 11),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 8),
@@ -697,15 +719,17 @@ class _ClassesScreenState extends State<ClassesScreen>
                       spacing: 4,
                       runSpacing: 4,
                       children: [
-                        _chip(m.cls, const Color(0xFF2563EB),
-                            const Color(0xFFDBEAFE)),
-                        _chip(m.subject, const Color(0xFF854D0E),
-                            const Color(0xFFFEFCE8)),
-                        ...m.division.take(2).map((d) => _chip(d,
-                            const Color(0xFF166534), const Color(0xFFF0FDF4))),
+                        _chip(m.cls, MyApp.primaryColor,
+                            MyApp.primaryColor.withOpacity(0.1)),
+                        _chip(m.subject, MyApp.warningColor,
+                            MyApp.warningColor.withOpacity(0.1)),
+                        ...m.division.take(2).map((d) => _chip(
+                            d,
+                            MyApp.successColor,
+                            MyApp.successColor.withOpacity(0.1))),
                         if (m.division.length > 2)
-                          _chip('+${m.division.length - 2}',
-                              const Color(0xFF166534), const Color(0xFFF0FDF4)),
+                          _chip('+${m.division.length - 2}', MyApp.successColor,
+                              MyApp.successColor.withOpacity(0.1)),
                       ],
                     ),
                     const Spacer(),
@@ -715,19 +739,20 @@ class _ClassesScreenState extends State<ClassesScreen>
                         Expanded(
                           child: Text(m.uploadDate,
                               style: TextStyle(
-                                  color: Colors.grey[500], fontSize: 10)),
+                                  color: MyApp.textSecondaryColor,
+                                  fontSize: 10)),
                         ),
                         if (m.url.isNotEmpty)
-                          _iconBtn(Icons.open_in_new, const Color(0xFF059669),
+                          _iconBtn(Icons.open_in_new, MyApp.successColor,
                               () => _launchURL(m.url)),
                         const SizedBox(width: 4),
                         _iconBtn(Icons.remove_red_eye_outlined,
-                            const Color(0xFF2563EB), () => _openViewDialog(m)),
+                            MyApp.primaryColor, () => _openViewDialog(m)),
                         const SizedBox(width: 4),
-                        _iconBtn(Icons.edit_outlined, const Color(0xFF7C3AED),
+                        _iconBtn(Icons.edit_outlined, MyApp.primaryColor,
                             () => _openEditDialog(m)),
                         const SizedBox(width: 4),
-                        _iconBtn(Icons.delete_outline, const Color(0xFFDC2626),
+                        _iconBtn(Icons.delete_outline, MyApp.errorColor,
                             () => _openDeleteDialog(m)),
                       ],
                     ),
@@ -755,16 +780,17 @@ class _ClassesScreenState extends State<ClassesScreen>
 
   Widget _buildListRow(ClassMaterial m) {
     final isVideo = m.type == 'Video';
-    final badgeColor =
-        isVideo ? const Color(0xFFDC2626) : const Color(0xFF2563EB);
-    final badgeBg = isVideo ? const Color(0xFFFEE2E2) : const Color(0xFFDBEAFE);
+    final badgeColor = isVideo ? MyApp.errorColor : MyApp.primaryColor;
+    final badgeBg = isVideo
+        ? MyApp.errorColor.withOpacity(0.1)
+        : MyApp.primaryColor.withOpacity(0.1);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: MyApp.borderColor),
       ),
       child: Row(
         children: [
@@ -787,11 +813,14 @@ class _ClassesScreenState extends State<ClassesScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(m.title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 13)),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: MyApp.textPrimaryColor)),
                 const SizedBox(height: 2),
                 Text(m.description,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                    style: TextStyle(
+                        color: MyApp.textSecondaryColor, fontSize: 11),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
               ],
@@ -802,35 +831,36 @@ class _ClassesScreenState extends State<ClassesScreen>
           Wrap(
             spacing: 4,
             children: [
-              _chip(m.cls, const Color(0xFF2563EB), const Color(0xFFDBEAFE)),
-              _chip(
-                  m.subject, const Color(0xFF854D0E), const Color(0xFFFEFCE8)),
-              ...m.division.take(2).map((d) =>
-                  _chip(d, const Color(0xFF166534), const Color(0xFFF0FDF4))),
+              _chip(m.cls, MyApp.primaryColor,
+                  MyApp.primaryColor.withOpacity(0.1)),
+              _chip(m.subject, MyApp.warningColor,
+                  MyApp.warningColor.withOpacity(0.1)),
+              ...m.division.take(2).map((d) => _chip(
+                  d, MyApp.successColor, MyApp.successColor.withOpacity(0.1))),
               if (m.division.length > 2)
-                _chip('+${m.division.length - 2}', const Color(0xFF166534),
-                    const Color(0xFFF0FDF4)),
+                _chip('+${m.division.length - 2}', MyApp.successColor,
+                    MyApp.successColor.withOpacity(0.1)),
             ],
           ),
           const SizedBox(width: 12),
           // Date
           Text(m.uploadDate,
-              style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+              style: TextStyle(color: MyApp.textSecondaryColor, fontSize: 11)),
           const SizedBox(width: 12),
           // Actions
           Row(
             children: [
               if (m.url.isNotEmpty)
-                _iconBtn(Icons.open_in_new, const Color(0xFF059669),
+                _iconBtn(Icons.open_in_new, MyApp.successColor,
                     () => _launchURL(m.url)),
               const SizedBox(width: 6),
-              _iconBtn(Icons.remove_red_eye_outlined, const Color(0xFF2563EB),
+              _iconBtn(Icons.remove_red_eye_outlined, MyApp.primaryColor,
                   () => _openViewDialog(m)),
               const SizedBox(width: 6),
-              _iconBtn(Icons.edit_outlined, const Color(0xFF7C3AED),
+              _iconBtn(Icons.edit_outlined, MyApp.primaryColor,
                   () => _openEditDialog(m)),
               const SizedBox(width: 6),
-              _iconBtn(Icons.delete_outline, const Color(0xFFDC2626),
+              _iconBtn(Icons.delete_outline, MyApp.errorColor,
                   () => _openDeleteDialog(m)),
             ],
           ),
@@ -849,7 +879,7 @@ class _ClassesScreenState extends State<ClassesScreen>
           BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
       child: Text(label,
           style: TextStyle(
-              fontSize: 10, color: text, fontWeight: FontWeight.w600)),
+              fontSize: 10, color: text, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -875,6 +905,7 @@ class _ClassesScreenState extends State<ClassesScreen>
       context: context,
       builder: (_) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
         child: SizedBox(
           width: 480,
           child: Column(
@@ -886,8 +917,8 @@ class _ClassesScreenState extends State<ClassesScreen>
                 height: 120,
                 decoration: BoxDecoration(
                   color: m.type == 'Video'
-                      ? const Color(0xFFFEF2F2)
-                      : const Color(0xFFEFF6FF),
+                      ? MyApp.errorColor.withOpacity(0.05)
+                      : MyApp.primaryColor.withOpacity(0.05),
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(16)),
                 ),
@@ -897,10 +928,9 @@ class _ClassesScreenState extends State<ClassesScreen>
                         ? Icons.play_circle_fill
                         : Icons.description,
                     size: 56,
-                    color: (m.type == 'Video'
-                            ? const Color(0xFFDC2626)
-                            : const Color(0xFF2563EB))
-                        .withOpacity(0.55),
+                    color: m.type == 'Video'
+                        ? MyApp.errorColor
+                        : MyApp.primaryColor,
                   ),
                 ),
               ),
@@ -914,27 +944,29 @@ class _ClassesScreenState extends State<ClassesScreen>
                         _chip(
                           m.type,
                           m.type == 'Video'
-                              ? const Color(0xFFDC2626)
-                              : const Color(0xFF2563EB),
+                              ? MyApp.errorColor
+                              : MyApp.primaryColor,
                           m.type == 'Video'
-                              ? const Color(0xFFFEE2E2)
-                              : const Color(0xFFDBEAFE),
+                              ? MyApp.errorColor.withOpacity(0.1)
+                              : MyApp.primaryColor.withOpacity(0.1),
                         ),
                         const Spacer(),
                         Text(m.uploadDate,
                             style: TextStyle(
-                                fontSize: 11, color: Colors.grey[500])),
+                                fontSize: 11, color: MyApp.textSecondaryColor)),
                       ],
                     ),
                     const SizedBox(height: 10),
                     Text(m.title,
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w700)),
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: MyApp.textPrimaryColor)),
                     const SizedBox(height: 6),
                     Text(m.description,
                         style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey[600],
+                            color: MyApp.textSecondaryColor,
                             height: 1.5)),
                     const SizedBox(height: 16),
                     _viewMetaRow('Class', m.cls),
@@ -951,15 +983,16 @@ class _ClassesScreenState extends State<ClassesScreen>
                             width: 80,
                             child: Text('URL',
                                 style: TextStyle(
-                                    fontSize: 12, color: Colors.grey[500])),
+                                    fontSize: 12,
+                                    color: MyApp.textSecondaryColor)),
                           ),
                           Expanded(
                             child: GestureDetector(
                               onTap: () => _launchURL(m.url),
                               child: Text(m.url,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 12,
-                                      color: Color(0xFF2563EB),
+                                      color: MyApp.primaryColor,
                                       decoration: TextDecoration.underline)),
                             ),
                           ),
@@ -972,7 +1005,9 @@ class _ClassesScreenState extends State<ClassesScreen>
                       children: [
                         TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text('Close')),
+                            child: Text('Close',
+                                style: TextStyle(
+                                    color: MyApp.textSecondaryColor))),
                         const SizedBox(width: 8),
                         ElevatedButton(
                           onPressed: () {
@@ -980,7 +1015,7 @@ class _ClassesScreenState extends State<ClassesScreen>
                             _openEditDialog(m);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB),
+                            backgroundColor: MyApp.primaryColor,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8)),
@@ -1006,12 +1041,14 @@ class _ClassesScreenState extends State<ClassesScreen>
         SizedBox(
           width: 80,
           child: Text(label,
-              style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+              style: TextStyle(fontSize: 12, color: MyApp.textSecondaryColor)),
         ),
         Expanded(
           child: Text(value,
-              style:
-                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: MyApp.textPrimaryColor)),
         ),
       ],
     );
@@ -1026,7 +1063,8 @@ class _ClassesScreenState extends State<ClassesScreen>
           child: Padding(
             padding: const EdgeInsets.only(top: 2),
             child: Text(label,
-                style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                style:
+                    TextStyle(fontSize: 12, color: MyApp.textSecondaryColor)),
           ),
         ),
         Expanded(
@@ -1034,8 +1072,8 @@ class _ClassesScreenState extends State<ClassesScreen>
             spacing: 4,
             runSpacing: 4,
             children: divisions
-                .map((d) =>
-                    _chip(d, const Color(0xFF166534), const Color(0xFFF0FDF4)))
+                .map((d) => _chip(
+                    d, MyApp.successColor, MyApp.successColor.withOpacity(0.1)))
                 .toList(),
           ),
         ),
@@ -1511,6 +1549,7 @@ class _ClassesScreenState extends State<ClassesScreen>
       context: context,
       builder: (_) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        backgroundColor: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -1521,26 +1560,30 @@ class _ClassesScreenState extends State<ClassesScreen>
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEE2E2),
+                  color: MyApp.errorColor.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.delete_outline,
-                    size: 24, color: Color(0xFFDC2626)),
+                child: Icon(Icons.delete_outline,
+                    size: 24, color: MyApp.errorColor),
               ),
               const SizedBox(height: 14),
-              const Text('Delete Material',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              Text('Delete Material',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: MyApp.textPrimaryColor)),
               const SizedBox(height: 8),
               RichText(
                 text: TextSpan(
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  style:
+                      TextStyle(fontSize: 13, color: MyApp.textSecondaryColor),
                   children: [
                     const TextSpan(text: 'Are you sure you want to delete "'),
                     TextSpan(
                         text: m.title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87)),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: MyApp.textPrimaryColor)),
                     const TextSpan(text: '"? This cannot be undone.'),
                   ],
                 ),
@@ -1551,7 +1594,8 @@ class _ClassesScreenState extends State<ClassesScreen>
                 children: [
                   TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel')),
+                      child: Text('Cancel',
+                          style: TextStyle(color: MyApp.textSecondaryColor))),
                   const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: () {
@@ -1559,7 +1603,7 @@ class _ClassesScreenState extends State<ClassesScreen>
                       _deleteMaterial(m.docId);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFDC2626),
+                      backgroundColor: MyApp.errorColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 12),
@@ -1590,27 +1634,28 @@ class _ClassesScreenState extends State<ClassesScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(fontSize: 12, color: Colors.black54)),
+            style: TextStyle(fontSize: 12, color: MyApp.textSecondaryColor)),
         const SizedBox(height: 5),
         TextField(
           controller: ctrl,
           maxLines: maxLines,
+          style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(fontSize: 13),
+            hintStyle: TextStyle(fontSize: 13, color: MyApp.textSecondaryColor),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(color: MyApp.borderColor),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(color: MyApp.borderColor),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFF2563EB)),
+              borderSide: BorderSide(color: MyApp.primaryColor),
             ),
           ),
         ),
@@ -1624,29 +1669,31 @@ class _ClassesScreenState extends State<ClassesScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(fontSize: 12, color: Colors.black54)),
+            style: TextStyle(fontSize: 12, color: MyApp.textSecondaryColor)),
         const SizedBox(height: 5),
         DropdownButtonFormField<String>(
           value: value,
+          style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
           decoration: InputDecoration(
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300)),
+                borderSide: BorderSide(color: MyApp.borderColor)),
             enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300)),
+                borderSide: BorderSide(color: MyApp.borderColor)),
             focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF2563EB))),
+                borderSide: BorderSide(color: MyApp.primaryColor)),
           ),
           isExpanded: true,
           items: items
               .map((s) => DropdownMenuItem(
                   value: s,
                   child: Text(s,
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                          fontSize: 13, color: MyApp.textPrimaryColor),
                       overflow: TextOverflow.ellipsis)))
               .toList(),
           onChanged: (v) {

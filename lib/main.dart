@@ -14,6 +14,8 @@ import 'package:corona_lms_webapp/src/view/screens/mark-history.dart';
 import 'package:corona_lms_webapp/src/view/screens/notifications_screen.dart';
 import 'package:corona_lms_webapp/src/view/screens/students_screen.dart';
 import 'package:corona_lms_webapp/src/view/screens/teachers_screen.dart';
+import 'package:corona_lms_webapp/src/view/screens/messages_screen.dart';
+import 'package:corona_lms_webapp/src/view/screens/settings_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -47,12 +49,24 @@ void main() async {
 class MyApp extends StatelessWidget {
   MyApp({Key? key}) : super(key: key);
 
-  // Define app colors
-  static const Color primaryColor = Color(0xFF1E3A8A); // Deep blue
-  static const Color accentColor = Color(0xFFFFC107); // Yellow
-  static const Color darkColor = Color(0xFF121212); // Almost black
-  static const Color lightColor = Color(0xFFF8F9FA); // Light background
-  static const Color secondaryBlue = Color(0xFF3B82F6); // Secondary blue
+  // Define app colors (Modern SaaS Palette)
+  static const Color primaryColor = Color(0xFF3B82F6); // Primary Blue
+  static const Color primaryDark = Color(0xFF2563EB); // Primary Dark Blue
+  static const Color accentColor = Color(0xFF60A5FA); // Accent Light Blue
+  static const Color backgroundColor = Color(0xFFF8FAFC); // Clean Background
+  static const Color surfaceColor = Color(0xFFFFFFFF); // Surface Card White
+  static const Color borderColor = Color(0xFFE5E7EB); // Soft Border Gray
+  static const Color dividerColor = Color(0xFFF1F5F9); // Light Divider
+  static const Color textPrimaryColor = Color(0xFF111827); // Dark Text
+  static const Color textSecondaryColor = Color(0xFF6B7280); // Gray Text
+  static const Color successColor = Color(0xFF22C55E); // Green Success
+  static const Color warningColor = Color(0xFFF59E0B); // Amber Warning
+  static const Color errorColor = Color(0xFFEF4444); // Red Error
+
+  // Maintain old constants mapping for screen compatibility
+  static const Color darkColor = textPrimaryColor;
+  static const Color lightColor = backgroundColor;
+  static const Color secondaryBlue = primaryColor;
 
   // Set up routing
   final _router = GoRouter(
@@ -87,10 +101,6 @@ class MyApp extends StatelessWidget {
             path: '/fees',
             builder: (context, state) => const FeesScreen(),
           ),
-          // GoRoute(
-          //   path: '/messages',
-          //   builder: (context, state) => const MessagesScreen(),
-          // ),
           GoRoute(
             path: '/classes',
             builder: (context, state) => const ClassesScreen(),
@@ -116,6 +126,14 @@ class MyApp extends StatelessWidget {
               userRole: 'notifications',
             ),
           ),
+          GoRoute(
+            path: '/messages',
+            builder: (context, state) => const MessagesScreen(),
+          ),
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsScreen(),
+          ),
         ],
       ),
     ],
@@ -128,17 +146,22 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: primaryColor,
-        colorScheme: ColorScheme.light(
+        scaffoldBackgroundColor: backgroundColor,
+        dividerColor: dividerColor,
+        colorScheme: const ColorScheme.light(
           primary: primaryColor,
           secondary: accentColor,
-          surface: lightColor,
-          background: lightColor,
+          surface: surfaceColor,
+          background: backgroundColor,
         ),
-        textTheme: GoogleFonts.poppinsTextTheme(),
+        textTheme: GoogleFonts.poppinsTextTheme().apply(
+          bodyColor: textPrimaryColor,
+          displayColor: textPrimaryColor,
+        ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: accentColor,
-            foregroundColor: darkColor,
+            backgroundColor: primaryColor,
+            foregroundColor: Colors.white,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             shape: RoundedRectangleBorder(
@@ -146,12 +169,25 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        // cardTheme: CardTheme(
-        //   elevation: 2,
-        //   shape: RoundedRectangleBorder(
-        //     borderRadius: BorderRadius.circular(16),
-        //   ),
-        // ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: borderColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: borderColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: primaryColor, width: 2),
+          ),
+          labelStyle: const TextStyle(color: textSecondaryColor),
+          hintStyle: TextStyle(color: textSecondaryColor.withOpacity(0.7)),
+        ),
       ),
       routerConfig: _router,
     );
@@ -221,9 +257,6 @@ class _MainLayoutState extends State<MainLayout>
       case 4:
         context.go('/fees');
         break;
-      // case 4:
-      //   context.go('/messages');
-      //   break;
       case 5:
         context.go('/classes');
         break;
@@ -239,9 +272,12 @@ class _MainLayoutState extends State<MainLayout>
       case 9:
         context.go('/notifications');
         break;
-      // case 8:
-      //   context.go('/settings');
-      //   break;
+      case 10:
+        context.go('/messages');
+        break;
+      case 11:
+        context.go('/settings');
+        break;
     }
   }
 
@@ -249,106 +285,174 @@ class _MainLayoutState extends State<MainLayout>
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth < 1100;
+    final studentProvider = Provider.of<StudentDetailsProvider>(context);
+    final userEmail = studentProvider.teacher_name ?? '';
+    final displayName = userEmail.isNotEmpty
+        ? (userEmail.contains('@') ? userEmail.split('@')[0] : userEmail)
+        : 'Administrator';
+    final capitalizedName = displayName.isNotEmpty
+        ? (displayName[0].toUpperCase() + displayName.substring(1))
+        : 'Admin';
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.purple[400]!, Colors.blue[400]!],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Row(
-          children: [
-            // Animated sidebar
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              width: _isExpanded ? (isTablet ? 70 : 250) : 70,
-              child: Column(
-                children: [
-                  const SizedBox(height: 24),
-                  // Logo
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: _isExpanded && !isTablet
-                          ? MainAxisAlignment.start
-                          : MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: MyApp.accentColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child:
-                              const Icon(Icons.school, color: MyApp.darkColor),
+      backgroundColor: MyApp.backgroundColor,
+      body: Row(
+        children: [
+          // Animated sidebar
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: _isExpanded ? (isTablet ? 70 : 260) : 70,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                right: BorderSide(color: MyApp.borderColor, width: 1),
+              ),
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: 24),
+                // Logo
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: _isExpanded && !isTablet
+                        ? MainAxisAlignment.start
+                        : MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: MyApp.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        if (_isExpanded && !isTablet) ...[
-                          const SizedBox(width: 12),
-                          const Text(
-                            'Academy',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
+                        child: const Icon(Icons.school, color: MyApp.primaryColor, size: 24),
+                      ),
+                      if (_isExpanded && !isTablet) ...[
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Academy LMS',
+                          style: TextStyle(
+                            color: MyApp.textPrimaryColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                // Navigation items
+                Expanded(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      _buildNavItem(0, Icons.dashboard_outlined, 'Dashboard'),
+                      _buildNavItem(1, Icons.people_outline, 'Students'),
+                      _buildNavItem(2, Icons.supervisor_account_outlined, 'Teachers'),
+                      _buildNavItem(3, Icons.how_to_reg_outlined, 'Attendance'),
+                      _buildNavItem(4, Icons.payment_outlined, 'Fees'),
+                      _buildNavItem(5, Icons.video_library_outlined, 'Classes'),
+                      _buildNavItem(6, Icons.assignment_outlined, 'Exam'),
+                      _buildNavItem(7, Icons.grade_outlined, 'Mark Listing'),
+                      _buildNavItem(8, Icons.edit_note_outlined, 'Update Mark'),
+                      _buildNavItem(9, Icons.notifications_none_outlined, 'Notifications'),
+                      _buildNavItem(10, Icons.chat_bubble_outline, 'Messages'),
+                      _buildNavItem(11, Icons.settings_outlined, 'Settings'),
+                    ],
+                  ),
+                ),
+                // Profile Section at bottom
+                if (_isExpanded && !isTablet)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: MyApp.backgroundColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: MyApp.borderColor),
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: MyApp.primaryColor.withOpacity(0.1),
+                          child: Text(
+                            capitalizedName[0].toUpperCase(),
+                            style: const TextStyle(
+                              color: MyApp.primaryColor,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ],
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                capitalizedName,
+                                style: const TextStyle(
+                                  color: MyApp.textPrimaryColor,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const Text(
+                                'Admin Account',
+                                style: TextStyle(
+                                  color: MyApp.textSecondaryColor,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 40),
-                  // Navigation items
-                  Expanded(
-                    child: ListView(
-                      padding: EdgeInsets.zero,
-                      children: [
-                        _buildNavItem(0, Icons.dashboard, 'Dashboard'),
-                        _buildNavItem(1, Icons.people, 'Students'),
-                        _buildNavItem(2, Icons.people, 'Teachers'),
-
-                        _buildNavItem(3, Icons.people, 'Attendance'),
-                        _buildNavItem(4, Icons.payments, 'Fees'),
-                        // _buildNavItem(4, Icons.message, 'Messages'),
-                        _buildNavItem(5, Icons.youtube_searched_for, 'Classes'),
-                        _buildNavItem(6, Icons.edit_document, 'Exam'),
-                        _buildNavItem(7, Icons.mark_as_unread, 'Mark Listing'),
-                        _buildNavItem(
-                            8, Icons.mark_chat_read_sharp, 'Update Mark'),
-
-                        _buildNavItem(9, Icons.notifications, 'Notifications'),
-                        // _buildNavItem(8, Icons.settings, 'Settings'),
-                      ],
-                    ),
-                  ),
-                  // Toggle sidebar button
-                  if (!isTablet)
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: IconButton(
-                        onPressed: () {},
-                        // onPressed: _toggleSidebar,
-                        icon: AnimatedIcon(
-                          icon: AnimatedIcons.menu_close,
-                          progress: _animationController,
-                          color: Colors.white,
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: CircleAvatar(
+                      radius: 16,
+                      backgroundColor: MyApp.primaryColor.withOpacity(0.1),
+                      child: Text(
+                        capitalizedName[0].toUpperCase(),
+                        style: const TextStyle(
+                          color: MyApp.primaryColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
                         ),
                       ),
                     ),
-                ],
-              ),
+                  ),
+                // Toggle sidebar button
+                if (!isTablet)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: IconButton(
+                      onPressed: _toggleSidebar,
+                      icon: AnimatedIcon(
+                        icon: AnimatedIcons.menu_close,
+                        progress: _animationController,
+                        color: MyApp.textSecondaryColor,
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            // Main content
-            Expanded(
-              child: Container(
-                color: Colors.grey[100],
-                child: widget.child,
-              ),
+          ),
+          // Main content
+          Expanded(
+            child: Container(
+              color: MyApp.backgroundColor,
+              child: widget.child,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -362,7 +466,7 @@ class _MainLayoutState extends State<MainLayout>
       duration: const Duration(milliseconds: 200),
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: isSelected ? MyApp.accentColor : Colors.transparent,
+        color: isSelected ? MyApp.primaryColor.withOpacity(0.08) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Material(
@@ -376,14 +480,14 @@ class _MainLayoutState extends State<MainLayout>
               children: [
                 Icon(
                   icon,
-                  color: isSelected ? MyApp.darkColor : Colors.white,
+                  color: isSelected ? MyApp.primaryColor : MyApp.textSecondaryColor,
                 ),
                 if (_isExpanded && !isTablet) ...[
                   const SizedBox(width: 12),
                   Text(
                     title,
                     style: TextStyle(
-                      color: isSelected ? MyApp.darkColor : Colors.white,
+                      color: isSelected ? MyApp.primaryColor : MyApp.textSecondaryColor,
                       fontWeight:
                           isSelected ? FontWeight.bold : FontWeight.normal,
                     ),

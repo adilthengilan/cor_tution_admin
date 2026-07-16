@@ -1,3 +1,4 @@
+import 'package:corona_lms_webapp/main.dart';
 import 'package:corona_lms_webapp/src/controller/fee_recorder/fee_recorder.dart';
 import 'package:corona_lms_webapp/src/controller/student_controllers/fetch_Student_Details.dart';
 import 'package:flutter/material.dart';
@@ -74,23 +75,30 @@ class _LoginScreenState extends State<LoginScreen>
     final isTablet = screenSize.width < 1100;
     fetchTotalAmount('student_fees');
 
+    // Limit maximum width on wide desktop monitors for professional presentation
+    final containerWidth = isTablet 
+        ? screenSize.width * 0.9 
+        : (screenSize.width * 0.7).clamp(800.0, 1100.0);
+    final containerHeight = isTablet ? null : (screenSize.height * 0.8).clamp(600.0, 800.0);
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color(0xFFF8FAFC), // Modern background
       body: Center(
         child: SingleChildScrollView(
           child: Container(
-            width: isTablet ? screenSize.width * 0.9 : screenSize.width * 0.7,
-            height: isTablet ? null : screenSize.height * 0.8,
+            width: containerWidth,
+            height: containerHeight,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
                 ),
               ],
+              border: Border.all(color: const Color(0xFFE5E7EB)),
             ),
             child: Row(
               children: [
@@ -98,9 +106,9 @@ class _LoginScreenState extends State<LoginScreen>
                 if (!isTablet)
                   Expanded(
                     child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E3A8A),
-                        borderRadius: const BorderRadius.only(
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF3B82F6), // Modern Primary Blue
+                        borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(24),
                           bottomLeft: Radius.circular(24),
                         ),
@@ -110,7 +118,10 @@ class _LoginScreenState extends State<LoginScreen>
                         children: [
                           Lottie.network(
                             'https://assets9.lottiefiles.com/packages/lf20_iorpbol0.json',
-                            height: 300,
+                            height: 280,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(Icons.school, size: 120, color: Colors.white);
+                            },
                           ),
                           const SizedBox(height: 32),
                           FadeTransition(
@@ -121,20 +132,22 @@ class _LoginScreenState extends State<LoginScreen>
                                 color: Colors.white,
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
+                                letterSpacing: -0.5,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           FadeTransition(
                             opacity: _fadeAnimation,
                             child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 32),
+                              padding: EdgeInsets.symmetric(horizontal: 40),
                               child: Text(
                                 'Manage your tuition center with our comprehensive learning management system',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white70,
-                                  fontSize: 16,
+                                  fontSize: 15,
+                                  height: 1.4,
                                 ),
                               ),
                             ),
@@ -147,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen>
                 // Right side with login form
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(32.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 32.0),
                     child: Form(
                       key: _formKey,
                       child: Column(
@@ -155,33 +168,49 @@ class _LoginScreenState extends State<LoginScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (isTablet) ...[
-                            const Center(
-                              child: Text(
-                                'Academy LMS',
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E3A8A),
-                                ),
+                            Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF3B82F6).withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(Icons.school, color: Color(0xFF3B82F6), size: 24),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    'Academy LMS',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF111827),
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 32),
+                            const SizedBox(height: 40),
                           ],
 
                           const Text(
-                            'Login',
+                            'Sign In',
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E3A8A),
+                              color: Color(0xFF111827),
+                              letterSpacing: -0.5,
                             ),
                           ),
                           const SizedBox(height: 8),
                           const Text(
-                            'Please sign in to continue',
+                            'Enter your credentials to access your account',
                             style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
+                              fontSize: 15,
+                              color: Color(0xFF6B7280),
                             ),
                           ),
                           const SizedBox(height: 32),
@@ -192,15 +221,19 @@ class _LoginScreenState extends State<LoginScreen>
                             decoration: InputDecoration(
                               labelText: 'Email',
                               hintText: 'Enter your email',
-                              prefixIcon: const Icon(Icons.email,
-                                  color: Color(0xFF3B82F6)),
+                              labelStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
+                              hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+                              prefixIcon: const Icon(Icons.email_outlined,
+                                  color: Color(0xFF6B7280), size: 20),
+                              fillColor: Colors.white,
+                              filled: true,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade300),
+                                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -216,21 +249,18 @@ class _LoginScreenState extends State<LoginScreen>
                                 return 'Please enter a valid email';
                               }
 
-                              // List of valid emails
                               List<String> validEmails = [
-                                // 'mohammedshameem015@gmail.com',
                                 'nuwadiyalms956@gmail.com',
-                                // 'coronacoachingcentre2@gmail.com',
                               ];
 
                               if (!validEmails.contains(value)) {
                                 return 'Check your email';
                               }
 
-                              return null; // valid
+                              return null;
                             },
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
 
                           // Password field
                           TextFormField(
@@ -239,15 +269,19 @@ class _LoginScreenState extends State<LoginScreen>
                             decoration: InputDecoration(
                               labelText: 'Password',
                               hintText: 'Enter your password',
-                              prefixIcon: const Icon(Icons.lock,
-                                  color: Color(0xFF3B82F6)),
+                              labelStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
+                              hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+                              prefixIcon: const Icon(Icons.lock_outlined,
+                                  color: Color(0xFF6B7280), size: 20),
+                              fillColor: Colors.white,
+                              filled: true,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade300),
+                                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -263,18 +297,15 @@ class _LoginScreenState extends State<LoginScreen>
                                 return 'Password must be at least 6 characters';
                               }
 
-                              // List of valid passwords
                               List<String> validPasswords = [
-                                // 'ShameemCorona@123',
                                 'NuwaDiya@123',
-                                // 'CoachingCentre@123',
                               ];
 
                               if (!validPasswords.contains(value)) {
                                 return 'Please enter correct password';
                               }
 
-                              return null; // valid
+                              return null;
                             },
                           ),
                           const SizedBox(height: 12),
@@ -284,35 +315,42 @@ class _LoginScreenState extends State<LoginScreen>
                             alignment: Alignment.centerRight,
                             child: TextButton(
                               onPressed: () {},
-                              child: const Text(
-                                'Forgot Password?',
-                                style: TextStyle(
-                                  color: Color(0xFF3B82F6),
-                                ),
+                              style: TextButton.styleFrom(
+                                foregroundColor: const Color(0xFF3B82F6),
+                                textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                               ),
+                              child: const Text('Forgot Password?'),
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
 
                           // Login button
                           SizedBox(
                             width: double.infinity,
-                            height: 50,
+                            height: 48,
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _login,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFFC107),
-                                foregroundColor: Colors.black,
+                                backgroundColor: const Color(0xFF3B82F6),
+                                foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
+                                elevation: 0,
                               ),
                               child: _isLoading
-                                  ? const CircularProgressIndicator()
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
                                   : const Text(
                                       'Login',
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -327,17 +365,15 @@ class _LoginScreenState extends State<LoginScreen>
                               children: [
                                 const Text(
                                   "Don't have an account? ",
-                                  style: TextStyle(color: Colors.grey),
+                                  style: TextStyle(color: Color(0xFF6B7280), fontSize: 14),
                                 ),
                                 TextButton(
                                   onPressed: () {},
-                                  child: const Text(
-                                    'Register',
-                                    style: TextStyle(
-                                      color: Color(0xFF3B82F6),
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: const Color(0xFF3B82F6),
+                                    textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                   ),
+                                  child: const Text('Register'),
                                 ),
                               ],
                             ),

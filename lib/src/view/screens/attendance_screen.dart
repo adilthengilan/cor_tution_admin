@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:corona_lms_webapp/main.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  FIRESTORE STRUCTURE
@@ -57,14 +58,14 @@ class AttendanceScreen extends StatefulWidget {
 
 class _AttendanceScreenState extends State<AttendanceScreen>
     with TickerProviderStateMixin {
-  // ── Palette ──────────────────────────────────────────────────────
-  static const Color primaryBlue = Color(0xFF4F46E5);
-  static const Color successGreen = Color(0xFF10B981);
-  static const Color warningAmber = Color(0xFFF59E0B);
-  static const Color dangerRed = Color(0xFFEF4444);
-  static const Color lightGray = Color(0xFFF8FAFC);
-  static const Color mediumGray = Color(0xFF64748B);
-  static const Color darkGray = Color(0xFF1E293B);
+  // ── Palette mapped to MyApp ──────────────────────────────────────
+  Color get primaryBlue => MyApp.primaryColor;
+  Color get successGreen => MyApp.successColor;
+  Color get warningAmber => MyApp.warningColor;
+  Color get dangerRed => MyApp.errorColor;
+  Color get lightGray => MyApp.backgroundColor;
+  Color get mediumGray => MyApp.textSecondaryColor;
+  Color get darkGray => MyApp.textPrimaryColor;
 
   // ── HR config ────────────────────────────────────────────────────
   static const List<String> _hrKeys = [
@@ -360,24 +361,33 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: MyApp.borderColor)),
         title: Row(children: [
           Icon(_statusIcon(status), color: _statusColor(status)),
           const SizedBox(width: 10),
           Text('Mark All ${_cap(status)}',
-              style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
+              style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.bold, color: darkGray)),
         ]),
         content: Text(
           'Mark all ${_filtered.length} students as ${_cap(status)} for ${_selHr.toUpperCase()}?',
-          style: GoogleFonts.nunito(fontSize: 15),
+          style: GoogleFonts.nunito(fontSize: 15, color: mediumGray),
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('Cancel',
+                  style: GoogleFonts.nunito(
+                      color: mediumGray, fontWeight: FontWeight.bold))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: _statusColor(status),
               foregroundColor: Colors.white,
+              elevation: 0,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
             ),
@@ -389,7 +399,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 }
               });
             },
-            child: const Text('Confirm'),
+            child: Text('Confirm',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -451,13 +462,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         context: context,
         barrierDismissible: false,
         builder: (_) =>
-            const Center(child: CircularProgressIndicator(color: Colors.white)),
+            const Center(child: CircularProgressIndicator(color: MyApp.primaryColor)),
       );
 
   void _showSnack(String msg, Color color) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, style: GoogleFonts.nunito(color: Colors.white)),
+      content: Text(msg, style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.bold)),
       backgroundColor: color,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -485,11 +496,11 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         _buildHrSelector(),
                         const SizedBox(height: 20),
                         _buildCompletionTracker(),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                         _buildSearchAndFilters(),
                         const SizedBox(height: 16),
                         _buildQuickActions(),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                         _buildListHeader(),
                         const SizedBox(height: 12),
                       ],
@@ -509,26 +520,15 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   Widget _buildAppBar() {
     return SliverAppBar(
       automaticallyImplyLeading: false,
-      expandedHeight: 120,
       pinned: true,
-      backgroundColor: primaryBlue,
+      backgroundColor: Colors.white,
       elevation: 0,
-      flexibleSpace: FlexibleSpaceBar(
-        title: Text('Attendance',
-            style: GoogleFonts.nunito(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 22)),
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [primaryBlue, Color(0xFF6366F1)],
-            ),
-          ),
-        ),
-      ),
+      shape: Border(bottom: BorderSide(color: MyApp.borderColor)),
+      title: Text('Attendance',
+          style: GoogleFonts.nunito(
+              color: MyApp.textPrimaryColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 20)),
       actions: [
         _appBarBtn(Icons.refresh_rounded, _loadStudents, 'Refresh'),
         _appBarBtn(
@@ -546,17 +546,18 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: MyApp.primaryColor.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: MyApp.primaryColor.withOpacity(0.15)),
               ),
               child: Row(children: [
-                const Icon(Icons.calendar_today_rounded,
-                    color: Colors.white, size: 14),
+                Icon(Icons.calendar_today_rounded,
+                    color: MyApp.primaryColor, size: 14),
                 const SizedBox(width: 6),
                 Text(DateFormat('dd MMM').format(_selDate),
                     style: GoogleFonts.nunito(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
+                        color: MyApp.primaryColor,
+                        fontWeight: FontWeight.bold,
                         fontSize: 13)),
               ]),
             ),
@@ -570,11 +571,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     return Container(
       margin: const EdgeInsets.only(right: 6, top: 8, bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: MyApp.borderColor),
       ),
       child: IconButton(
-          icon: Icon(icon, color: Colors.white), onPressed: fn, tooltip: tip),
+          icon: Icon(icon, color: MyApp.textSecondaryColor), onPressed: fn, tooltip: tip),
     );
   }
 
@@ -586,7 +588,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       lastDate: DateTime.now(),
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
-            colorScheme: const ColorScheme.light(primary: primaryBlue)),
+            colorScheme: ColorScheme.light(primary: MyApp.primaryColor)),
         child: child!,
       ),
     );
@@ -603,7 +605,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       children: [
         Text('Select Hour',
             style: GoogleFonts.nunito(
-                fontSize: 13, fontWeight: FontWeight.w700, color: mediumGray)),
+                fontSize: 13, fontWeight: FontWeight.bold, color: mediumGray)),
         const SizedBox(height: 10),
         SizedBox(
           height: 44,
@@ -632,25 +634,17 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     color: selected
                         ? primaryBlue
                         : done
-                            ? successGreen.withOpacity(0.1)
+                            ? successGreen.withOpacity(0.08)
                             : Colors.white,
                     borderRadius: BorderRadius.circular(22),
                     border: Border.all(
                       color: selected
                           ? primaryBlue
                           : done
-                              ? successGreen
-                              : Colors.grey.shade200,
+                              ? successGreen.withOpacity(0.3)
+                              : MyApp.borderColor,
                       width: 1.5,
                     ),
-                    boxShadow: selected
-                        ? [
-                            BoxShadow(
-                                color: primaryBlue.withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3))
-                          ]
-                        : [],
                   ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     if (done && !selected)
@@ -662,7 +656,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     Text(label,
                         style: GoogleFonts.nunito(
                             fontSize: 13,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.bold,
                             color: selected
                                 ? Colors.white
                                 : done
@@ -696,11 +690,11 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         Row(children: [
           Text('Class Status — ',
               style: GoogleFonts.nunito(
-                  fontSize: 14, fontWeight: FontWeight.w800, color: darkGray)),
+                  fontSize: 14, fontWeight: FontWeight.bold, color: darkGray)),
           Text(_hrLabels[_hrKeys.indexOf(_selHr)],
               style: GoogleFonts.nunito(
                   fontSize: 14,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.bold,
                   color: primaryBlue)),
         ]),
         const SizedBox(height: 10),
@@ -737,21 +731,21 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         color: done
                             ? successGreen
                             : selected
-                                ? primaryBlue.withOpacity(0.1)
+                                ? primaryBlue.withOpacity(0.08)
                                 : Colors.white,
                         border: Border.all(
                           color: done
                               ? successGreen
                               : selected
                                   ? primaryBlue
-                                  : Colors.grey.shade300,
+                                  : MyApp.borderColor,
                           width: 2,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: done
-                                ? successGreen.withOpacity(0.35)
-                                : Colors.black.withOpacity(0.06),
+                                ? successGreen.withOpacity(0.2)
+                                : Colors.black.withOpacity(0.02),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -764,7 +758,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                               child: Text(div,
                                   style: GoogleFonts.nunito(
                                       fontSize: 11,
-                                      fontWeight: FontWeight.w800,
+                                      fontWeight: FontWeight.bold,
                                       color:
                                           selected ? primaryBlue : mediumGray)),
                             ),
@@ -773,7 +767,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     Text(cls,
                         style: GoogleFonts.nunito(
                             fontSize: 10,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.bold,
                             color: done
                                 ? successGreen
                                 : selected
@@ -793,17 +787,30 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   Widget _buildSearchAndFilters() {
     return Column(children: [
       Container(
-        decoration: _cardDeco(),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: MyApp.borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.01),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
         child: TextField(
           controller: _searchCtrl,
           onChanged: (_) => setState(() {}),
-          style: GoogleFonts.nunito(),
+          style: GoogleFonts.nunito(color: darkGray),
           decoration: InputDecoration(
             hintText: 'Search by name or roll no...',
             hintStyle: GoogleFonts.nunito(color: mediumGray),
-            prefixIcon: const Icon(Icons.search_rounded, color: mediumGray),
+            prefixIcon: Icon(Icons.search_rounded, color: mediumGray),
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.all(16),
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
       ),
@@ -827,14 +834,18 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   Widget _dropdown(
       String value, List<String> items, Function(String?) onChange) {
     return Container(
-      decoration: _cardDeco(),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: MyApp.borderColor),
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           isExpanded: true,
           style: GoogleFonts.nunito(fontSize: 13, color: darkGray),
-          icon: const Icon(Icons.arrow_drop_down_rounded),
+          icon: Icon(Icons.arrow_drop_down_rounded, color: mediumGray),
           items: items
               .map((e) => DropdownMenuItem(
                   value: e,
@@ -867,15 +878,17 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     return ElevatedButton.icon(
       onPressed: fn,
       style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
+        backgroundColor: color.withOpacity(0.08),
+        foregroundColor: color,
         padding: const EdgeInsets.symmetric(vertical: 13),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: color.withOpacity(0.15))),
         elevation: 0,
       ),
-      icon: Icon(icon, size: 15),
+      icon: Icon(icon, size: 15, color: color),
       label: Text(label,
-          style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700)),
+          style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -886,17 +899,18 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       children: [
         Text('Students (${_filtered.length})',
             style: GoogleFonts.nunito(
-                fontSize: 17, fontWeight: FontWeight.w800, color: darkGray)),
+                fontSize: 16, fontWeight: FontWeight.bold, color: darkGray)),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: primaryBlue.withOpacity(0.1),
+            color: primaryBlue.withOpacity(0.08),
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: primaryBlue.withOpacity(0.15)),
           ),
           child: Text(DateFormat('MMM d, yyyy').format(_selDate),
               style: GoogleFonts.nunito(
                   color: primaryBlue,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.bold,
                   fontSize: 12)),
         ),
       ],
@@ -952,14 +966,16 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withOpacity(0.01),
               blurRadius: 10,
-              offset: const Offset(0, 2))
+              offset: const Offset(0, 4))
         ],
-        border: status != null
-            ? Border.all(
-                color: _statusColor(status).withOpacity(0.35), width: 1.5)
-            : null,
+        border: Border.all(
+          color: status != null
+              ? _statusColor(status).withOpacity(0.35)
+              : MyApp.borderColor,
+          width: status != null ? 1.5 : 1,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -968,11 +984,11 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           Row(children: [
             CircleAvatar(
               radius: 22,
-              backgroundColor: primaryBlue.withOpacity(0.12),
+              backgroundColor: primaryBlue.withOpacity(0.08),
               child: Text(
                 name.isNotEmpty ? name[0].toUpperCase() : '?',
                 style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.bold,
                     color: primaryBlue,
                     fontSize: 16),
               ),
@@ -984,16 +1000,16 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   children: [
                     Text(name,
                         style: GoogleFonts.nunito(
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.bold,
                             fontSize: 14,
                             color: darkGray)),
                     const SizedBox(height: 3),
                     Row(children: [
                       _chip(student['class'] ?? '',
-                          primaryBlue.withOpacity(0.12), primaryBlue),
+                          primaryBlue.withOpacity(0.08), primaryBlue),
                       const SizedBox(width: 6),
                       _chip(student['division'] ?? '',
-                          Colors.purple.withOpacity(0.12), Colors.purple),
+                          Colors.purple.withOpacity(0.08), Colors.purple),
                       const SizedBox(width: 6),
                       Text('Roll: ${student['rollNo'] ?? 'N/A'}',
                           style: GoogleFonts.nunito(
@@ -1006,14 +1022,15 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: _statusColor(status),
+                  color: _statusColor(status).withOpacity(0.08),
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: _statusColor(status).withOpacity(0.2)),
                 ),
                 child: Text(_cap(status),
                     style: GoogleFonts.nunito(
-                        color: Colors.white,
+                        color: _statusColor(status),
                         fontSize: 11,
-                        fontWeight: FontWeight.w700)),
+                        fontWeight: FontWeight.bold)),
               ),
           ]),
           const SizedBox(height: 12),
@@ -1042,17 +1059,20 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     return ElevatedButton.icon(
       onPressed: () => _markStudent(uid, value),
       style: ElevatedButton.styleFrom(
-        backgroundColor: sel ? color : Colors.grey.shade100,
+        backgroundColor: sel ? color : Colors.white,
         foregroundColor: sel ? Colors.white : mediumGray,
         padding: const EdgeInsets.symmetric(vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(color: sel ? color : MyApp.borderColor, width: 1),
+        ),
         elevation: 0,
       ),
-      icon: Icon(icon, size: 14),
+      icon: Icon(icon, size: 14, color: sel ? Colors.white : mediumGray),
       label: Text(label,
           style: GoogleFonts.nunito(
               fontSize: 11,
-              fontWeight: sel ? FontWeight.w800 : FontWeight.w600)),
+              fontWeight: sel ? FontWeight.bold : FontWeight.w600)),
     );
   }
 
@@ -1064,12 +1084,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       child: FloatingActionButton.extended(
         onPressed: _saveAttendance,
         backgroundColor: primaryBlue,
-        elevation: 8,
+        elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         label: Text(
           'Save ${_selHr.toUpperCase()} Attendance (${_pending.length})',
           style: GoogleFonts.nunito(
-              fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+              fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         icon: const Icon(Icons.save_rounded, color: Colors.white),
       ),
@@ -1083,20 +1103,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           BoxDecoration(color: bg, borderRadius: BorderRadius.circular(6)),
       child: Text(label,
           style: GoogleFonts.nunito(
-              fontSize: 11, fontWeight: FontWeight.w700, color: fg)),
+              fontSize: 11, fontWeight: FontWeight.bold, color: fg)),
     );
   }
-
-  BoxDecoration _cardDeco() => BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2))
-        ],
-      );
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -1112,13 +1121,13 @@ class AttendanceHistoryScreen extends StatefulWidget {
 }
 
 class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
-  static const Color primaryBlue = Color(0xFF4F46E5);
-  static const Color successGreen = Color(0xFF10B981);
-  static const Color warningAmber = Color(0xFFF59E0B);
-  static const Color dangerRed = Color(0xFFEF4444);
-  static const Color lightGray = Color(0xFFF8FAFC);
-  static const Color mediumGray = Color(0xFF64748B);
-  static const Color darkGray = Color(0xFF1E293B);
+  Color get primaryBlue => MyApp.primaryColor;
+  Color get successGreen => MyApp.successColor;
+  Color get warningAmber => MyApp.warningColor;
+  Color get dangerRed => MyApp.errorColor;
+  Color get lightGray => MyApp.backgroundColor;
+  Color get mediumGray => MyApp.textSecondaryColor;
+  Color get darkGray => MyApp.textPrimaryColor;
 
   static const List<String> _hrKeys = [
     '1hr',
@@ -1324,30 +1333,19 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 110,
             pinned: true,
-            backgroundColor: primaryBlue,
+            backgroundColor: Colors.white,
             elevation: 0,
+            shape: Border(bottom: BorderSide(color: MyApp.borderColor)),
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+              icon: Icon(Icons.arrow_back_rounded, color: mediumGray),
               onPressed: () => Navigator.pop(context),
             ),
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text('Attendance History',
-                  style: GoogleFonts.nunito(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 20)),
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [primaryBlue, Color(0xFF6366F1)],
-                  ),
-                ),
-              ),
-            ),
+            title: Text('Attendance History',
+                style: GoogleFonts.nunito(
+                    color: darkGray,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20)),
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -1375,14 +1373,14 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                       _selHr, _hrOptions, (v) => setState(() => _selHr = v!)),
                   const SizedBox(height: 16),
                   _buildSummary(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Records',
                           style: GoogleFonts.nunito(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                               color: darkGray)),
                       Text('${sortedDates.length} days',
                           style: GoogleFonts.nunito(
@@ -1435,9 +1433,10 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withOpacity(0.01),
               blurRadius: 16,
               offset: const Offset(0, 4))
         ],
@@ -1452,7 +1451,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           },
           icon: const Icon(Icons.chevron_left_rounded),
           style: IconButton.styleFrom(
-              backgroundColor: primaryBlue.withOpacity(0.1),
+              backgroundColor: primaryBlue.withOpacity(0.08),
               foregroundColor: primaryBlue),
         ),
         Expanded(
@@ -1460,7 +1459,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
             child: Text(DateFormat('MMMM yyyy').format(_selMonth),
                 style: GoogleFonts.nunito(
                     fontSize: 16,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.bold,
                     color: darkGray)),
           ),
         ),
@@ -1472,7 +1471,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           },
           icon: const Icon(Icons.chevron_right_rounded),
           style: IconButton.styleFrom(
-              backgroundColor: primaryBlue.withOpacity(0.1),
+              backgroundColor: primaryBlue.withOpacity(0.08),
               foregroundColor: primaryBlue),
         ),
       ]),
@@ -1485,12 +1484,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2))
-        ],
+        border: Border.all(color: MyApp.borderColor),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: DropdownButtonHideUnderline(
@@ -1498,6 +1492,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           value: value,
           isExpanded: true,
           style: GoogleFonts.nunito(fontSize: 13, color: darkGray),
+          icon: Icon(Icons.arrow_drop_down_rounded, color: mediumGray),
           items: items
               .map((e) => DropdownMenuItem(
                   value: e,
@@ -1533,9 +1528,10 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withOpacity(0.01),
               blurRadius: 16,
               offset: const Offset(0, 4))
         ],
@@ -1561,7 +1557,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-            color: color.withOpacity(0.12), shape: BoxShape.circle),
+            color: color.withOpacity(0.08), shape: BoxShape.circle),
         child: Icon(icon, color: color, size: 18),
       ),
       const SizedBox(height: 6),
@@ -1570,7 +1566,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
               fontSize: 20, fontWeight: FontWeight.w900, color: color)),
       Text(label,
           style: GoogleFonts.nunito(
-              fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+              fontSize: 11, fontWeight: FontWeight.bold, color: color)),
       Text(pct,
           style: GoogleFonts.nunito(
               fontSize: 10,
@@ -1599,9 +1595,10 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyApp.borderColor),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withOpacity(0.01),
               blurRadius: 10,
               offset: const Offset(0, 2))
         ],
@@ -1618,7 +1615,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: primaryBlue.withOpacity(0.1),
+                  color: primaryBlue.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -1632,7 +1629,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                     Text(DateFormat('MMM').format(date),
                         style: GoogleFonts.nunito(
                             fontSize: 10,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.bold,
                             color: primaryBlue)),
                   ],
                 ),
@@ -1644,23 +1641,23 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                   children: [
                     Text(DateFormat('EEEE').format(date),
                         style: GoogleFonts.nunito(
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.bold,
                             fontSize: 14,
                             color: darkGray)),
                     const SizedBox(height: 6),
                     Row(children: [
                       _chip(
-                          '$p P', successGreen.withOpacity(0.15), successGreen),
+                          '$p P', successGreen.withOpacity(0.08), successGreen),
                       const SizedBox(width: 6),
-                      _chip('$a A', dangerRed.withOpacity(0.15), dangerRed),
+                      _chip('$a A', dangerRed.withOpacity(0.08), dangerRed),
                       const SizedBox(width: 6),
                       _chip(
-                          '$l L', warningAmber.withOpacity(0.15), warningAmber),
+                          '$l L', warningAmber.withOpacity(0.08), warningAmber),
                     ]),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: mediumGray),
+              Icon(Icons.chevron_right_rounded, color: mediumGray),
             ]),
           ),
         ),
@@ -1675,7 +1672,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
       child: Text(label,
           style: GoogleFonts.nunito(
-              fontSize: 11, fontWeight: FontWeight.w700, color: fg)),
+              fontSize: 11, fontWeight: FontWeight.bold, color: fg)),
     );
   }
 
@@ -1683,7 +1680,10 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: MyApp.borderColor)),
         child: Container(
           constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.75),
@@ -1697,7 +1697,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                   child: Text(DateFormat('EEEE, MMM d yyyy').format(date),
                       style: GoogleFonts.nunito(
                           fontSize: 16,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.bold,
                           color: darkGray)),
                 ),
                 IconButton(
@@ -1717,7 +1717,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                       leading: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: _statusColor(status).withOpacity(0.15),
+                          color: _statusColor(status).withOpacity(0.08),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(_statusIcon(status),
@@ -1725,7 +1725,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                       ),
                       title: Text(r['studentName'] ?? '',
                           style: GoogleFonts.nunito(
-                              fontWeight: FontWeight.w700, fontSize: 13)),
+                              fontWeight: FontWeight.bold, fontSize: 13, color: darkGray)),
                       subtitle: Text(
                         '${r['hr']} • ${r['class']}-${r['division']} • Roll ${r['rollNo']}',
                         style:
@@ -1735,14 +1735,15 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: _statusColor(status),
+                          color: _statusColor(status).withOpacity(0.08),
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: _statusColor(status).withOpacity(0.15)),
                         ),
                         child: Text(_cap(status),
                             style: GoogleFonts.nunito(
-                                color: Colors.white,
+                                color: _statusColor(status),
                                 fontSize: 11,
-                                fontWeight: FontWeight.w700)),
+                                fontWeight: FontWeight.bold)),
                       ),
                     );
                   },
@@ -1761,7 +1762,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   child: Text('Close',
-                      style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                      style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

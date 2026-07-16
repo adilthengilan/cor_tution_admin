@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:corona_lms_webapp/main.dart';
 
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({Key? key}) : super(key: key);
@@ -262,38 +263,29 @@ class _MessagesScreenState extends State<MessagesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: MyApp.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
+        shape: Border(bottom: BorderSide(color: MyApp.borderColor)),
+        title: Text(
           'Messages',
           style: TextStyle(
-            color: Colors.black,
+            color: MyApp.textPrimaryColor,
             fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.black),
-            onPressed: () {},
-          ),
-          const SizedBox(width: 8),
-          const CircleAvatar(
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=13'),
-          ),
-          const SizedBox(width: 16),
-        ],
       ),
       body: Row(
         children: [
           // Contacts list
           Container(
-            width: 300,
+            width: 320,
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border(
-                right: BorderSide(color: Colors.grey.shade300),
+                right: BorderSide(color: MyApp.borderColor),
               ),
             ),
             child: Column(
@@ -301,21 +293,30 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 // Search bar
                 Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (value) {
-                        setState(() {});
-                      },
-                      decoration: const InputDecoration(
-                        hintText: 'Search contacts...',
-                        prefixIcon: Icon(Icons.search),
-                        border: InputBorder.none,
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      setState(() {});
+                    },
+                    style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: 'Search contacts...',
+                      hintStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 13),
+                      prefixIcon: Icon(Icons.search, color: MyApp.textSecondaryColor, size: 18),
+                      fillColor: MyApp.backgroundColor,
+                      filled: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: MyApp.borderColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: MyApp.primaryColor),
                       ),
                     ),
                   ),
@@ -340,14 +341,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? const Color(0xFF3B82F6).withOpacity(0.1)
+                                ? MyApp.primaryColor.withOpacity(0.08)
                                 : Colors.transparent,
                             border: Border(
                               left: BorderSide(
                                 color: isSelected
-                                    ? const Color(0xFF3B82F6)
+                                    ? MyApp.primaryColor
                                     : Colors.transparent,
-                                width: 4,
+                                width: 3,
                               ),
                             ),
                           ),
@@ -356,7 +357,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               Stack(
                                 children: [
                                   CircleAvatar(
-                                    radius: 24,
+                                    radius: 20,
                                     backgroundImage:
                                         NetworkImage(contact['avatar']),
                                   ),
@@ -365,14 +366,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                       right: 0,
                                       bottom: 0,
                                       child: Container(
-                                        width: 12,
-                                        height: 12,
+                                        width: 10,
+                                        height: 10,
                                         decoration: BoxDecoration(
-                                          color: Colors.green,
+                                          color: MyApp.successColor,
                                           shape: BoxShape.circle,
                                           border: Border.all(
                                             color: Colors.white,
-                                            width: 2,
+                                            width: 1.5,
                                           ),
                                         ),
                                       ),
@@ -386,17 +387,18 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                   children: [
                                     Text(
                                       contact['name'],
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                        fontSize: 14,
+                                        color: MyApp.textPrimaryColor,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: 2),
                                     Text(
                                       contact['role'],
                                       style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 12,
+                                        color: MyApp.textSecondaryColor,
+                                        fontSize: 11,
                                       ),
                                     ),
                                   ],
@@ -411,9 +413,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                         : contact['lastSeen'],
                                     style: TextStyle(
                                       color: contact['status'] == 'online'
-                                          ? Colors.green
-                                          : Colors.grey,
-                                      fontSize: 12,
+                                          ? MyApp.successColor
+                                          : MyApp.textSecondaryColor,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -422,14 +425,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF3B82F6),
+                                        color: MyApp.primaryColor,
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Text(
                                         contact['unread'].toString(),
                                         style: const TextStyle(
                                           color: Colors.white,
-                                          fontSize: 12,
+                                          fontSize: 10,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -457,13 +460,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border(
-                      bottom: BorderSide(color: Colors.grey.shade300),
+                      bottom: BorderSide(color: MyApp.borderColor),
                     ),
                   ),
                   child: Row(
                     children: [
                       CircleAvatar(
-                        radius: 20,
+                        radius: 18,
                         backgroundImage: NetworkImage(
                             _contacts[_selectedContactIndex]['avatar']),
                       ),
@@ -473,12 +476,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         children: [
                           Text(
                             _contacts[_selectedContactIndex]['name'],
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: 15,
+                              color: MyApp.textPrimaryColor,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
                             _contacts[_selectedContactIndex]['status'] ==
                                     'online'
@@ -488,24 +492,20 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               color: _contacts[_selectedContactIndex]
                                           ['status'] ==
                                       'online'
-                                  ? Colors.green
-                                  : Colors.grey,
-                              fontSize: 12,
+                                  ? MyApp.successColor
+                                  : MyApp.textSecondaryColor,
+                              fontSize: 11,
                             ),
                           ),
                         ],
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(Icons.phone),
+                        icon: Icon(Icons.phone_outlined, color: MyApp.textSecondaryColor, size: 20),
                         onPressed: () {},
                       ),
                       IconButton(
-                        icon: const Icon(Icons.videocam),
-                        onPressed: () {},
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.more_vert),
+                        icon: Icon(Icons.videocam_outlined, color: MyApp.textSecondaryColor, size: 20),
                         onPressed: () {},
                       ),
                     ],
@@ -516,9 +516,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 Expanded(
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                    ),
+                    color: MyApp.backgroundColor,
                     child: ListView.builder(
                       reverse: true,
                       itemCount: _conversations[_selectedContactIndex].length,
@@ -541,7 +539,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             children: [
                               if (!isMe) ...[
                                 CircleAvatar(
-                                  radius: 16,
+                                  radius: 14,
                                   backgroundImage: NetworkImage(
                                       _contacts[_selectedContactIndex]
                                           ['avatar']),
@@ -551,14 +549,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               Container(
                                 constraints: BoxConstraints(
                                   maxWidth:
-                                      MediaQuery.of(context).size.width * 0.5,
+                                      MediaQuery.of(context).size.width * 0.45,
                                 ),
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: isMe
-                                      ? const Color(0xFF3B82F6)
+                                      ? MyApp.primaryColor
                                       : Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: isMe ? null : Border.all(color: MyApp.borderColor),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -566,8 +565,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                     Text(
                                       message['message'],
                                       style: TextStyle(
-                                        color:
-                                            isMe ? Colors.white : Colors.black,
+                                        color: isMe ? Colors.white : MyApp.textPrimaryColor,
+                                        fontSize: 13,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -576,8 +575,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                       style: TextStyle(
                                         color: isMe
                                             ? Colors.white.withOpacity(0.7)
-                                            : Colors.grey,
-                                        fontSize: 10,
+                                            : MyApp.textSecondaryColor,
+                                        fontSize: 9,
                                       ),
                                     ),
                                   ],
@@ -586,7 +585,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               if (isMe) ...[
                                 const SizedBox(width: 8),
                                 const CircleAvatar(
-                                  radius: 16,
+                                  radius: 14,
                                   backgroundImage: NetworkImage(
                                       'https://i.pravatar.cc/150?img=13'),
                                 ),
@@ -605,41 +604,47 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border(
-                      top: BorderSide(color: Colors.grey.shade300),
+                      top: BorderSide(color: MyApp.borderColor),
                     ),
                   ),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.attach_file),
-                        onPressed: () {},
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.emoji_emotions),
+                        icon: Icon(Icons.attach_file, color: MyApp.textSecondaryColor),
                         onPressed: () {},
                       ),
                       Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          child: TextField(
-                            controller: _messageController,
-                            decoration: const InputDecoration(
-                              hintText: 'Type a message...',
-                              border: InputBorder.none,
+                        child: TextField(
+                          controller: _messageController,
+                          style: TextStyle(color: MyApp.textPrimaryColor, fontSize: 13),
+                          decoration: InputDecoration(
+                            hintText: 'Type a message...',
+                            hintStyle: TextStyle(color: MyApp.textSecondaryColor, fontSize: 13),
+                            fillColor: MyApp.backgroundColor,
+                            filled: true,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide(color: MyApp.borderColor),
                             ),
-                            onSubmitted: (_) => _sendMessage(),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide(color: MyApp.borderColor),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide(color: MyApp.primaryColor),
+                            ),
                           ),
+                          onSubmitted: (_) => _sendMessage(),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       CircleAvatar(
-                        backgroundColor: const Color(0xFF3B82F6),
+                        radius: 20,
+                        backgroundColor: MyApp.primaryColor,
                         child: IconButton(
-                          icon: const Icon(Icons.send, color: Colors.white),
+                          icon: const Icon(Icons.send, color: Colors.white, size: 16),
                           onPressed: _sendMessage,
                         ),
                       ),
